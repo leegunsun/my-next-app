@@ -1,26 +1,198 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Linear Design System Colors using @theme directive */
+  --color-primary: rgb(94, 106, 210);
+  --color-primary-foreground: rgb(255, 255, 255);
+  
+  --color-background: rgb(8, 9, 10);
+  --color-background-secondary: rgb(15, 16, 17);
+  --color-background-tertiary: rgb(20, 21, 22);
+  --color-background-card: rgb(40, 40, 44);
+  
+  --color-foreground: rgb(247, 248, 248);
+  --color-foreground-secondary: rgb(138, 143, 152);
+  --color-foreground-muted: rgb(98, 102, 109);
+  
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-secondary: rgba(255, 255, 255, 0.05);
+  --color-border-tertiary: rgb(62, 62, 68);
+  --color-border-card: rgba(255, 255, 255, 0.1);
+  
+  --color-overlay-backdrop: rgba(10, 10, 10, 0.8);
+  --color-overlay-card: rgba(40, 40, 40, 0.2);
+  --color-overlay-hover: rgba(255, 255, 255, 0.05);
+  
+  --color-accent-success: rgb(104, 204, 88);
+  --color-accent-warning: rgb(242, 153, 74);
+  --color-accent-error: rgb(197, 40, 40);
+  --color-accent-info: rgb(2, 184, 204);
+  --color-accent-purple: rgb(181, 154, 255);
+  
+  /* Legacy support colors */
+  --color-card: rgb(15, 16, 17);
+  --color-card-foreground: rgb(247, 248, 248);
+  --color-popover: rgb(20, 21, 22);
+  --color-popover-foreground: rgb(247, 248, 248);
+  --color-secondary: rgb(40, 40, 44);
+  --color-secondary-foreground: rgb(247, 248, 248);
+  --color-muted: rgb(98, 102, 109);
+  --color-muted-foreground: rgb(138, 143, 152);
+  --color-destructive: rgb(197, 40, 40);
+  --color-destructive-foreground: rgb(255, 255, 255);
+  --color-input: rgb(40, 40, 44);
+  --color-ring: rgb(94, 106, 210);
+  
+  /* Transitions */
+  --transition-colors: color 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-all: border 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.16s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-inter);
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-inter);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-weight: 400;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-inter);
+    font-weight: 510;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  
+  h1 {
+    font-size: 64px;
+    font-weight: 510;
+    line-height: 67.84px;
+    letter-spacing: -1.408px;
+  }
+  
+  h2 {
+    font-size: 56px;
+    font-weight: 538;
+    line-height: 61.6px;
+    letter-spacing: -1.82px;
+  }
+  
+  h3 {
+    font-size: 21px;
+    font-weight: 510;
+    line-height: 28px;
+    letter-spacing: -0.37px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Linear Design System Button Utilities */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-all;
+    @apply hover:opacity-90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground px-4 py-2 rounded-md text-sm font-medium border border-border transition-all;
+    @apply hover:bg-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent text-muted-foreground px-3 py-2 rounded-md text-xs font-medium transition-all;
+    @apply hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  /* Linear Card Utilities */
+  .card-primary {
+    @apply bg-card rounded-3xl p-8 border-none shadow-sm;
+  }
+  
+  .card-notification {
+    @apply bg-card/20 rounded-xl p-4 border border-border backdrop-blur-sm;
+  }
+  
+  .card-elevated {
+    @apply bg-popover rounded-3xl p-8 shadow-lg;
+  }
+  
+  /* Linear Typography Utilities */
+  .text-gradient-fade {
+    background: linear-gradient(to right, rgb(247, 248, 248), rgba(0, 0, 0, 0) 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Linear Focus Ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+}
+
+/* Linear Design System Animations */
+@keyframes linear-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes linear-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes linear-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scroll animations with Linear easing */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.24s cubic-bezier(0.85, 0, 0.15, 1), transform 0.24s cubic-bezier(0.85, 0, 0.15, 1);
+  }
+  
+  .animate-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
