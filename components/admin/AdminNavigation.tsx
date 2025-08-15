@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useAdminStats } from '../../hooks/useAdminStats'
 
 interface AdminNavigationProps {
   variant?: 'sidebar' | 'floating' | 'breadcrumb'
@@ -48,6 +49,7 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
 }) => {
   const { user, isMaster } = useAuth()
   const pathname = usePathname()
+  const { stats } = useAdminStats()
 
   // Don't render if user is not a master
   if (!user || !isMaster) {
@@ -203,14 +205,48 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="text-center">
-              <div className="font-semibold text-primary">12</div>
+              <div className="font-semibold text-primary">
+                {stats.loading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-current border-t-transparent rounded-full mx-auto"
+                  />
+                ) : stats.error ? (
+                  '-'
+                ) : (
+                  stats.totalPosts
+                )}
+              </div>
               <div className="text-foreground-muted">게시물</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-accent-info">5</div>
+              <div className="font-semibold text-accent-info">
+                {stats.loading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-current border-t-transparent rounded-full mx-auto"
+                  />
+                ) : stats.error ? (
+                  '-'
+                ) : (
+                  stats.totalMessages
+                )}
+              </div>
               <div className="text-foreground-muted">메시지</div>
             </div>
           </div>
+          {stats.error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+              className="mt-3 text-xs text-accent-error bg-accent-error/10 p-2 rounded border border-accent-error/20"
+            >
+              통계 로딩 실패: {stats.error}
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Back to Site */}
