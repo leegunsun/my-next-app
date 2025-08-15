@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy:indexes": "firebase deploy --only firestore:indexes",
+    "fix:indexes": "node scripts/deploy-firestore-indexes.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",

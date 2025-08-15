@@ -237,8 +237,21 @@ export const getPostsByCategory = async (category: string) => {
       
       console.log(`✅ Found ${posts.length} posts for category "${category}"`)
       return { posts, error: null }
-    } catch (indexError) {
-      console.log('⚠️ Index query failed, falling back to in-memory filtering:', indexError)
+    } catch (indexError: any) {
+      // Check if it's specifically an index error
+      if (indexError?.code === 'failed-precondition' && indexError?.message?.includes('index')) {
+        console.warn('⚠️ Firestore composite index not deployed. Using fallback method.')
+        console.warn('📝 To fix this, run: firebase deploy --only firestore:indexes')
+        console.warn('🔗 Or click the link in the error message to create the index in Firebase Console')
+        
+        // Extract and log the index creation URL if available
+        const indexUrlMatch = indexError.message.match(/https:\/\/console\.firebase\.google\.com[^\s]+/)
+        if (indexUrlMatch) {
+          console.warn(`🔗 Direct link to create index: ${indexUrlMatch[0]}`)
+        }
+      } else {
+        console.log('⚠️ Query failed, falling back to in-memory filtering:', indexError)
+      }
       
       // Fallback: Get all published posts and filter in memory
       const allDocsQuery = query(
