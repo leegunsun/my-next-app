@@ -1,34 +1,33 @@
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
-const cardVariants = cva(
-  "transition-all duration-normal ease-linear-ease",
-  {
-    variants: {
-      variant: {
-        default: "bg-card text-card-foreground border border-border rounded-lg shadow-sm",
-        primary: "bg-background-secondary rounded-3xl border-none shadow-sm",
-        notification: "bg-overlay-card rounded-xl border border-border-card backdrop-blur-sm",
-        elevated: "bg-background-tertiary rounded-3xl shadow-lg border-none",
-        glass: "bg-gradient-glass backdrop-blur-sm rounded-xl border border-border-card",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+const cardVariants = {
+  base: "transition-all duration-normal ease-linear-ease",
+  variants: {
+    default: "bg-card text-card-foreground border border-border rounded-lg shadow-sm",
+    primary: "bg-background-secondary rounded-3xl border-none shadow-sm",
+    notification: "bg-overlay-card rounded-xl border border-border-card backdrop-blur-sm",
+    elevated: "bg-background-tertiary rounded-3xl shadow-lg border-none",
+    glass: "bg-gradient-glass backdrop-blur-sm rounded-xl border border-border-card",
+  },
+}
 
-export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+function getCardClasses(variant: keyof typeof cardVariants.variants = "default", className?: string) {
+  const baseClasses = cardVariants.base
+  const variantClasses = cardVariants.variants[variant] || cardVariants.variants.default
+  
+  return cn(baseClasses, variantClasses, className)
+}
+
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "primary" | "notification" | "elevated" | "glass"
+}
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant, ...props }, ref) => (
+  ({ className, variant = "default", ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(cardVariants({ variant, className }))}
+      className={getCardClasses(variant, className)}
       {...props}
     />
   )
