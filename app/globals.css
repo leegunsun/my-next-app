@@ -174,6 +174,59 @@
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
   
+  /* Hero Background Effects */
+  .hero-gradient-bg {
+    background: radial-gradient(600px circle at 50% 50%, 
+      rgba(90, 169, 255, 0.15) 0%, 
+      rgba(196, 167, 245, 0.1) 50%, 
+      transparent 100%);
+  }
+  
+  .hero-gradient-orb {
+    background: radial-gradient(circle, 
+      rgba(90, 169, 255, 0.8) 0%, 
+      rgba(90, 169, 255, 0.4) 50%, 
+      rgba(90, 169, 255, 0.1) 100%);
+    filter: blur(40px);
+    animation: gradient-shift 20s ease-in-out infinite;
+  }
+  
+  .hero-gradient-orb-secondary {
+    background: radial-gradient(circle, 
+      rgba(196, 167, 245, 0.6) 0%, 
+      rgba(196, 167, 245, 0.3) 50%, 
+      rgba(196, 167, 245, 0.1) 100%);
+    filter: blur(60px);
+    animation: gradient-pulse 15s ease-in-out infinite reverse;
+  }
+  
+  .hero-gradient-orb-accent {
+    background: radial-gradient(circle, 
+      rgba(88, 195, 169, 0.4) 0%, 
+      rgba(108, 210, 143, 0.2) 50%, 
+      transparent 100%);
+    filter: blur(30px);
+    animation: gradient-shift 25s ease-in-out infinite 5s;
+  }
+  
+  .floating-element {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+  
+  .floating-element-reverse {
+    animation: float-reverse 8s ease-in-out infinite;
+  }
+  
+  .sparkle-effect {
+    animation: sparkle 4s ease-in-out infinite;
+  }
+  
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
   /* Screen Reader Only */
   .sr-only {
     position: absolute;
@@ -228,6 +281,59 @@
     transform: scale(0.95);
   }
   to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hero Background Animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(30px, -30px, 0) scale(1.1);
+  }
+  66% {
+    transform: translate3d(-20px, 20px, 0) scale(0.9);
+  }
+}
+
+@keyframes gradient-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(1deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, 8px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
     opacity: 1;
     transform: scale(1);
   }

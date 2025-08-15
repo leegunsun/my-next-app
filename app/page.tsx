@@ -230,19 +230,52 @@ class NotificationHandler : TextWebSocketHandler() {
       <main id="main-content">
         {/* Hero Section */}
         <section id="hero" className="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden" aria-label="소개">
-        {/* Background Animation */}
-        <div className="absolute inset-0 -z-10">
+        {/* Enhanced Background Animation */}
+        <div className="absolute inset-0 hero-gradient-bg">
+          {/* Left side gradient orb */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.15, scale: 1 }}
+            transition={{ duration: 3, ease: "easeOut" }}
+            className="absolute top-1/2 left-10 transform -translate-y-1/2 w-[500px] h-[400px] hero-gradient-orb rounded-full"
+          />
+          
+          {/* Right side gradient orb */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 0.12, scale: 1 }}
+            transition={{ duration: 3, delay: 0.5, ease: "easeOut" }}
+            className="absolute top-1/2 right-10 transform -translate-y-1/2 w-[450px] h-[350px] hero-gradient-orb-secondary rounded-full"
+          />
+          
+          {/* Center accent gradient orb */}
+          <motion.div
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 0.08, scale: 1 }}
+            transition={{ duration: 3, delay: 1, ease: "easeOut" }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[250px] hero-gradient-orb-accent rounded-full"
+          />
+          
+          {/* Subtle sparkle elements */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.03 }}
-            transition={{ duration: 2 }}
-            className="absolute top-20 left-10 w-72 h-72 bg-primary rounded-full blur-3xl"
+            animate={{ opacity: 0.3 }}
+            transition={{ duration: 2, delay: 1.5 }}
+            className="absolute top-1/4 right-1/3 w-1 h-1 bg-primary rounded-full sparkle-effect"
           />
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.02 }}
-            transition={{ duration: 2, delay: 0.5 }}
-            className="absolute bottom-20 right-10 w-96 h-96 bg-accent-purple rounded-full blur-3xl"
+            animate={{ opacity: 0.25 }}
+            transition={{ duration: 2, delay: 2 }}
+            className="absolute bottom-1/3 left-1/5 w-0.5 h-0.5 bg-accent-purple rounded-full sparkle-effect"
+            style={{animationDelay: '2s'}}
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.35 }}
+            transition={{ duration: 2, delay: 2.5 }}
+            className="absolute top-2/3 right-1/5 w-1 h-1 bg-accent-blend rounded-full sparkle-effect"
+            style={{animationDelay: '4s'}}
           />
         </div>
 
@@ -257,7 +290,7 @@ class NotificationHandler : TextWebSocketHandler() {
                 delay: 0.2,
                 ease: [0.25, 0.46, 0.45, 0.94] 
               }}
-              className="w-32 h-32 bg-background-secondary rounded-full mx-auto mb-8 flex items-center justify-center shadow-lg border border-border"
+              className="w-32 h-32 bg-background-secondary rounded-full mx-auto mb-8 flex items-center justify-center shadow-lg border border-border floating-element relative"
             >
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
@@ -267,6 +300,28 @@ class NotificationHandler : TextWebSocketHandler() {
                 aria-label="개발자 프로필 이미지"
               >
                 <span className="text-2xl font-bold text-white" aria-hidden="true">Dev</span>
+              </motion.div>
+              
+              {/* Glass overlay effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 rounded-full"></div>
+              
+              {/* Floating tech icons around profile */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 0.8, scale: 1 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
+                className="absolute -top-2 -right-2 w-8 h-8 glass-effect rounded-full flex items-center justify-center floating-element-reverse shadow-md"
+              >
+                <span className="text-lg">🚀</span>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 0.7, scale: 1 }}
+                transition={{ duration: 0.6, delay: 1.4 }}
+                className="absolute -bottom-2 -left-2 w-10 h-10 glass-effect rounded-full flex items-center justify-center floating-element shadow-md"
+              >
+                <span className="text-xl">💻</span>
               </motion.div>
             </motion.div>
             
@@ -327,30 +382,30 @@ class NotificationHandler : TextWebSocketHandler() {
               className="flex items-center justify-center gap-4 mt-8"
             >
               <motion.a
-                whileHover={{ scale: 1.1, y: -3 }}
+                whileHover={{ scale: 1.1 }}
                 href="https://github.com/leegunsun"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackButtonClick('github_hero', 'social_links')}
-                className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
+                className="w-12 h-12 glass-effect hover:bg-primary/10 rounded-full flex items-center justify-center transition-all shadow-lg border border-border group"
               >
-                <Github size={18} />
+                <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </motion.a>
               <motion.a
-                whileHover={{ scale: 1.1, y: -3 }}
+                whileHover={{ scale: 1.1 }}
                 href="#"
                 onClick={() => trackButtonClick('linkedin_hero', 'social_links')}
-                className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
+                className="w-12 h-12 glass-effect hover:bg-accent-purple/10 rounded-full flex items-center justify-center transition-all shadow-lg border border-border group"
               >
-                <Linkedin size={18} />
+                <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </motion.a>
               <motion.a
-                whileHover={{ scale: 1.1, y: -3 }}
+                whileHover={{ scale: 1.1 }}
                 href="#"
                 onClick={() => trackButtonClick('external_link_hero', 'social_links')}
-                className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
+                className="w-12 h-12 glass-effect hover:bg-accent-blend/10 rounded-full flex items-center justify-center transition-all shadow-lg border border-border group"
               >
-                <ExternalLink size={18} />
+                <ExternalLink size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </motion.a>
             </motion.div>
 
