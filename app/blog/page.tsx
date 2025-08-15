@@ -9,6 +9,7 @@ import AnimatedSection from '../../components/AnimatedSection'
 import BlogPostCard from '../../components/blog/BlogPostCard'
 import BlogHeader from '../../components/blog/BlogHeader'
 import BlogFilters from '../../components/blog/BlogFilters'
+import { LoginButton } from '../../components/auth/LoginButton'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 import Link from 'next/link'
 
@@ -114,6 +115,7 @@ export default function BlogPage() {
                 </motion.button>
               </Link>
             )}
+            <LoginButton variant="minimal" />
           </div>
         </div>
       </nav>

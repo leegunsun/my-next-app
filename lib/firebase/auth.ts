@@ -3,6 +3,7 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User
@@ -60,6 +61,16 @@ export const isMasterUser = (user: User | null): boolean => {
   if (!user?.email) return false
   const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL
   return user.email === masterEmail
+}
+
+// Sign in anonymously
+export const signInAnonymous = async () => {
+  try {
+    const result = await signInAnonymously(auth)
+    return { user: result.user, error: null }
+  } catch (error: any) {
+    return { user: null, error: error.message }
+  }
 }
 
 // Auth state observer

@@ -3,8 +3,9 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, User, LogOut } from 'lucide-react'
-import { signInWithGoogle, signOut } from '../../lib/firebase/auth'
+import { signOut } from '../../lib/firebase/auth'
 import { useAuth } from '../../contexts/AuthContext'
+import { AuthModal } from './AuthModal'
 
 interface LoginButtonProps {
   variant?: 'default' | 'minimal'
@@ -16,17 +17,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
   showUserInfo = true 
 }) => {
   const { user, loading, isMaster } = useAuth()
-  const [isSigningIn, setIsSigningIn] = useState(false)
-
-  const handleSignIn = async () => {
-    setIsSigningIn(true)
-    const { error } = await signInWithGoogle()
-    if (error) {
-      console.error('Sign in error:', error)
-      // You could add toast notification here
-    }
-    setIsSigningIn(false)
-  }
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   const handleSignOut = async () => {
     const { error } = await signOut()
@@ -107,35 +98,27 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
   }
 
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={handleSignIn}
-      disabled={isSigningIn}
-      className={`
-        flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all
-        ${variant === 'minimal' 
-          ? 'bg-background-secondary hover:bg-background-tertiary text-foreground' 
-          : 'bg-accent-blend text-primary-foreground hover:opacity-90'
-        }
-        ${isSigningIn ? 'opacity-70 cursor-not-allowed' : ''}
-      `}
-    >
-      {isSigningIn ? (
-        <>
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
-          />
-          Signing in...
-        </>
-      ) : (
-        <>
-          <LogIn size={16} />
-          Sign In
-        </>
-      )}
-    </motion.button>
+    <>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowAuthModal(true)}
+        className={`
+          flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all
+          ${variant === 'minimal' 
+            ? 'bg-background-secondary hover:bg-background-tertiary text-foreground' 
+            : 'bg-accent-blend text-primary-foreground hover:opacity-90'
+          }
+        `}
+      >
+        <LogIn size={16} />
+        Sign In
+      </motion.button>
+      
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
+    </>
   )
 }
