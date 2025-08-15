@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import JsonLd from "@/components/JsonLd";
+import DevGateLayout from "./dev-gate/DevGateLayout";
 import "./globals.css";
 
 
@@ -84,7 +85,9 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AnalyticsProvider>
-              {children}
+              <DevGateLayout>
+                {children}
+              </DevGateLayout>
             </AnalyticsProvider>
           </AuthProvider>
         </ThemeProvider>
