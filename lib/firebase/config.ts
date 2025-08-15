@@ -13,6 +13,17 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
+// Debug Firebase configuration
+console.log('🔧 Firebase Config Check:', {
+  hasApiKey: !!firebaseConfig.apiKey,
+  hasAuthDomain: !!firebaseConfig.authDomain,
+  hasProjectId: !!firebaseConfig.projectId,
+  projectId: firebaseConfig.projectId, // Show actual project ID for debugging
+  hasStorageBucket: !!firebaseConfig.storageBucket,
+  hasMessagingSenderId: !!firebaseConfig.messagingSenderId,
+  hasAppId: !!firebaseConfig.appId
+})
+
 // Initialize Firebase only if it hasn't been initialized already
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 

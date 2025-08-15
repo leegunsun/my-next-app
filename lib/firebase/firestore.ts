@@ -100,39 +100,44 @@ export const getPublishedPosts = async (
   lastDoc?: QueryDocumentSnapshot<DocumentData>
 ) => {
   try {
-    let q = query(
-      collection(db, POSTS_COLLECTION),
-      where('status', '==', 'published'),
-      orderBy('createdAt', 'desc'),
-      limit(pageSize)
-    )
+    console.log('🔍 getPublishedPosts called with pageSize:', pageSize)
     
-    if (lastDoc) {
-      q = query(
-        collection(db, POSTS_COLLECTION),
-        where('status', '==', 'published'),
-        orderBy('createdAt', 'desc'),
-        startAfter(lastDoc),
-        limit(pageSize)
-      )
-    }
+    // First, try a simple query to get all documents and filter in memory
+    // This avoids potential index issues
+    const allDocsQuery = query(collection(db, POSTS_COLLECTION))
+    const allDocsSnapshot = await getDocs(allDocsQuery)
     
-    const querySnapshot = await getDocs(q)
-    const posts: BlogPost[] = []
-    let lastVisible: QueryDocumentSnapshot<DocumentData> | null = null
+    console.log('📊 Total documents found:', allDocsSnapshot.size)
     
-    querySnapshot.forEach((doc) => {
-      posts.push({ id: doc.id, ...doc.data() } as BlogPost)
-      lastVisible = doc
+    const allPosts: BlogPost[] = []
+    allDocsSnapshot.forEach((doc) => {
+      const data = doc.data()
+      console.log(`📄 Document ${doc.id} status:`, data.status)
+      allPosts.push({ id: doc.id, ...data } as BlogPost)
     })
     
+    // Filter published posts in memory
+    const publishedPosts = allPosts
+      .filter(post => post.status === 'published')
+      .sort((a, b) => {
+        // Sort by createdAt desc
+        const aTime = a.createdAt?.toMillis?.() || 0
+        const bTime = b.createdAt?.toMillis?.() || 0
+        return bTime - aTime
+      })
+      .slice(0, pageSize)
+    
+    console.log('✅ Published posts found:', publishedPosts.length)
+    console.log('📝 Published posts:', publishedPosts.map(p => ({ id: p.id, title: p.title, status: p.status })))
+    
     return { 
-      posts, 
-      lastDoc: lastVisible, 
-      hasMore: posts.length === pageSize,
+      posts: publishedPosts, 
+      lastDoc: null, // Simplified for debugging
+      hasMore: false, // Simplified for debugging
       error: null 
     }
   } catch (error: unknown) {
+    console.error('❌ getPublishedPosts error:', error)
     return { posts: [], lastDoc: null, hasMore: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
@@ -235,4 +240,39 @@ export const calculateReadTime = (content: string): number => {
   const wordsPerMinute = 200
   const words = content.trim().split(/\s+/).length
   return Math.ceil(words / wordsPerMinute)
+}
+
+// Debug function to check raw collection data
+export const debugCollection = async () => {
+  try {
+    console.log('🔍 Debugging collection directly...')
+    
+    // Get all documents without any filters first
+    const allDocsSnapshot = await getDocs(collection(db, POSTS_COLLECTION))
+    console.log(`Total documents in collection: ${allDocsSnapshot.size}`)
+    
+    allDocsSnapshot.forEach((doc) => {
+      console.log(`Document ${doc.id}:`, doc.data())
+    })
+    
+    // Then try the published query
+    const publishedQuery = query(
+      collection(db, POSTS_COLLECTION),
+      where('status', '==', 'published')
+    )
+    const publishedSnapshot = await getDocs(publishedQuery)
+    console.log(`Published documents: ${publishedSnapshot.size}`)
+    
+    publishedSnapshot.forEach((doc) => {
+      console.log(`Published doc ${doc.id}:`, doc.data())
+    })
+    
+    return {
+      totalDocs: allDocsSnapshot.size,
+      publishedDocs: publishedSnapshot.size
+    }
+  } catch (error) {
+    console.error('Debug error:', error)
+    return { totalDocs: 0, publishedDocs: 0, error }
+  }
 }

@@ -21,6 +21,9 @@ export default function BlogPage() {
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [cachedPosts, setCachedPosts] = useState<{[key: string]: BlogPost[]}>({})
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [loadingCategory, setLoadingCategory] = useState<string | null>(null)
 
   // Categories for filtering
   const categories = [
@@ -37,9 +40,24 @@ export default function BlogPage() {
     loadPosts()
   }, [])
 
-  const loadPosts = async () => {
+  const loadPosts = async (forceReload = false) => {
+    // Check cache first for 'all' category
+    if (!forceReload && cachedPosts['all'] && cachedPosts['all'].length > 0) {
+      setPosts(cachedPosts['all'])
+      setLoading(false)
+      return
+    }
+    
     setLoading(true)
-    const { posts: newPosts, lastDoc: newLastDoc, hasMore: newHasMore } = await getPublishedPosts(6)
+    
+    const { posts: newPosts, lastDoc: newLastDoc, hasMore: newHasMore, error } = await getPublishedPosts(6)
+    
+    if (error) {
+      console.error('❌ Error loading published posts:', error)
+    }
+    
+    // Cache the results
+    setCachedPosts(prev => ({ ...prev, 'all': newPosts }))
     setPosts(newPosts)
     setLastDoc(newLastDoc)
     setHasMore(newHasMore)
@@ -71,17 +89,47 @@ export default function BlogPage() {
   }
 
   const handleCategoryFilter = async (categoryId: string) => {
-    setSelectedCategory(categoryId)
-    setLoading(true)
+    // If clicking the same category, do nothing
+    if (selectedCategory === categoryId) return
     
-    if (categoryId === 'all') {
-      loadPosts()
-    } else {
-      const { posts: filteredPosts } = await getPostsByCategory(categoryId)
-      setPosts(filteredPosts)
+    setSelectedCategory(categoryId)
+    
+    // Check if we have cached data for this category
+    if (cachedPosts[categoryId] && cachedPosts[categoryId].length > 0) {
+      setPosts(cachedPosts[categoryId])
       setHasMore(false)
+      return
     }
-    setLoading(false)
+    
+    // If no cached data, show transition state instead of full loading
+    setIsTransitioning(true)
+    setLoadingCategory(categoryId)
+    
+    try {
+      if (categoryId === 'all') {
+        const { posts: newPosts, lastDoc: newLastDoc, hasMore: newHasMore, error } = await getPublishedPosts(6)
+        
+        if (!error) {
+          setCachedPosts(prev => ({ ...prev, [categoryId]: newPosts }))
+          setPosts(newPosts)
+          setLastDoc(newLastDoc)
+          setHasMore(newHasMore)
+        }
+      } else {
+        const { posts: filteredPosts, error } = await getPostsByCategory(categoryId)
+        
+        if (!error) {
+          setCachedPosts(prev => ({ ...prev, [categoryId]: filteredPosts }))
+          setPosts(filteredPosts)
+          setHasMore(false)
+        }
+      }
+    } catch (error) {
+      console.error('Category filter error:', error)
+    } finally {
+      setIsTransitioning(false)
+      setLoadingCategory(null)
+    }
   }
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,14 +198,23 @@ export default function BlogPage() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleCategoryFilter(category.id)}
+                      disabled={isTransitioning}
                       className={`
-                        px-4 py-2 rounded-full text-sm font-medium transition-all
+                        px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2
                         ${selectedCategory === category.id
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-background hover:bg-background-tertiary text-foreground-secondary hover:text-foreground'
                         }
+                        ${isTransitioning ? 'opacity-70 cursor-not-allowed' : ''}
                       `}
                     >
+                      {loadingCategory === category.id && (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-3 h-3 border border-current border-t-transparent rounded-full"
+                        />
+                      )}
                       {category.name}
                     </motion.button>
                   ))}
@@ -170,7 +227,7 @@ export default function BlogPage() {
         {/* Posts Grid */}
         <section className="py-12">
           <div className="container mx-auto px-6">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-6xl mx-auto relative">
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {[...Array(6)].map((_, i) => (
@@ -183,13 +240,35 @@ export default function BlogPage() {
                 <>
                   <motion.div 
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    animate={{ opacity: isTransitioning ? 0.6 : 1 }}
+                    transition={{ duration: 0.2 }}
+                    className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${
+                      isTransitioning ? 'pointer-events-none' : ''
+                    }`}
                   >
                     {posts.map((post, index) => (
                       <BlogPostCard key={post.id} post={post} delay={index * 0.1} />
                     ))}
                   </motion.div>
+                  
+                  {/* Transition Loading Overlay */}
+                  {isTransitioning && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-2 px-4 py-2 bg-background-card rounded-lg border border-border shadow-lg">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full"
+                        />
+                        <span className="text-sm text-foreground-secondary">카테고리 로딩 중...</span>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {/* Load More Button */}
                   {hasMore && (
