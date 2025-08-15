@@ -1,6 +1,6 @@
 {
   "short_name": "Dev Portfolio",
-  "name": "개발자 포트폴리오 | Flutter & Spring Boot 전문 개발자",
+  "name": "개발자 포트폴리오 | Flutter & Spring Boot 개발자",
   "description": "사용자의 문제를 구조적으로 해결하는 Flutter & Spring Boot 개발자 포트폴리오",
   "start_url": "/",
   "display": "standalone",

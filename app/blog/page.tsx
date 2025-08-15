@@ -198,14 +198,12 @@ export default function BlogPage() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleCategoryFilter(category.id)}
-                      disabled={isTransitioning}
                       className={`
                         px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2
                         ${selectedCategory === category.id
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-background hover:bg-background-tertiary text-foreground-secondary hover:text-foreground'
                         }
-                        ${isTransitioning ? 'opacity-70 cursor-not-allowed' : ''}
                       `}
                     >
                       {loadingCategory === category.id && (
@@ -240,35 +238,14 @@ export default function BlogPage() {
                 <>
                   <motion.div 
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: isTransitioning ? 0.6 : 1 }}
-                    transition={{ duration: 0.2 }}
-                    className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${
-                      isTransitioning ? 'pointer-events-none' : ''
-                    }`}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                   >
                     {posts.map((post, index) => (
                       <BlogPostCard key={post.id} post={post} delay={index * 0.1} />
                     ))}
                   </motion.div>
-                  
-                  {/* Transition Loading Overlay */}
-                  {isTransitioning && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm"
-                    >
-                      <div className="flex items-center gap-2 px-4 py-2 bg-background-card rounded-lg border border-border shadow-lg">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full"
-                        />
-                        <span className="text-sm text-foreground-secondary">카테고리 로딩 중...</span>
-                      </div>
-                    </motion.div>
-                  )}
 
                   {/* Load More Button */}
                   {hasMore && (
