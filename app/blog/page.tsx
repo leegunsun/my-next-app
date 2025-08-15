@@ -158,7 +158,7 @@ export default function BlogPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-accent-blend text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity"
                 >
                   <Plus size={16} />
-                  새 글 작성
+                  게시물 관리
                 </motion.button>
               </Link>
             )}

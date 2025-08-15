@@ -105,7 +105,7 @@ export default function AdminPostsPage() {
 
       <main className="pt-8">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col justify-center py-8">
+          <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col py-8 pt-12">
             {/* Header Actions */}
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
               <div className="flex items-center gap-4 flex-1">
