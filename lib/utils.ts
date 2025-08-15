@@ -55,12 +55,22 @@ export async function submitContactForm(data: ContactFormData): Promise<{ succes
     // Track contact form submission
     trackContactFormSubmit()
     
-    // In a real application, this would send data to your backend
-    // For demo purposes, we'll simulate an API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Send data to Firebase through API route
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
     
-    // Simulate success
-    console.log('Contact form submitted:', data)
+    const result = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(result.error || '메시지 전송에 실패했습니다.')
+    }
+    
+    console.log('Contact form submitted successfully:', result)
     
     // Show notification
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -78,7 +88,7 @@ export async function submitContactForm(data: ContactFormData): Promise<{ succes
     console.error('Contact form error:', error)
     return {
       success: false,
-      message: '메시지 전송에 실패했습니다. 다시 시도해주세요.'
+      message: error instanceof Error ? error.message : '메시지 전송에 실패했습니다. 다시 시도해주세요.'
     }
   }
 }

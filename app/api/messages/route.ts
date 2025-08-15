@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase/config'
-import { collection, addDoc, getDocs, orderBy, query, updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore'
+import { collection, addDoc, getDocs, orderBy, query, Timestamp } from 'firebase/firestore'
 import { sendFCMNotification } from '@/lib/firebase/fcm'
 
 export interface Message {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const messageData: Omit<Message, 'id'> = {
+    const messageData = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       message: message.trim(),
