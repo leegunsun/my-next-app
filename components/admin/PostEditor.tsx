@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Eye, ArrowLeft, Tag, Clock, User } from 'lucide-react'
+import { Save, Eye, Clock, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { createBlogPost, updateBlogPost, calculateReadTime, BlogPost } from '../../lib/firebase/firestore'
@@ -42,7 +42,7 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
         : textContent
       setFormData(prev => ({ ...prev, excerpt }))
     }
-  }, [formData.content])
+  }, [formData.content, formData.excerpt])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -90,16 +90,16 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
         alert(`게시물이 ${status === 'published' ? '게시' : '저장'}되었습니다.`)
       } else {
         // Create new post
-        const { id, error } = await createBlogPost(postData)
+        const { error } = await createBlogPost(postData)
         if (error) {
           throw new Error(error)
         }
         alert(`게시물이 ${status === 'published' ? '게시' : '저장'}되었습니다.`)
         router.push('/admin/posts')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Save error:', error)
-      alert(`오류가 발생했습니다: ${error.message}`)
+      alert(`오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}`)
     }
 
     setSaving(false)

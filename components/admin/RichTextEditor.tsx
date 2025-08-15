@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Bold, 
@@ -147,7 +147,19 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     }
   }
 
-  const toolbarButtons = [
+  type ToolbarButtonItem = {
+    icon: React.ComponentType<{ size?: number }>
+    action: () => void
+    title: string
+  }
+
+  type ToolbarDividerItem = {
+    divider: true
+  }
+
+  type ToolbarItem = ToolbarButtonItem | ToolbarDividerItem
+
+  const toolbarButtons: ToolbarItem[] = [
     { icon: Bold, action: () => formatText('bold'), title: 'Bold (Ctrl+B)' },
     { icon: Italic, action: () => formatText('italic'), title: 'Italic (Ctrl+I)' },
     { icon: Underline, action: () => formatText('underline'), title: 'Underline' },
@@ -170,23 +182,26 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       <div className="border-b border-border p-3 bg-background-tertiary">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 flex-wrap">
-            {toolbarButtons.map((button, index) => (
-              button.divider ? (
-                <div key={index} className="w-px h-6 bg-border mx-1" />
-              ) : (
+            {toolbarButtons.map((item, index) => {
+              if ('divider' in item) {
+                return <div key={index} className="w-px h-6 bg-border mx-1" />
+              }
+              
+              const IconComponent = item.icon
+              return (
                 <motion.button
                   key={index}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={button.action}
-                  title={button.title}
+                  onClick={item.action}
+                  title={item.title}
                   className="p-2 hover:bg-background-secondary rounded-md transition-colors"
                   type="button"
                 >
-                  <button.icon size={16} />
+                  <IconComponent size={16} />
                 </motion.button>
               )
-            ))}
+            })}
           </div>
 
           <div className="flex items-center gap-2">

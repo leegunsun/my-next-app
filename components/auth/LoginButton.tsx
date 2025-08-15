@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { LogIn, User, LogOut } from 'lucide-react'
 import { signOut } from '../../lib/firebase/auth'
@@ -60,9 +61,11 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               {user.photoURL ? (
-                <img 
+                <Image 
                   src={user.photoURL} 
                   alt={user.displayName || 'User'} 
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full"
                 />
               ) : (

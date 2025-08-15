@@ -1,7 +1,6 @@
 "use client"
 
 import React from 'react'
-import { motion } from 'framer-motion'
 import { ArrowLeft, Settings } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { LoginButton } from '../auth/LoginButton'

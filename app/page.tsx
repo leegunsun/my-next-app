@@ -13,7 +13,7 @@ import { downloadResume, submitContactForm, requestNotificationPermission, type 
 import { useAnalytics } from "../lib/analytics"
 
 export default function Home() {
-  const [_activeSection, _setActiveSection] = useState("hero")
+  const [, ] = useState("hero")
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
     email: "",

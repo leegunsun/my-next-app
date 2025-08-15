@@ -66,7 +66,7 @@ export const trackButtonClick = (buttonName: string, location?: string) => {
 }
 
 // 커스텀 이벤트 추적
-export const trackCustomEvent = (eventName: string, parameters?: Record<string, any>) => {
+export const trackCustomEvent = (eventName: string, parameters?: Record<string, string | number | boolean>) => {
   const analyticsInstance = getAnalyticsInstance()
   if (!analyticsInstance) {
     console.warn('Analytics not available for custom event tracking')
@@ -150,7 +150,7 @@ export const useAnalytics = () => {
     trackButtonClick(buttonName, location)
   }, [])
 
-  const trackCustomEventCallback = useCallback((eventName: string, parameters?: Record<string, any>) => {
+  const trackCustomEventCallback = useCallback((eventName: string, parameters?: Record<string, string | number | boolean>) => {
     trackCustomEvent(eventName, parameters)
   }, [])
 

@@ -30,9 +30,7 @@ export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "portfolio-theme",
-  attribute: _attribute = "class",
   enableSystem = true,
-  disableTransitionOnChange: _disableTransitionOnChange = false,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme)

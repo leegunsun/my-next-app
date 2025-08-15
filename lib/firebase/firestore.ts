@@ -46,8 +46,8 @@ export const createBlogPost = async (postData: Omit<BlogPost, 'id' | 'createdAt'
       updatedAt: serverTimestamp()
     })
     return { id: docRef.id, error: null }
-  } catch (error: any) {
-    return { id: null, error: error.message }
+  } catch (error: unknown) {
+    return { id: null, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -60,8 +60,8 @@ export const updateBlogPost = async (postId: string, updates: Partial<BlogPost>)
       updatedAt: serverTimestamp()
     })
     return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -70,8 +70,8 @@ export const deleteBlogPost = async (postId: string) => {
   try {
     await deleteDoc(doc(db, POSTS_COLLECTION, postId))
     return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -89,8 +89,8 @@ export const getBlogPost = async (postId: string) => {
     } else {
       return { post: null, error: 'Post not found' }
     }
-  } catch (error: any) {
-    return { post: null, error: error.message }
+  } catch (error: unknown) {
+    return { post: null, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -132,8 +132,8 @@ export const getPublishedPosts = async (
       hasMore: posts.length === pageSize,
       error: null 
     }
-  } catch (error: any) {
-    return { posts: [], lastDoc: null, hasMore: false, error: error.message }
+  } catch (error: unknown) {
+    return { posts: [], lastDoc: null, hasMore: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -173,8 +173,8 @@ export const getAllPosts = async (
       hasMore: posts.length === pageSize,
       error: null 
     }
-  } catch (error: any) {
-    return { posts: [], lastDoc: null, hasMore: false, error: error.message }
+  } catch (error: unknown) {
+    return { posts: [], lastDoc: null, hasMore: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -202,8 +202,8 @@ export const searchPosts = async (searchTerm: string) => {
     })
     
     return { posts, error: null }
-  } catch (error: any) {
-    return { posts: [], error: error.message }
+  } catch (error: unknown) {
+    return { posts: [], error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -225,8 +225,8 @@ export const getPostsByCategory = async (category: string) => {
     })
     
     return { posts, error: null }
-  } catch (error: any) {
-    return { posts: [], error: error.message }
+  } catch (error: unknown) {
+    return { posts: [], error: error instanceof Error ? error.message : String(error) }
   }
 }
 

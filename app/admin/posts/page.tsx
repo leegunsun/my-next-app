@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, Filter } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock } from 'lucide-react'
 import { getAllPosts, deleteBlogPost, BlogPost } from '../../../lib/firebase/firestore'
 import { useAuth } from '../../../contexts/AuthContext'
 // Using native JavaScript Date formatting instead of date-fns
@@ -12,7 +12,7 @@ import PostStatusBadge from '../../../components/admin/PostStatusBadge'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 
 export default function AdminPostsPage() {
-  const { user } = useAuth()
+  const { } = useAuth()
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -61,9 +61,21 @@ export default function AdminPostsPage() {
     setDeleting(null)
   }
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: { toDate?: () => Date } | Date | string) => {
     if (!timestamp) return ''
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    
+    let date: Date
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && timestamp.toDate) {
+      date = timestamp.toDate()
+    } else if (timestamp instanceof Date) {
+      date = timestamp
+    } else if (typeof timestamp === 'string') {
+      date = new Date(timestamp)
+    } else {
+      // Fallback for any other case
+      date = new Date()
+    }
+    
     return date.toLocaleDateString('ko-KR', {
       month: 'long',
       day: 'numeric'

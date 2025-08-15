@@ -21,8 +21,8 @@ export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider)
     return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    return { user: null, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -31,8 +31,8 @@ export const signInWithEmail = async (email: string, password: string) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password)
     return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    return { user: null, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -41,8 +41,8 @@ export const createAccount = async (email: string, password: string) => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password)
     return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    return { user: null, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -51,8 +51,8 @@ export const signOut = async () => {
   try {
     await firebaseSignOut(auth)
     return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -68,8 +68,8 @@ export const signInAnonymous = async () => {
   try {
     const result = await signInAnonymously(auth)
     return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    return { user: null, error: error instanceof Error ? error.message : String(error) }
   }
 }
 

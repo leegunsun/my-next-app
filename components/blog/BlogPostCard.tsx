@@ -13,9 +13,20 @@ interface BlogPostCardProps {
 }
 
 export default function BlogPostCard({ post, delay = 0 }: BlogPostCardProps) {
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: { toDate?: () => Date } | Date | string) => {
     if (!timestamp) return ''
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    
+    let date: Date
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && timestamp.toDate) {
+      date = timestamp.toDate()
+    } else if (timestamp instanceof Date) {
+      date = timestamp
+    } else if (typeof timestamp === 'string') {
+      date = new Date(timestamp)
+    } else {
+      // Fallback for any other case
+      date = new Date()
+    }
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',

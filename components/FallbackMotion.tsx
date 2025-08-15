@@ -1,5 +1,6 @@
 // Fallback motion component for when framer-motion is not available
 import React from "react"
+import Image from 'next/image'
 
 interface AnimationVariant {
   x?: number | string
@@ -97,7 +98,11 @@ export const motion = {
       {children}
     </form>
   ),
-  img: ({ className, alt = "", ...props }: MotionProps & { alt?: string; src?: string }) => (
-    <img className={className} alt={alt} {...props} />
-  )
+  img: ({ className, alt = "", src, ...props }: MotionProps & { alt?: string; src?: string; width?: number; height?: number }) => {
+    if (src && props.width && props.height) {
+      return <Image src={src} alt={alt} width={props.width} height={props.height} className={className} />
+    }
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className={className} alt={alt} src={src} {...props} />
+  }
 }
