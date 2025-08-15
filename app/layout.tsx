@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: "개발자 포트폴리오 | Flutter & Spring Boot 전문 개발자",
   description: "사용자의 문제를 구조적으로 해결하는 Flutter & Spring Boot 개발자입니다. 모바일과 백엔드 개발의 경계를 넘나들며, 사용자 중심의 기술 솔루션을 설계하고 구현합니다.",
   keywords: ["Flutter 개발자", "Spring Boot 개발자", "모바일 앱 개발", "백엔드 개발", "Kotlin", "Docker", "Kubernetes", "크로스플랫폼"],
