@@ -12,7 +12,7 @@ import GitHubCard from "../components/GitHubCard"
 import { downloadResume, submitContactForm, requestNotificationPermission, type ContactFormData } from "../lib/utils"
 
 export default function Home() {
-  const [activeSection, setActiveSection] = useState("hero")
+  const [_activeSection, _setActiveSection] = useState("hero")
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -658,7 +658,7 @@ class NotificationHandler : TextWebSocketHandler() {
                 </AnimatedSection>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {codeExamples.map((example, index) => (
+                  {codeExamples.map((example) => (
                     <CodeSnippet
                       key={example.title}
                       title={example.title}

@@ -1,24 +1,46 @@
 // Fallback motion component for when framer-motion is not available
 import React from "react"
 
+interface AnimationVariant {
+  x?: number | string
+  y?: number | string
+  scale?: number
+  rotate?: number
+  opacity?: number
+  backgroundColor?: string
+  [key: string]: unknown
+}
+
+interface Transition {
+  duration?: number
+  delay?: number
+  ease?: string | number[]
+  type?: "spring" | "tween"
+  stiffness?: number
+  damping?: number
+  [key: string]: unknown
+}
+
 interface MotionProps {
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
-  initial?: any
-  animate?: any
-  transition?: any
-  whileHover?: any
-  whileTap?: any
+  initial?: AnimationVariant | false
+  animate?: AnimationVariant
+  transition?: Transition
+  whileHover?: AnimationVariant
+  whileTap?: AnimationVariant
   onClick?: () => void
   href?: string
   target?: string
   rel?: string
-  type?: string
+  type?: "button" | "submit" | "reset"
   disabled?: boolean
   role?: string
   "aria-label"?: string
-  viewport?: any
-  whileInView?: any
+  viewport?: { once?: boolean; margin?: string }
+  whileInView?: AnimationVariant
+  style?: React.CSSProperties
+  [key: string]: unknown
 }
 
 // Simple div wrapper that ignores motion props
@@ -52,7 +74,7 @@ export const motion = {
     <button 
       className={className} 
       onClick={onClick} 
-      type={type as any} 
+      type={type} 
       disabled={disabled}
       {...props}
     >
@@ -75,7 +97,7 @@ export const motion = {
       {children}
     </form>
   ),
-  img: ({ className, ...props }: MotionProps) => (
-    <img className={className} {...props} />
+  img: ({ className, alt = "", ...props }: MotionProps & { alt?: string; src?: string }) => (
+    <img className={className} alt={alt} {...props} />
   )
 }

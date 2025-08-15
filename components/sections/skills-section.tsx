@@ -39,7 +39,7 @@ function SkillBar({ skill, currentLang }: SkillBarProps) {
 }
 
 function SkillRadar({ currentLang }: { currentLang: string }) {
-  const isKorean = currentLang === "ko"
+  const _isKorean = currentLang === "ko"
   const radarSkills = skills.slice(0, 6) // Top 6 skills for radar
   
   return (

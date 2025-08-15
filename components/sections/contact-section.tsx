@@ -29,7 +29,7 @@ export function ContactSection({ currentLang }: ContactSectionProps) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       setSubmitStatus("success")
       setFormData({ name: "", email: "", message: "" })
-    } catch (error) {
+    } catch (_error) {
       setSubmitStatus("error")
     } finally {
       setIsSubmitting(false)
