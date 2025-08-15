@@ -89,23 +89,23 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
       <motion.nav
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`bg-background-secondary border-b border-border ${className}`}
+        className={`bg-background/95 backdrop-blur-sm border-b border-border/30 shadow-sm ${className}`}
       >
-        <div className="container mx-auto px-6 py-3">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center gap-2 text-sm">
             <Link
               href="/"
-              className="text-foreground-secondary hover:text-foreground transition-colors flex items-center gap-1"
+              className="text-foreground/80 hover:text-foreground transition-colors flex items-center gap-1 font-medium"
             >
               <Home size={16} />
               홈
             </Link>
-            <ChevronRight size={14} className="text-foreground-muted" />
-            <span className="text-foreground font-medium">관리자</span>
+            <ChevronRight size={14} className="text-foreground/60" />
+            <span className="text-foreground font-semibold">관리자</span>
             {pathname !== '/admin/posts' && (
               <>
-                <ChevronRight size={14} className="text-foreground-muted" />
-                <span className="text-foreground-secondary">
+                <ChevronRight size={14} className="text-foreground/60" />
+                <span className="text-foreground/80 font-medium">
                   {pathname?.includes('/messages') && '메시지'}
                   {pathname?.includes('/new') && '새 글 작성'}
                   {pathname?.includes('/edit') && '글 편집'}

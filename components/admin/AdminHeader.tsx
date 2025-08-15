@@ -1,51 +1,25 @@
 "use client"
 
 import React from 'react'
-import { ArrowLeft, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { LoginButton } from '../auth/LoginButton'
-import Link from 'next/link'
 import AnimatedSection from '../AnimatedSection'
 
 interface AdminHeaderProps {
   title: string
   description?: string
-  showBackButton?: boolean
-  backUrl?: string
 }
 
 export default function AdminHeader({ 
   title, 
-  description, 
-  showBackButton = true,
-  backUrl = '/blog'
+  description
 }: AdminHeaderProps) {
   const { user } = useAuth()
 
   return (
     <>
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-overlay-backdrop backdrop-blur-[20px] border-b border-border">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {showBackButton && (
-              <Link href={backUrl} className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-                <ArrowLeft size={20} />
-                돌아가기
-              </Link>
-            )}
-            <div className="flex items-center gap-2">
-              <Settings size={20} className="text-foreground-secondary" />
-              <span className="font-medium">관리자</span>
-            </div>
-          </div>
-          
-          <LoginButton variant="minimal" showUserInfo={true} />
-        </div>
-      </nav>
-
       {/* Header Content */}
-      <section className="pt-16 pb-8 bg-background-secondary border-b border-border">
+      <section className="pb-8 bg-background-secondary border-b border-border">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto pt-8">
             <AnimatedSection>

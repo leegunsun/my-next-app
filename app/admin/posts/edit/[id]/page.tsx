@@ -45,11 +45,10 @@ export default function EditPostPage() {
           <AdminHeader 
             title="게시물 편집"
             description="게시물을 편집합니다"
-            backUrl="/admin/posts"
           />
         </motion.div>
         
-        <main className="pt-20 relative z-10">
+        <main className="pt-8 relative z-10">
           <div className="container mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -85,11 +84,10 @@ export default function EditPostPage() {
           <AdminHeader 
             title="게시물 편집"
             description="게시물을 편집합니다"
-            backUrl="/admin/posts"
           />
         </motion.div>
         
-        <main className="pt-20 relative z-10">
+        <main className="pt-8 relative z-10">
           <div className="container mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -154,7 +152,6 @@ export default function EditPostPage() {
         <AdminHeader 
           title="게시물 편집"
           description={`"${post.title}" 편집`}
-          backUrl="/admin/posts"
         />
       </motion.div>
 

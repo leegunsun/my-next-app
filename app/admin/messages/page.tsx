@@ -19,7 +19,6 @@ import {
 } from 'lucide-react'
 import FCMSetup from '@/components/admin/FCMSetup'
 import AdminHeader from '@/components/admin/AdminHeader'
-import QuickActions from '@/components/admin/QuickActions'
 // Removed date-fns dependency
 
 interface Message {
@@ -196,7 +195,6 @@ export default function AdminMessagesPage() {
         <AdminHeader 
           title="메시지 관리"
           description="웹사이트를 통해 받은 메시지를 관리합니다."
-          showBackButton={false}
         />
       </motion.div>
       
@@ -224,19 +222,11 @@ export default function AdminMessagesPage() {
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-8"
-        >
-          <QuickActions variant="compact" />
-        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-10"
         >
           <FCMSetup />
@@ -245,24 +235,24 @@ export default function AdminMessagesPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           className="grid lg:grid-cols-2 gap-8"
         >
           <div className="space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
               className="flex items-center justify-between"
             >
               <h2 className="text-2xl font-medium">메시지 목록</h2>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   onClick={fetchMessages} 
                   variant="outline" 
                   size="sm"
                   disabled={loading}
-                  className="glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
+                  className="bg-background/80 backdrop-blur-sm border-border/50 rounded-2xl hover:border-primary/50 hover:shadow-lg hover:bg-primary/5 transition-all duration-200"
                 >
                   새로 고침
                 </Button>
@@ -273,7 +263,7 @@ export default function AdminMessagesPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
               >
                 <Card className="card-primary glass-effect border-border/30 shadow-sm">
                   <CardContent className="flex items-center justify-center py-16">
@@ -281,7 +271,7 @@ export default function AdminMessagesPage() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ duration: 0.4, delay: 0.7, type: "spring" }}
+                        transition={{ duration: 0.4, delay: 0.6, type: "spring" }}
                         className="w-16 h-16 glass-effect rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border border-border/30"
                       >
                         <Mail className="h-8 w-8 text-foreground-secondary" />
@@ -298,7 +288,7 @@ export default function AdminMessagesPage() {
                     key={message.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.6 + index * 0.05 }}
+                    transition={{ duration: 0.4, delay: 0.5 + index * 0.05 }}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -337,7 +327,7 @@ export default function AdminMessagesPage() {
                             <motion.div
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.8 + index * 0.05 }}
+                              transition={{ duration: 0.3, delay: 0.7 + index * 0.05 }}
                               className="w-3 h-3 bg-accent-warning rounded-full shadow-sm"
                             />
                           )}
@@ -354,7 +344,7 @@ export default function AdminMessagesPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
           >
             {selectedMessage ? (
               <motion.div
