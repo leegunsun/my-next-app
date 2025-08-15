@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { trackDownload, trackContactFormSubmit } from "./analytics"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -23,6 +24,9 @@ export function formatDateKo(date: Date | string): string {
 
 // PDF Download functionality
 export function downloadResume() {
+  // Track download event
+  trackDownload('Developer_Resume.pdf')
+  
   // In a real application, this would download an actual PDF file
   // For demo purposes, we'll create a placeholder action
   const link = document.createElement('a')
@@ -48,6 +52,9 @@ export interface ContactFormData {
 
 export async function submitContactForm(data: ContactFormData): Promise<{ success: boolean; message: string }> {
   try {
+    // Track contact form submission
+    trackContactFormSubmit()
+    
     // In a real application, this would send data to your backend
     // For demo purposes, we'll simulate an API call
     await new Promise(resolve => setTimeout(resolve, 1000))

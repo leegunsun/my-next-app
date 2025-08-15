@@ -10,6 +10,7 @@ import ProjectCard from "../components/ProjectCard"
 import CodeSnippet from "../components/CodeSnippet"
 import GitHubCard from "../components/GitHubCard"
 import { downloadResume, submitContactForm, requestNotificationPermission, type ContactFormData } from "../lib/utils"
+import { useAnalytics } from "../lib/analytics"
 
 export default function Home() {
   const [_activeSection, _setActiveSection] = useState("hero")
@@ -23,6 +24,13 @@ export default function Home() {
     type: null,
     message: ""
   })
+
+  // Analytics Hook 사용
+  const { 
+    trackButtonClick, 
+    trackCustomEvent, 
+    trackContactFormSubmit: trackContactFormSubmitAnalytics 
+  } = useAnalytics()
 
   useEffect(() => {
     // Request notification permission on component mount
@@ -43,6 +51,8 @@ export default function Home() {
     
     if (result.success) {
       setContactForm({ name: "", email: "", message: "" })
+      // 연락처 폼 제출 추적
+      trackContactFormSubmitAnalytics()
     }
     
     setIsSubmitting(false)
@@ -167,35 +177,40 @@ class NotificationHandler : TextWebSocketHandler() {
           <div className="flex items-center gap-6">
             <motion.a 
               whileHover={{ scale: 1.05 }}
-              href="#about" 
+              href="#about"
+              onClick={() => trackButtonClick('nav_about', 'navigation')}
               className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
             >
               About
             </motion.a>
             <motion.a 
               whileHover={{ scale: 1.05 }}
-              href="#portfolio" 
+              href="#portfolio"
+              onClick={() => trackButtonClick('nav_portfolio', 'navigation')}
               className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
             >
               Portfolio
             </motion.a>
             <motion.a 
               whileHover={{ scale: 1.05 }}
-              href="#skills" 
+              href="#skills"
+              onClick={() => trackButtonClick('nav_skills', 'navigation')}
               className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
             >
               Skills
             </motion.a>
             <motion.a 
               whileHover={{ scale: 1.05 }}
-              href="#code-examples" 
+              href="#code-examples"
+              onClick={() => trackButtonClick('nav_code', 'navigation')}
               className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
             >
               Code
             </motion.a>
             <motion.a 
               whileHover={{ scale: 1.05 }}
-              href="#contact" 
+              href="#contact"
+              onClick={() => trackButtonClick('nav_contact', 'navigation')}
               className="bg-primary text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
             >
               Contact
@@ -276,7 +291,10 @@ class NotificationHandler : TextWebSocketHandler() {
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={downloadResume}
+                onClick={() => {
+                  trackButtonClick('download_resume', 'hero_section')
+                  downloadResume()
+                }}
                 className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-3 text-base rounded-md font-medium transition-all shadow-lg flex items-center gap-2"
               >
                 <Download size={20} />
@@ -286,6 +304,7 @@ class NotificationHandler : TextWebSocketHandler() {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 href="#portfolio"
+                onClick={() => trackButtonClick('view_projects', 'hero_section')}
                 className="bg-transparent text-foreground hover:bg-overlay-hover px-6 py-3 text-base rounded-md font-medium transition-all border border-border shadow-sm"
               >
                 프로젝트 보기
@@ -304,6 +323,7 @@ class NotificationHandler : TextWebSocketHandler() {
                 href="https://github.com/leegunsun"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackButtonClick('github_hero', 'social_links')}
                 className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
               >
                 <Github size={18} />
@@ -311,6 +331,7 @@ class NotificationHandler : TextWebSocketHandler() {
               <motion.a
                 whileHover={{ scale: 1.1, y: -3 }}
                 href="#"
+                onClick={() => trackButtonClick('linkedin_hero', 'social_links')}
                 className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
               >
                 <Linkedin size={18} />
@@ -318,6 +339,7 @@ class NotificationHandler : TextWebSocketHandler() {
               <motion.a
                 whileHover={{ scale: 1.1, y: -3 }}
                 href="#"
+                onClick={() => trackButtonClick('external_link_hero', 'social_links')}
                 className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
               >
                 <ExternalLink size={18} />
@@ -362,7 +384,8 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="flex items-center gap-3"
+                      onClick={() => trackCustomEvent('skill_click', { skill: 'flutter', section: 'about' })}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
                     >
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                       <span>Flutter 모바일 앱 개발</span>
@@ -371,7 +394,8 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="flex items-center gap-3"
+                      onClick={() => trackCustomEvent('skill_click', { skill: 'spring_boot', section: 'about' })}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
                     >
                       <div className="w-3 h-3 bg-accent-success rounded-full"></div>
                       <span>Spring Boot 백엔드 API 개발</span>
@@ -380,7 +404,8 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="flex items-center gap-3"
+                      onClick={() => trackCustomEvent('skill_click', { skill: 'docker_kubernetes', section: 'about' })}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
                     >
                       <div className="w-3 h-3 bg-accent-purple rounded-full"></div>
                       <span>Docker & Kubernetes 컨테이너 운영</span>
@@ -389,7 +414,8 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 }}
-                      className="flex items-center gap-3"
+                      onClick={() => trackCustomEvent('skill_click', { skill: 'mssql', section: 'about' })}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
                     >
                       <div className="w-3 h-3 bg-accent-warning rounded-full"></div>
                       <span>MSSQL 데이터베이스 설계</span>
@@ -710,6 +736,7 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2 }}
+                      onClick={() => trackButtonClick('email_contact', 'contact_section')}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
                       <div className="w-12 h-12 bg-[#EA4335] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -725,7 +752,10 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 }}
-                      onClick={() => window.open("https://github.com/leegunsun", "_blank")}
+                      onClick={() => {
+                        trackButtonClick('github_contact', 'contact_section')
+                        window.open("https://github.com/leegunsun", "_blank")
+                      }}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
                       <div className="w-12 h-12 bg-[#24292f] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -742,6 +772,7 @@ class NotificationHandler : TextWebSocketHandler() {
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 }}
+                      onClick={() => trackButtonClick('linkedin_contact', 'contact_section')}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
                       <div className="w-12 h-12 bg-accent-info rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -878,7 +909,8 @@ class NotificationHandler : TextWebSocketHandler() {
               <div className="flex items-center justify-center gap-6">
                 <motion.a 
                   whileHover={{ scale: 1.05, y: -2 }}
-                  href="#" 
+                  href="#"
+                  onClick={() => trackButtonClick('github_footer', 'footer')}
                   className="text-foreground-secondary hover:text-foreground transition-colors flex items-center gap-2"
                 >
                   <Github size={16} />
@@ -886,7 +918,8 @@ class NotificationHandler : TextWebSocketHandler() {
                 </motion.a>
                 <motion.a 
                   whileHover={{ scale: 1.05, y: -2 }}
-                  href="#" 
+                  href="#"
+                  onClick={() => trackButtonClick('linkedin_footer', 'footer')}
                   className="text-foreground-secondary hover:text-foreground transition-colors flex items-center gap-2"
                 >
                   <Linkedin size={16} />
@@ -894,7 +927,8 @@ class NotificationHandler : TextWebSocketHandler() {
                 </motion.a>
                 <motion.a 
                   whileHover={{ scale: 1.05, y: -2 }}
-                  href="#" 
+                  href="#"
+                  onClick={() => trackButtonClick('blog_footer', 'footer')}
                   className="text-foreground-secondary hover:text-foreground transition-colors flex items-center gap-2"
                 >
                   <ExternalLink size={16} />

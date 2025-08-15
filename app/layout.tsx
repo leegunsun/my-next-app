@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import JsonLd from "@/components/JsonLd";
 import "./globals.css";
 
@@ -93,7 +94,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          {children}
+          <AnalyticsProvider>
+            {children}
+          </AnalyticsProvider>
         </ThemeProvider>
       </body>
     </html>
