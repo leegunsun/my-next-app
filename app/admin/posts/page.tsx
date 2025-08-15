@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, FileText, CheckCircle, FileEdit } from 'lucide-react'
 import { getAllPosts, deleteBlogPost, BlogPost } from '../../../lib/firebase/firestore'
 import { useAuth } from '../../../contexts/AuthContext'
 // Using native JavaScript Date formatting instead of date-fns
 import Link from 'next/link'
 import AdminHeader from '../../../components/admin/AdminHeader'
 import PostStatusBadge from '../../../components/admin/PostStatusBadge'
+import { CustomSelect, SelectOption } from '../../../components/ui/select'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 
 export default function AdminPostsPage() {
@@ -21,6 +22,12 @@ export default function AdminPostsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+
+  const statusOptions: SelectOption[] = [
+    { id: 'all', name: '전체', value: 'all', icon: <FileText size={16} /> },
+    { id: 'published', name: '게시됨', value: 'published', icon: <CheckCircle size={16} /> },
+    { id: 'draft', name: '초안', value: 'draft', icon: <FileEdit size={16} /> }
+  ]
 
   useEffect(() => {
     loadPosts()
@@ -115,15 +122,13 @@ export default function AdminPostsPage() {
                 </div>
 
                 {/* Status Filter */}
-                <select
+                <CustomSelect
+                  options={statusOptions}
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
-                  className="px-3 py-2 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                >
-                  <option value="all">전체</option>
-                  <option value="published">게시됨</option>
-                  <option value="draft">초안</option>
-                </select>
+                  onChange={(value) => setStatusFilter(value as 'all' | 'published' | 'draft')}
+                  placeholder="상태 선택"
+                  className="min-w-[140px]"
+                />
               </div>
 
               {/* New Post Button */}
