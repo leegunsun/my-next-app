@@ -390,22 +390,6 @@ export default function BlogPostPage() {
                   </AnimatedSection>
                 )}
 
-                {/* Scroll Indicator */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 1.2 }}
-                  className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-                >
-                  <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="flex flex-col items-center gap-2 text-foreground-secondary"
-                  >
-                    <span className="text-sm">스크롤하여 계속 읽기</span>
-                    <motion.div className="w-1 h-8 bg-gradient-to-b from-primary to-transparent rounded-full" />
-                  </motion.div>
-                </motion.div>
               </div>
             </div>
           </section>
@@ -512,104 +496,67 @@ export default function BlogPostPage() {
           )}
           
           {/* Article Footer with Call-to-Action */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="py-16 relative overflow-hidden"
-          >
-            {/* Footer Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-background-secondary/30 via-background-tertiary/20 to-background/50 pointer-events-none" />
-            
+          {/* Article Footer */}
+          <section className="py-12 bg-background-secondary">
             <div className="container mx-auto px-6">
-              <div className="max-w-4xl mx-auto text-center relative z-10">
-                <motion.div
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  className="glass-effect backdrop-blur-sm border border-border/30 rounded-3xl p-8 md:p-12 shadow-2xl"
-                >
-                  <h3 className="text-2xl md:text-3xl font-medium mb-4">
-                    <span className="bg-gradient-to-r from-foreground via-primary to-accent-purple bg-clip-text text-transparent">
-                      더 많은 인사이트를 확인해보세요
-                    </span>
+              <div className="max-w-3xl mx-auto text-center">
+                <div className="bg-background border border-border rounded-2xl p-8">
+                  <h3 className="text-xl font-medium mb-4 text-foreground">
+                    더 많은 인사이트를 확인해보세요
                   </h3>
-                  <p className="text-foreground-secondary mb-8 leading-relaxed max-w-2xl mx-auto">
+                  <p className="text-foreground-secondary mb-6 leading-relaxed">
                     개발 여정에서 배운 것들과 기술적 도전들을 지속적으로 공유하고 있습니다.
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link href="/blog">
-                      <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-accent-purple text-primary-foreground rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <ArrowLeft size={18} />
+                      <button className="flex items-center gap-2 px-6 py-3 bg-accent-blend text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity">
+                        <ArrowLeft size={16} />
                         블로그 홈으로
-                      </motion.button>
+                      </button>
                     </Link>
                     
-                    <motion.button
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={handleShare}
-                      className="flex items-center gap-2 px-8 py-4 glass-effect hover:bg-background-secondary/50 border border-border/30 rounded-2xl font-medium transition-all shadow-lg"
+                      className="flex items-center gap-2 px-6 py-3 bg-background border border-border rounded-md font-medium hover:bg-background-secondary transition-colors"
                     >
-                      <Share2 size={18} />
+                      <Share2 size={16} />
                       이 글 공유하기
-                    </motion.button>
+                    </button>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
-          </motion.section>
+          </section>
         </article>
 
         {/* Floating Action Menu */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 2, duration: 0.5 }}
-          className="fixed bottom-8 right-8 z-40"
-        >
+        <div className="fixed bottom-8 right-8 z-40">
           <div className="flex flex-col gap-3">
             {/* Scroll to Top */}
-            <motion.button
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="w-12 h-12 glass-effect backdrop-blur-sm border border-border/30 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
+              className="w-12 h-12 bg-background border border-border rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:bg-background-secondary"
             >
               <ArrowLeft size={20} className="rotate-90" />
-            </motion.button>
+            </button>
             
             {/* Comments Button */}
-            <motion.button
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-12 h-12 glass-effect backdrop-blur-sm border border-border/30 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
-            >
+            <button className="w-12 h-12 bg-background border border-border rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:bg-background-secondary">
               <MessageCircle size={20} />
-            </motion.button>
+            </button>
             
             {/* Quick Like */}
-            <motion.button
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               onClick={handleLike}
-              className={`w-12 h-12 glass-effect backdrop-blur-sm border border-border/30 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all ${
-                isLiked ? 'text-red-500 bg-red-50/30' : ''
+              className={`w-12 h-12 bg-background border border-border rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:bg-background-secondary ${
+                isLiked ? 'text-red-500' : ''
               }`}
             >
-              <motion.div
-                animate={isLiked ? { scale: [1, 1.3, 1] } : {}}
-                transition={{ duration: 0.3 }}
-              >
-                <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
-              </motion.div>
-            </motion.button>
+              <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
+            </button>
           </div>
-        </motion.div>
+        </div>
       </main>
     </div>
   )
