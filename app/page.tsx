@@ -301,7 +301,9 @@ class NotificationHandler : TextWebSocketHandler() {
             >
               <motion.a
                 whileHover={{ scale: 1.1, y: -3 }}
-                href="#"
+                href="https://github.com/leegunsun"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-12 h-12 bg-background-secondary hover:bg-background-tertiary rounded-full flex items-center justify-center transition-all shadow-sm border border-border"
               >
                 <Github size={18} />
