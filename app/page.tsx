@@ -721,10 +721,11 @@ class NotificationHandler : TextWebSocketHandler() {
                       </div>
                     </motion.div>
                     
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 }}
+                      onClick={() => window.open("https://github.com/leegunsun", "_blank")}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
                       <div className="w-12 h-12 bg-[#24292f] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -735,6 +736,7 @@ class NotificationHandler : TextWebSocketHandler() {
                         <div className="text-foreground-secondary text-sm">github.com/developer</div>
                       </div>
                     </motion.div>
+
                     
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
