@@ -46,10 +46,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleGoogleAuth = async () => {
     setLoading(true)
     setError('')
+    
+    // Clear any previous errors
+    console.log('🔐 Attempting Google login...')
+    
     const { error } = await signInWithGoogle()
     if (error) {
+      console.error('❌ Google login error:', error)
       setError(error)
+      
+      // Show helpful suggestion for COOP issues
+      if (error.includes('팝업') || error.includes('Cross-Origin')) {
+        setTimeout(() => {
+          setError(error + '\n\n💡 팁: 이메일 로그인이 더 안정적입니다.')
+        }, 100)
+      }
     } else {
+      console.log('✅ Google login successful')
       handleClose()
     }
     setLoading(false)

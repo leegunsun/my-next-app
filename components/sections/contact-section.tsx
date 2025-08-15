@@ -24,12 +24,25 @@ export function ContactSection({ currentLang }: ContactSectionProps) {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // Simulate form submission (replace with actual implementation)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setSubmitStatus("success")
-      setFormData({ name: "", email: "", message: "" })
-    } catch {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setSubmitStatus("success")
+        setFormData({ name: "", email: "", message: "" })
+      } else {
+        setSubmitStatus("error")
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error)
       setSubmitStatus("error")
     } finally {
       setIsSubmitting(false)
