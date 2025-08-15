@@ -181,41 +181,10 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Enhanced Background Animation */}
-      <div className="fixed inset-0 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.04, scale: 1 }}
-          transition={{ duration: 3, ease: "easeOut" }}
-          className="absolute top-1/4 left-10 w-[400px] h-[300px] bg-primary rounded-full blur-3xl"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 0.03, scale: 1 }}
-          transition={{ duration: 3, delay: 0.5, ease: "easeOut" }}
-          className="absolute bottom-1/3 right-10 w-[350px] h-[250px] bg-accent-purple rounded-full blur-3xl"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 0.02, scale: 1 }}
-          transition={{ duration: 3, delay: 1, ease: "easeOut" }}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[250px] h-[200px] bg-accent-blend rounded-full blur-3xl"
-        />
-      </div>
+    <div className="min-h-screen bg-background">
 
-      {/* Enhanced Navigation */}
-      <motion.nav 
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="fixed top-0 w-full z-50 glass-effect backdrop-blur-[20px] border-b border-border/30 shadow-lg"
-      >
-        {/* Reading Progress Bar */}
-        <motion.div
-          className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary via-accent-purple to-accent-success origin-left"
-          style={{ scaleX: scrollProgress }}
-        />
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-overlay-backdrop backdrop-blur-[20px] border-b border-border">
         
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <motion.div
@@ -289,7 +258,7 @@ export default function BlogPostPage() {
             )}
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       <main className="pt-16 relative z-10">
         <article>
@@ -394,25 +363,8 @@ export default function BlogPostPage() {
             </div>
           </section>
 
-          {/* Enhanced Content Section */}
-          <section className="py-16 relative">
-            {/* Content Background Effects */}
-            <div className="absolute inset-0 pointer-events-none">
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 0.01, y: 0 }}
-                transition={{ duration: 2, ease: "easeOut" }}
-                viewport={{ once: true }}
-                className="absolute top-20 right-20 w-[200px] h-[150px] bg-accent-success rounded-full blur-3xl"
-              />
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 0.015, x: 0 }}
-                transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
-                viewport={{ once: true }}
-                className="absolute bottom-40 left-16 w-[180px] h-[120px] bg-accent-info rounded-full blur-3xl"
-              />
-            </div>
+          {/* Content Section */}
+          <section className="py-12">
             
             <div className="container mx-auto px-6">
               <div className="max-w-4xl mx-auto">
