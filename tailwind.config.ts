@@ -23,8 +23,8 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['"Inter Variable"', '"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', '"Open Sans"', '"Helvetica Neue"', 'sans-serif'],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Apple SD Gothic Neo"', '"Malgun Gothic"', '"맑은 고딕"', 'sans-serif'],
+        mono: ['"SF Mono"', 'Monaco', '"Inconsolata"', '"Roboto Mono"', '"Source Code Pro"', 'monospace'],
       },
       colors: {
         primary: "var(--color-primary)",

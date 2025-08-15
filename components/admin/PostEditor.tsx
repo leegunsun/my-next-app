@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Eye, Clock, User } from 'lucide-react'
+import { Save, Eye, Clock, User, Code, Lightbulb, BookOpen, Briefcase, Cpu } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { createBlogPost, updateBlogPost, calculateReadTime, BlogPost } from '../../lib/firebase/firestore'
 import RichTextEditor from './RichTextEditor'
+import { CustomSelect, SelectOption } from '../ui/select'
 
 interface PostEditorProps {
   initialPost?: BlogPost
@@ -25,12 +26,12 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
     status: initialPost?.status || 'draft' as 'draft' | 'published'
   })
 
-  const categories = [
-    { id: 'development', name: '개발' },
-    { id: 'insights', name: '인사이트' },
-    { id: 'learning', name: '학습' },
-    { id: 'career', name: '커리어' },
-    { id: 'technology', name: '기술' }
+  const categories: SelectOption[] = [
+    { id: 'development', name: '개발', value: 'development', icon: <Code size={16} /> },
+    { id: 'insights', name: '인사이트', value: 'insights', icon: <Lightbulb size={16} /> },
+    { id: 'learning', name: '학습', value: 'learning', icon: <BookOpen size={16} /> },
+    { id: 'career', name: '커리어', value: 'career', icon: <Briefcase size={16} /> },
+    { id: 'technology', name: '기술', value: 'technology', icon: <Cpu size={16} /> }
   ]
 
   // Auto-generate excerpt from content if not provided
@@ -130,18 +131,13 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
       {/* Meta Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2">카테고리</label>
-          <select
+          <CustomSelect
+            label="카테고리"
+            options={categories}
             value={formData.category}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-          >
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleInputChange('category', value)}
+            placeholder="카테고리를 선택하세요"
+          />
         </div>
 
         <div>

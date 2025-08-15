@@ -1,23 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import JsonLd from "@/components/JsonLd";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -79,7 +66,7 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background font-sans`}
+        className="antialiased min-h-screen bg-background"
       >
         {/* Skip Navigation */}
         <a
