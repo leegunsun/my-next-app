@@ -153,6 +153,20 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .text-gradient-flutter {
+    background: linear-gradient(135deg, rgba(1, 117, 194, 0.8), rgba(1, 117, 194, 0.4));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-spring {
+    background: linear-gradient(135deg, rgba(109, 179, 63, 0.8), rgba(109, 179, 63, 0.4));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
   
   /* Linear Focus Ring */
   .focus-ring {

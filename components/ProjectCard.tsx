@@ -58,7 +58,7 @@ export default function ProjectCard({
           <motion.div
             initial={{ opacity: 0 }}
             whileHover={{ opacity: 1 }}
-            className="absolute inset-0 bg-primary/5 flex items-center justify-center"
+            className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center"
           >
             <div className="flex gap-3">
               {liveUrl && (

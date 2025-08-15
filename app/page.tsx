@@ -254,7 +254,7 @@ class NotificationHandler : TextWebSocketHandler() {
               className="text-4xl md:text-5xl font-medium leading-tight mb-6"
             >
               사용자의 문제를 구조적으로 해결하는<br />
-              <span className="text-gradient-primary">Flutter & Spring Boot</span> 개발자
+              <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span> 개발자
             </motion.h1>
             
             <motion.p
@@ -712,8 +712,8 @@ class NotificationHandler : TextWebSocketHandler() {
                       transition={{ delay: 0.2 }}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
-                      <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Mail size={20} className="text-primary-foreground" />
+                      <div className="w-12 h-12 bg-[#EA4335] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Mail size={20} className="text-white" />
                       </div>
                       <div>
                         <div className="font-medium">이메일</div>
@@ -727,7 +727,7 @@ class NotificationHandler : TextWebSocketHandler() {
                       transition={{ delay: 0.3 }}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
                     >
-                      <div className="w-12 h-12 bg-accent-success rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 bg-[#24292f] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Github size={20} className="text-white" />
                       </div>
                       <div>
@@ -871,7 +871,7 @@ class NotificationHandler : TextWebSocketHandler() {
           <div className="max-w-4xl mx-auto text-center">
             <AnimatedSection>
               <p className="text-foreground-secondary mb-4">
-                © 2025 Developer Portfolio. Flutter & Spring Boot로 만드는 더 나은 세상.
+                © 2025 Developer Portfolio. <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span>로 만드는 더 나은 세상.
               </p>
               <div className="flex items-center justify-center gap-6">
                 <motion.a 
