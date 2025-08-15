@@ -45,9 +45,9 @@ export default function AdminHeader({
       </nav>
 
       {/* Header Content */}
-      <section className="pt-16 py-12 bg-background-secondary border-b border-border">
+      <section className="pt-16 pb-8 bg-background-secondary border-b border-border">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-6xl mx-auto pt-8">
             <AnimatedSection>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center">

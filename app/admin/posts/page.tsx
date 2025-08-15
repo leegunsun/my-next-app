@@ -96,9 +96,9 @@ export default function AdminPostsPage() {
         description="블로그 게시물을 작성하고 관리합니다"
       />
 
-      <main className="pt-20">
+      <main className="pt-8">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col justify-center py-8">
             {/* Header Actions */}
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
               <div className="flex items-center gap-4 flex-1">
@@ -265,7 +265,7 @@ export default function AdminPostsPage() {
                 )}
               </>
             ) : (
-              <div className="text-center py-20">
+              <div className="text-center flex-1 flex flex-col justify-center items-center min-h-[50vh]">
                 <div className="w-20 h-20 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search size={32} className="text-foreground-secondary" />
                 </div>
