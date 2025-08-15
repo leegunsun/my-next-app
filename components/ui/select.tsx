@@ -73,6 +73,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         }
         break
       case 'Escape':
+        event.preventDefault()
         setIsOpen(false)
         setFocusedIndex(-1)
         break
@@ -124,18 +125,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           whileHover={!disabled ? { scale: 1.02 } : {}}
           whileTap={!disabled ? { scale: 0.98 } : {}}
           className={cn(
-            "w-full p-3 text-left bg-background-secondary border border-border rounded-lg",
-            "focus:ring-2 focus:ring-primary focus:border-transparent outline-none",
+            "w-full p-3 text-left glass-effect border border-border/50 rounded-2xl",
+            "focus:ring-2 focus:ring-primary/30 focus:border-primary/40 outline-none",
             "transition-all duration-200 ease-in-out",
             "flex items-center justify-between gap-3",
-            "hover:border-primary/50 hover:shadow-sm",
-            "group relative overflow-hidden",
+            "hover:border-primary/50 hover:shadow-md",
+            "group relative overflow-hidden backdrop-blur-sm",
             disabled && "opacity-50 cursor-not-allowed",
-            isOpen && "ring-2 ring-primary border-transparent"
+            isOpen && "ring-2 ring-primary/60 border-primary/50 shadow-lg bg-background/98"
           )}
         >
-          {/* Gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          {/* Simplified hover effect without gradient overlay */}
           
           <div className="flex items-center gap-3 relative z-10">
             {selectedOption?.icon && (
@@ -169,9 +169,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "absolute top-full left-0 right-0 mt-2 z-50",
-                "bg-background-card border border-border rounded-lg shadow-lg",
-                "backdrop-blur-xl bg-background-card/95",
+                "absolute top-full left-0 right-0 mt-2 z-[9999]",
+                "bg-background/95 border border-border/30 rounded-2xl shadow-xl",
+                "backdrop-blur-sm",
                 "max-h-60 overflow-y-auto scrollbar-thin"
               )}
             >
@@ -186,12 +186,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.02 }}
                     className={cn(
-                      "w-full p-3 text-left text-sm rounded-md",
+                      "w-full p-3 text-left text-sm rounded-xl",
                       "flex items-center justify-between gap-3",
                       "transition-all duration-150",
-                      "hover:bg-primary/10 hover:text-primary",
+                      "hover:bg-primary/10 hover:text-primary hover:shadow-sm",
                       focusedIndex === index && "bg-primary/10 text-primary",
-                      option.value === value && "bg-primary/20 text-primary font-medium"
+                      option.value === value && "bg-primary/20 text-primary font-medium shadow-sm"
                     )}
                   >
                     <div className="flex items-center gap-3">

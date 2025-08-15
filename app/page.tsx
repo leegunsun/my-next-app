@@ -9,6 +9,7 @@ import SkillProgress from "../components/SkillProgress"
 import ProjectCard from "../components/ProjectCard"
 import CodeSnippet from "../components/CodeSnippet"
 import GitHubCard from "../components/GitHubCard"
+import AdminNavigation from "../components/admin/AdminNavigation"
 import { downloadResume, submitContactForm, requestNotificationPermission, type ContactFormData } from "../lib/utils"
 import { useAnalytics } from "../lib/analytics"
 
@@ -1016,6 +1017,9 @@ class NotificationHandler : TextWebSocketHandler() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Admin Button */}
+      <AdminNavigation variant="floating" />
     </div>
   )
 }

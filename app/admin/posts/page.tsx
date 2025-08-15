@@ -9,6 +9,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import Link from 'next/link'
 import AdminHeader from '../../../components/admin/AdminHeader'
 import PostStatusBadge from '../../../components/admin/PostStatusBadge'
+import QuickActions from '../../../components/admin/QuickActions'
 import { CustomSelect, SelectOption } from '../../../components/ui/select'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 
@@ -97,58 +98,80 @@ export default function AdminPostsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminHeader 
-        title="게시물 관리"
-        description="블로그 게시물을 작성하고 관리합니다"
-      />
+    <div className="min-h-screen bg-background relative">
+      {/* Subtle Background Animation */}
+      <div className="absolute inset-0 hero-gradient-bg opacity-20 pointer-events-none" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        <AdminHeader 
+          title="게시물 관리"
+          description="블로그 게시물을 작성하고 관리합니다"
+        />
+      </motion.div>
 
-      <main className="pt-8">
-        <div className="container mx-auto px-6">
+      <main className="pt-8 relative z-10">
+        <div className="container mx-auto px-6 lg:px-8">
           <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col py-8 pt-12">
-            {/* Header Actions */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
-              <div className="flex items-center gap-4 flex-1">
-                {/* Search */}
-                <div className="relative flex-1 max-w-md">
-                  <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" />
+            {/* Header Actions with Enhanced Styling */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between mb-8"
+            >
+              <div className="flex items-center gap-6 flex-1">
+                {/* Enhanced Search with Glass Effect */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative flex-1 max-w-md"
+                >
+                  <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-foreground-secondary z-10 pointer-events-none" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="게시물 검색..."
-                    className="w-full pl-10 pr-4 py-2 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
+                  />
+                </motion.div>
+
+                {/* Enhanced Status Filter */}
+                <div className="relative z-10">
+                  <CustomSelect
+                    options={statusOptions}
+                    value={statusFilter}
+                    onChange={(value) => setStatusFilter(value as 'all' | 'published' | 'draft')}
+                    placeholder="상태 선택"
+                    className="min-w-[140px] bg-background/80 backdrop-blur-sm border-border/50 rounded-2xl shadow-sm"
                   />
                 </div>
-
-                {/* Status Filter */}
-                <CustomSelect
-                  options={statusOptions}
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value as 'all' | 'published' | 'draft')}
-                  placeholder="상태 선택"
-                  className="min-w-[140px]"
-                />
               </div>
 
-              {/* New Post Button */}
-              <Link href="/admin/posts/new">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent-blend text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
-                >
-                  <Plus size={20} />
-                  새 글 작성
-                </motion.button>
-              </Link>
-            </div>
+              {/* Enhanced Quick Actions */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <QuickActions variant="compact" />
+              </motion.div>
+            </motion.div>
 
-            {/* Posts List */}
+            {/* Enhanced Posts List */}
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="animate-pulse bg-background-secondary rounded-lg h-20"></div>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: i * 0.1 }}
+                    className="animate-pulse glass-effect rounded-3xl h-24 border border-border/30"
+                  />
                 ))}
               </div>
             ) : filteredPosts.length > 0 ? (
@@ -160,7 +183,7 @@ export default function AdminPostsPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="bg-background-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
+                      className="card-interactive glass-effect border border-border/30 shadow-sm hover:shadow-lg backdrop-blur-md"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -198,9 +221,9 @@ export default function AdminPostsPage() {
                           {post.status === 'published' && (
                             <Link href={`/blog/${post.id}`} target="_blank">
                               <motion.button
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.1, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="p-2 text-foreground-secondary hover:text-accent-info hover:bg-accent-info/10 rounded-md transition-colors"
+                                className="p-3 text-foreground-secondary hover:text-accent-info hover:bg-accent-info/10 rounded-xl transition-all shadow-sm hover:shadow-md"
                                 title="미리보기"
                               >
                                 <Eye size={16} />
@@ -210,9 +233,9 @@ export default function AdminPostsPage() {
                           
                           <Link href={`/admin/posts/edit/${post.id}`}>
                             <motion.button
-                              whileHover={{ scale: 1.05 }}
+                              whileHover={{ scale: 1.1, y: -2 }}
                               whileTap={{ scale: 0.95 }}
-                              className="p-2 text-foreground-secondary hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                              className="p-3 text-foreground-secondary hover:text-primary hover:bg-primary/10 rounded-xl transition-all shadow-sm hover:shadow-md"
                               title="편집"
                             >
                               <Edit size={16} />
@@ -220,11 +243,11 @@ export default function AdminPostsPage() {
                           </Link>
                           
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{ scale: 1.1, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleDelete(post.id!)}
                             disabled={deleting === post.id}
-                            className="p-2 text-foreground-secondary hover:text-accent-error hover:bg-accent-error/10 rounded-md transition-colors disabled:opacity-50"
+                            className="p-3 text-foreground-secondary hover:text-accent-error hover:bg-accent-error/10 rounded-xl transition-all shadow-sm hover:shadow-md disabled:opacity-50"
                             title="삭제"
                           >
                             {deleting === post.id ? (
@@ -243,15 +266,15 @@ export default function AdminPostsPage() {
                   ))}
                 </div>
 
-                {/* Load More */}
+                {/* Enhanced Load More */}
                 {hasMore && (
-                  <div className="text-center mt-8">
+                  <div className="text-center mt-12">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={loadMorePosts}
                       disabled={loadingMore}
-                      className="px-6 py-3 bg-background-secondary hover:bg-background-tertiary rounded-lg font-medium transition-colors disabled:opacity-70"
+                      className="px-8 py-4 glass-effect hover:bg-background-tertiary/50 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-70 border border-border/30"
                     >
                       {loadingMore ? (
                         <div className="flex items-center gap-2">
@@ -270,27 +293,53 @@ export default function AdminPostsPage() {
                 )}
               </>
             ) : (
-              <div className="text-center flex-1 flex flex-col justify-center items-center min-h-[50vh]">
-                <div className="w-20 h-20 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Search size={32} className="text-foreground-secondary" />
-                </div>
-                <h3 className="text-xl font-medium mb-4">게시물이 없습니다</h3>
-                <p className="text-foreground-secondary mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="text-center flex-1 flex flex-col justify-center items-center min-h-[50vh]"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-24 h-24 glass-effect rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg border border-border/30"
+                >
+                  <Search size={36} className="text-foreground-secondary" />
+                </motion.div>
+                <motion.h3
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className="text-2xl font-medium mb-4"
+                >
+                  게시물이 없습니다
+                </motion.h3>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="text-foreground-secondary mb-8 text-lg"
+                >
                   {searchTerm || statusFilter !== 'all' 
                     ? '검색 조건에 맞는 게시물이 없습니다.' 
                     : '첫 번째 게시물을 작성해보세요.'
                   }
-                </p>
+                </motion.p>
                 <Link href="/admin/posts/new">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className="btn-primary"
+                    className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-4 text-lg rounded-2xl font-medium transition-all shadow-lg flex items-center gap-3"
                   >
+                    <Plus size={20} />
                     새 글 작성
                   </motion.button>
                 </Link>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

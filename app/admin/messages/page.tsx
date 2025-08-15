@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react'
 import FCMSetup from '@/components/admin/FCMSetup'
 import AdminHeader from '@/components/admin/AdminHeader'
-import AdminSidebar from '@/components/admin/AdminSidebar'
+import QuickActions from '@/components/admin/QuickActions'
 // Removed date-fns dependency
 
 interface Message {
@@ -183,213 +184,352 @@ export default function AdminMessagesPage() {
   }
 
   return (
-    <>
-      <AdminHeader 
-        title="메시지 관리"
-        description="웹사이트를 통해 받은 메시지를 관리합니다."
-        showBackButton={true}
-        backUrl="/admin/posts"
-      />
+    <div className="min-h-screen bg-background relative">
+      {/* Enhanced Background */}
+      <div className="absolute inset-0 hero-gradient-bg opacity-15 pointer-events-none" />
       
-      <div className="flex">
-        <AdminSidebar />
-        
-        <div className="flex-1 p-6">
-          {unreadCount > 0 && (
-            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-orange-600" />
-                <span className="text-orange-800 font-medium">
-                  읽지 않은 메시지 {unreadCount}개가 있습니다.
-                </span>
-              </div>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        <AdminHeader 
+          title="메시지 관리"
+          description="웹사이트를 통해 받은 메시지를 관리합니다."
+          showBackButton={false}
+        />
+      </motion.div>
+      
+      <div className="p-6 lg:p-8 relative z-10">
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-8 p-6 glass-effect border border-accent-warning/30 rounded-2xl shadow-sm backdrop-blur-md"
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.2, type: "spring" }}
+                className="w-10 h-10 bg-accent-warning/10 rounded-full flex items-center justify-center"
+              >
+                <MessageSquare className="h-5 w-5 text-accent-warning" />
+              </motion.div>
+              <span className="text-foreground font-medium text-lg">
+                읽지 않은 메시지 {unreadCount}개가 있습니다.
+              </span>
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* FCM Setup */}
-          <div className="mb-8">
-            <FCMSetup />
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-8"
+        >
+          <QuickActions variant="compact" />
+        </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Messages List */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">메시지 목록</h2>
-            <Button 
-              onClick={fetchMessages} 
-              variant="outline" 
-              size="sm"
-              disabled={loading}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mb-10"
+        >
+          <FCMSetup />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="grid lg:grid-cols-2 gap-8"
+        >
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex items-center justify-between"
             >
-              새로 고침
-            </Button>
-          </div>
-
-          {messages.length === 0 ? (
-            <Card>
-              <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">받은 메시지가 없습니다.</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((message) => (
-                <Card 
-                  key={message.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedMessage?.id === message.id ? 'ring-2 ring-primary' : ''
-                  } ${message.status === 'unread' ? 'border-orange-200 bg-orange-50/50' : ''}`}
-                  onClick={() => setSelectedMessage(message)}
+              <h2 className="text-2xl font-medium">메시지 목록</h2>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={fetchMessages} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={loading}
+                  className="glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold truncate">{message.name}</span>
-                          {getStatusBadge(message.status)}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span className="truncate">{message.email}</span>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                          {message.message}
-                        </p>
-                        
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(message.createdAt)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 ml-2">
-                        {message.status === 'unread' && (
-                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                        )}
-                      </div>
+                  새로 고침
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            {messages.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <Card className="card-primary glass-effect border-border/30 shadow-sm">
+                  <CardContent className="flex items-center justify-center py-16">
+                    <div className="text-center">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.4, delay: 0.7, type: "spring" }}
+                        className="w-16 h-16 glass-effect rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border border-border/30"
+                      >
+                        <Mail className="h-8 w-8 text-foreground-secondary" />
+                      </motion.div>
+                      <p className="text-foreground-secondary text-lg">받은 메시지가 없습니다.</p>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Message Detail */}
-        <div>
-          {selectedMessage ? (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      {selectedMessage.name}
-                    </CardTitle>
-                    <CardDescription>{selectedMessage.email}</CardDescription>
-                  </div>
-                  {getStatusBadge(selectedMessage.status)}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-6">
-                {/* Message Content */}
-                <div>
-                  <h4 className="font-semibold mb-2">메시지 내용</h4>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="whitespace-pre-wrap">{selectedMessage.message}</p>
-                  </div>
-                </div>
-
-                {/* Message Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">받은 시간:</span>
-                    <p className="font-medium">{formatDate(selectedMessage.createdAt)}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">상태:</span>
-                    <div className="mt-1">{getStatusBadge(selectedMessage.status)}</div>
-                  </div>
-                </div>
-
-                {/* Admin Notes */}
-                <div>
-                  <h4 className="font-semibold mb-2">관리자 메모</h4>
-                  <textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="메시지에 대한 메모를 작성하세요..."
-                    className="w-full p-3 border rounded-lg resize-none"
-                    rows={3}
-                  />
-                  <Button
-                    onClick={() => saveAdminNotes(selectedMessage.id)}
-                    disabled={updating}
-                    className="mt-2 w-full"
-                    variant="outline"
+              </motion.div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.6 + index * 0.05 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {updating ? '저장 중...' : '메모 저장'}
-                  </Button>
-                </div>
+                    <Card 
+                      className={`cursor-pointer transition-all card-interactive glass-effect border-border/30 shadow-sm hover:shadow-lg backdrop-blur-md ${
+                        selectedMessage?.id === message.id ? 'ring-2 ring-primary/50 shadow-lg' : ''
+                      } ${message.status === 'unread' ? 'border-accent-warning/30 bg-accent-warning/5' : ''}`}
+                      onClick={() => setSelectedMessage(message)}
+                    >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-semibold truncate">{message.name}</span>
+                            {getStatusBadge(message.status)}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                            <Mail className="h-4 w-4" />
+                            <span className="truncate">{message.email}</span>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                            {message.message}
+                          </p>
+                          
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(message.createdAt)}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 ml-2">
+                          {message.status === 'unread' && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.3, delay: 0.8 + index * 0.05 }}
+                              className="w-3 h-3 bg-accent-warning rounded-full shadow-sm"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap gap-2">
-                  {selectedMessage.status === 'unread' && (
-                    <Button
-                      onClick={() => updateMessageStatus(selectedMessage.id, 'read')}
-                      disabled={updating}
-                      variant="outline"
-                      size="sm"
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            {selectedMessage ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="card-primary glass-effect border-border/30 shadow-lg backdrop-blur-md">
+                  <CardHeader className="pb-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="flex items-center justify-between"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      읽음 처리
-                    </Button>
-                  )}
-                  
-                  {selectedMessage.status !== 'replied' && (
-                    <Button
-                      onClick={() => updateMessageStatus(selectedMessage.id, 'replied')}
-                      disabled={updating}
-                      size="sm"
-                    >
-                      <Reply className="h-4 w-4 mr-1" />
-                      답변 완료
-                    </Button>
-                  )}
-                  
-                  <Button
-                    onClick={() => deleteMessage(selectedMessage.id)}
-                    variant="destructive"
-                    size="sm"
+                      <div>
+                        <CardTitle className="flex items-center gap-3 text-xl">
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.3, delay: 0.2, type: "spring" }}
+                            className="w-10 h-10 glass-effect rounded-full flex items-center justify-center shadow-sm border border-border/30"
+                          >
+                            <User className="h-5 w-5 text-primary" />
+                          </motion.div>
+                          {selectedMessage.name}
+                        </CardTitle>
+                        <CardDescription className="text-base mt-2 ml-13">{selectedMessage.email}</CardDescription>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.3 }}
+                      >
+                        {getStatusBadge(selectedMessage.status)}
+                      </motion.div>
+                    </motion.div>
+                  </CardHeader>
+                
+                <CardContent className="space-y-8 pt-2">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    삭제
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">메시지를 선택하여 자세히 보기</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                    <h4 className="font-medium mb-3 text-lg">메시지 내용</h4>
+                    <div className="p-4 glass-effect rounded-2xl border border-border/30 shadow-sm">
+                      <p className="whitespace-pre-wrap text-foreground leading-relaxed">{selectedMessage.message}</p>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    className="grid grid-cols-2 gap-6"
+                  >
+                    <div className="glass-effect p-4 rounded-2xl border border-border/30">
+                      <span className="text-foreground-secondary text-sm">받은 시간</span>
+                      <p className="font-medium text-foreground mt-1">{formatDate(selectedMessage.createdAt)}</p>
+                    </div>
+                    <div className="glass-effect p-4 rounded-2xl border border-border/30">
+                      <span className="text-foreground-secondary text-sm">상태</span>
+                      <div className="mt-2">{getStatusBadge(selectedMessage.status)}</div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 }}
+                  >
+                    <h4 className="font-medium mb-3 text-lg">관리자 메모</h4>
+                    <textarea
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="메시지에 대한 메모를 작성하세요..."
+                      className="w-full p-4 glass-effect border border-border/50 rounded-2xl resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm backdrop-blur-md"
+                      rows={3}
+                    />
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        onClick={() => saveAdminNotes(selectedMessage.id)}
+                        disabled={updating}
+                        className="mt-3 w-full glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
+                        variant="outline"
+                      >
+                        {updating ? '저장 중...' : '메모 저장'}
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="flex flex-wrap gap-3"
+                  >
+                    {selectedMessage.status === 'unread' && (
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          onClick={() => updateMessageStatus(selectedMessage.id, 'read')}
+                          disabled={updating}
+                          variant="outline"
+                          size="sm"
+                          className="glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          읽음 처리
+                        </Button>
+                      </motion.div>
+                    )}
+                    
+                    {selectedMessage.status !== 'replied' && (
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          onClick={() => updateMessageStatus(selectedMessage.id, 'replied')}
+                          disabled={updating}
+                          size="sm"
+                          className="bg-accent-blend text-primary-foreground hover:opacity-90 rounded-xl shadow-sm hover:shadow-md transition-all"
+                        >
+                          <Reply className="h-4 w-4 mr-2" />
+                          답변 완료
+                        </Button>
+                      </motion.div>
+                    )}
+                    
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        onClick={() => deleteMessage(selectedMessage.id)}
+                        variant="destructive"
+                        size="sm"
+                        className="rounded-xl shadow-sm hover:shadow-md transition-all"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        삭제
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+                </CardContent>
+              </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="card-primary glass-effect border-border/30 shadow-sm">
+                  <CardContent className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.4, delay: 0.1, type: "spring" }}
+                        className="w-16 h-16 glass-effect rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border border-border/30"
+                      >
+                        <MessageSquare className="h-8 w-8 text-foreground-secondary" />
+                      </motion.div>
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.2 }}
+                        className="text-foreground-secondary text-lg"
+                      >
+                        메시지를 선택하여 자세히 보기
+                      </motion.p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
       </div>
-        </div>
-      </div>
-    </>
+    </div>
   )
 }
