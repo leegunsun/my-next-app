@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import JsonLd from "@/components/JsonLd";
 import "./globals.css";
 
@@ -94,9 +95,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AnalyticsProvider>
-            {children}
-          </AnalyticsProvider>
+          <AuthProvider>
+            <AnalyticsProvider>
+              {children}
+            </AnalyticsProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

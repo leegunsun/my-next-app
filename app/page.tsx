@@ -209,6 +209,14 @@ class NotificationHandler : TextWebSocketHandler() {
             </motion.a>
             <motion.a 
               whileHover={{ scale: 1.05 }}
+              href="/blog"
+              onClick={() => trackButtonClick('nav_blog', 'navigation')}
+              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
+            >
+              Blog
+            </motion.a>
+            <motion.a 
+              whileHover={{ scale: 1.05 }}
               href="#contact"
               onClick={() => trackButtonClick('nav_contact', 'navigation')}
               className="bg-accent-blend text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
