@@ -450,16 +450,6 @@ export default function BlogPostPage() {
                         "
                         dangerouslySetInnerHTML={{ __html: post.content }}
                       />
-                      
-                      {/* Reading Progress Indicator */}
-                      <motion.div
-                        initial={{ scaleX: 0 }}
-                        whileInView={{ scaleX: 1 }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        viewport={{ once: true }}
-                        className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary via-accent-purple to-accent-success rounded-full origin-left"
-                        style={{ width: "100%" }}
-                      />
                     </div>
                   </motion.div>
                 </AnimatedSection>
