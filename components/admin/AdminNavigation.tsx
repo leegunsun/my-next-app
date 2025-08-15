@@ -9,7 +9,6 @@ import {
   FileText, 
   MessageSquare, 
   Settings,
-  Users,
   BarChart3,
   Home,
   ChevronRight

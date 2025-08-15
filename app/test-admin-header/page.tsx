@@ -26,8 +26,8 @@ export default function TestAdminHeaderPage() {
           <h3 className="font-medium mb-2">제거된 요소들:</h3>
           <ul className="text-foreground-secondary space-y-1">
             <li>✅ 고정 내비게이션 바 (fixed navigation bar)</li>
-            <li>✅ "돌아가기" 버튼 (/blog로 링크)</li>
-            <li>✅ Settings 아이콘과 "관리자" 텍스트</li>
+            <li>✅ &quot;돌아가기&quot; 버튼 (/blog로 링크)</li>
+            <li>✅ Settings 아이콘과 &quot;관리자&quot; 텍스트</li>
             <li>✅ LoginButton 컴포넌트</li>
           </ul>
         </div>

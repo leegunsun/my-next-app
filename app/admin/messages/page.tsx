@@ -9,13 +9,10 @@ import {
   Mail, 
   User, 
   Calendar, 
-  MoreVertical, 
   Trash2, 
-  Check, 
   Eye, 
   Reply,
-  MessageSquare,
-  Clock
+  MessageSquare
 } from 'lucide-react'
 import FCMSetup from '@/components/admin/FCMSetup'
 import AdminHeader from '@/components/admin/AdminHeader'
@@ -69,11 +66,11 @@ export default function AdminMessagesPage() {
       if (response.ok) {
         setMessages(prev => 
           prev.map(msg => 
-            msg.id === messageId ? { ...msg, status: status as any } : msg
+            msg.id === messageId ? { ...msg, status: status as Message['status'] } : msg
           )
         )
         if (selectedMessage?.id === messageId) {
-          setSelectedMessage(prev => prev ? { ...prev, status: status as any } : null)
+          setSelectedMessage(prev => prev ? { ...prev, status: status as Message['status'] } : null)
         }
       }
     } catch (error) {

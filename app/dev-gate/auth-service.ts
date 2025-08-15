@@ -1,6 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db, AUTH_COLLECTION, AUTH_DOCUMENT_ID } from './firestore-config';
-import { validateCredentialsFallback } from './auth-service-fallback';
 
 export interface AuthCredentials {
   id: string;
@@ -48,11 +47,13 @@ export async function validateCredentials(inputId: string, inputPass: string): P
       success: false, 
       error: '아이디 또는 비밀번호가 일치하지 않습니다' 
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Firestore authentication error:', error);
     
     // 권한 오류인 경우 fallback 사용
-    if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCode = (error as { code?: string })?.code;
+    if (errorCode === 'permission-denied' || errorMessage.includes('permission')) {
       console.warn('Firestore 권한 오류 - Fallback 모드 사용');
       console.warn('Firestore 보안 규칙을 수정하세요: testUser 컬렉션 읽기 허용 필요');
       

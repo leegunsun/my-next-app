@@ -40,7 +40,7 @@ export const signInWithGoogle = async () => {
           user: null, 
           error: 'Google 로그인 팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하거나 이메일 로그인을 사용해주세요.' 
         }
-      } catch (redirectError) {
+      } catch {
         return { 
           user: null, 
           error: '로그인 중 문제가 발생했습니다. 이메일 로그인을 시도해주세요.' 

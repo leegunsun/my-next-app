@@ -97,7 +97,8 @@ export const getBlogPost = async (postId: string) => {
 // Get published blog posts with pagination
 export const getPublishedPosts = async (
   pageSize: number = 10, 
-  lastDoc?: QueryDocumentSnapshot<DocumentData>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _lastDoc?: QueryDocumentSnapshot<DocumentData>
 ) => {
   try {
     console.log('🔍 getPublishedPosts called with pageSize:', pageSize)
@@ -237,15 +238,17 @@ export const getPostsByCategory = async (category: string) => {
       
       console.log(`✅ Found ${posts.length} posts for category "${category}"`)
       return { posts, error: null }
-    } catch (indexError: any) {
+    } catch (indexError: unknown) {
       // Check if it's specifically an index error
-      if (indexError?.code === 'failed-precondition' && indexError?.message?.includes('index')) {
+      const errorCode = (indexError as { code?: string })?.code;
+      const errorMessage = indexError instanceof Error ? indexError.message : String(indexError);
+      if (errorCode === 'failed-precondition' && errorMessage.includes('index')) {
         console.warn('⚠️ Firestore composite index not deployed. Using fallback method.')
         console.warn('📝 To fix this, run: firebase deploy --only firestore:indexes')
         console.warn('🔗 Or click the link in the error message to create the index in Firebase Console')
         
         // Extract and log the index creation URL if available
-        const indexUrlMatch = indexError.message.match(/https:\/\/console\.firebase\.google\.com[^\s]+/)
+        const indexUrlMatch = errorMessage.match(/https:\/\/console\.firebase\.google\.com[^\s]+/)
         if (indexUrlMatch) {
           console.warn(`🔗 Direct link to create index: ${indexUrlMatch[0]}`)
         }

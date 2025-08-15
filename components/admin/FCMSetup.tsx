@@ -182,8 +182,8 @@ export default function FCMSetup() {
         <div className="text-xs text-muted-foreground space-y-1">
           <p><strong>설정 방법:</strong></p>
           <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li>위의 "알림 설정하기" 버튼을 클릭합니다.</li>
-            <li>브라우저에서 알림 권한 요청이 나타나면 "허용"을 선택합니다.</li>
+            <li>위의 &quot;알림 설정하기&quot; 버튼을 클릭합니다.</li>
+            <li>브라우저에서 알림 권한 요청이 나타나면 &quot;허용&quot;을 선택합니다.</li>
             <li>생성된 FCM 토큰을 복사하여 서버 환경변수에 설정합니다.</li>
             <li>이제 새 메시지가 도착하면 휴대폰으로 알림을 받을 수 있습니다.</li>
           </ol>

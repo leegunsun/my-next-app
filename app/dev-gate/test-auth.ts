@@ -13,7 +13,7 @@ interface TestResult {
   testName: string;
   passed: boolean;
   message: string;
-  error?: any;
+  error?: unknown;
 }
 
 export async function runAuthTests(): Promise<TestResult[]> {

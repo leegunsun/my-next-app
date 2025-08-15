@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { validateCredentials } from '../auth-service';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, AUTH_COLLECTION, AUTH_DOCUMENT_ID } from '../firestore-config';
@@ -149,12 +150,12 @@ export default function TestLoginPage() {
         )}
 
         <div className="mt-8 text-center">
-          <a
+          <Link
             href="/"
             className="text-gray-400 hover:text-white transition-colors"
           >
             ← 메인으로 돌아가기
-          </a>
+          </Link>
         </div>
       </div>
     </div>

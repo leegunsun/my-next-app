@@ -22,7 +22,6 @@ export default function BlogPage() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [cachedPosts, setCachedPosts] = useState<{[key: string]: BlogPost[]}>({})
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null)
 
   // Categories for filtering
@@ -38,6 +37,7 @@ export default function BlogPage() {
   // Load initial posts
   useEffect(() => {
     loadPosts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadPosts = async (forceReload = false) => {

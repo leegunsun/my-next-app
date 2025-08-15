@@ -6,10 +6,7 @@ import { motion } from 'framer-motion'
 import { 
   Plus, 
   MessageSquare, 
-  FileText, 
-  Edit,
-  BarChart3,
-  Settings
+  FileText
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 

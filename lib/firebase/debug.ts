@@ -21,7 +21,7 @@ export const debugAllPosts = async () => {
       return { totalDocs: 0, publishedDocs: 0, documents: [] }
     }
     
-    const allDocs: any[] = []
+    const allDocs: { id: string; [key: string]: unknown }[] = []
     allDocsSnapshot.forEach((doc) => {
       const data = doc.data()
       allDocs.push({ id: doc.id, ...data })

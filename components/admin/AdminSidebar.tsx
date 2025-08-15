@@ -7,8 +7,7 @@ import {
   FileText, 
   MessageSquare, 
   Settings, 
-  BarChart3,
-  Users
+  BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

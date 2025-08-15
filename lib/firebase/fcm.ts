@@ -1,4 +1,4 @@
-import { getMessaging, getToken, onMessage } from 'firebase/messaging'
+import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging'
 import app from './config'
 
 // FCM server key should be stored in environment variables
@@ -6,7 +6,7 @@ const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY
 const ADMIN_FCM_TOKEN = process.env.ADMIN_FCM_TOKEN // Your device token
 
 // Initialize FCM (client-side only)
-let messaging: any = null
+let messaging: Messaging | null = null
 
 if (typeof window !== 'undefined') {
   try {

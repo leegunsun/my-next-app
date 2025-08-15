@@ -5,11 +5,11 @@ import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore'
 // PUT - Update message status or admin notes
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { status, adminNotes } = await request.json()
-    const messageId = params.id
+    const { id: messageId } = await params
 
     if (!messageId) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function PUT(
       )
     }
 
-    const updateData: any = {}
+    const updateData: { status?: string; adminNotes?: string } = {}
     
     if (status) {
       if (!['unread', 'read', 'replied'].includes(status)) {
@@ -53,10 +53,10 @@ export async function PUT(
 // DELETE - Delete message
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const messageId = params.id
+    const { id: messageId } = await params
 
     if (!messageId) {
       return NextResponse.json(
