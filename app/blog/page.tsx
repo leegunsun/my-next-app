@@ -92,14 +92,16 @@ export default function BlogPage() {
     // If clicking the same category, do nothing
     if (selectedCategory === categoryId) return
     
+    console.log('🔄 Switching from category:', selectedCategory, 'to:', categoryId)
     setSelectedCategory(categoryId)
     
-    // Check if we have cached data for this category
-    if (cachedPosts[categoryId] && cachedPosts[categoryId].length > 0) {
-      setPosts(cachedPosts[categoryId])
-      setHasMore(false)
-      return
-    }
+    // Always fetch fresh data for now to debug the issue
+    // Comment out cache check temporarily
+    // if (cachedPosts[categoryId] && cachedPosts[categoryId].length > 0) {
+    //   setPosts(cachedPosts[categoryId])
+    //   setHasMore(false)
+    //   return
+    // }
     
     // If no cached data, show transition state instead of full loading
     setIsTransitioning(true)
@@ -110,6 +112,7 @@ export default function BlogPage() {
         const { posts: newPosts, lastDoc: newLastDoc, hasMore: newHasMore, error } = await getPublishedPosts(6)
         
         if (!error) {
+          console.log(`📊 Category "all" returned ${newPosts.length} posts`)
           setCachedPosts(prev => ({ ...prev, [categoryId]: newPosts }))
           setPosts(newPosts)
           setLastDoc(newLastDoc)
@@ -119,6 +122,10 @@ export default function BlogPage() {
         const { posts: filteredPosts, error } = await getPostsByCategory(categoryId)
         
         if (!error) {
+          console.log(`📊 Category "${categoryId}" returned ${filteredPosts.length} posts`)
+          filteredPosts.forEach(post => {
+            console.log(`  - ${post.title} (category: ${post.category})`)
+          })
           setCachedPosts(prev => ({ ...prev, [categoryId]: filteredPosts }))
           setPosts(filteredPosts)
           setHasMore(false)

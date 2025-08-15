@@ -215,22 +215,54 @@ export const searchPosts = async (searchTerm: string) => {
 // Get posts by category
 export const getPostsByCategory = async (category: string) => {
   try {
-    const q = query(
-      collection(db, POSTS_COLLECTION),
-      where('status', '==', 'published'),
-      where('category', '==', category),
-      orderBy('createdAt', 'desc')
-    )
+    console.log('🔍 getPostsByCategory called with category:', category)
     
-    const querySnapshot = await getDocs(q)
-    const posts: BlogPost[] = []
-    
-    querySnapshot.forEach((doc) => {
-      posts.push({ id: doc.id, ...doc.data() } as BlogPost)
-    })
-    
-    return { posts, error: null }
+    // First try with Firestore index query
+    try {
+      const q = query(
+        collection(db, POSTS_COLLECTION),
+        where('status', '==', 'published'),
+        where('category', '==', category),
+        orderBy('createdAt', 'desc')
+      )
+      
+      const querySnapshot = await getDocs(q)
+      const posts: BlogPost[] = []
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        console.log(`📄 Post ${doc.id} - category: ${data.category}, status: ${data.status}`)
+        posts.push({ id: doc.id, ...data } as BlogPost)
+      })
+      
+      console.log(`✅ Found ${posts.length} posts for category "${category}"`)
+      return { posts, error: null }
+    } catch (indexError) {
+      console.log('⚠️ Index query failed, falling back to in-memory filtering:', indexError)
+      
+      // Fallback: Get all published posts and filter in memory
+      const allDocsQuery = query(
+        collection(db, POSTS_COLLECTION),
+        where('status', '==', 'published'),
+        orderBy('createdAt', 'desc')
+      )
+      
+      const allDocsSnapshot = await getDocs(allDocsQuery)
+      const posts: BlogPost[] = []
+      
+      allDocsSnapshot.forEach((doc) => {
+        const data = doc.data()
+        if (data.category === category) {
+          console.log(`📄 Post ${doc.id} - category: ${data.category}, status: ${data.status}`)
+          posts.push({ id: doc.id, ...data } as BlogPost)
+        }
+      })
+      
+      console.log(`✅ Found ${posts.length} posts for category "${category}" (fallback method)`)
+      return { posts, error: null }
+    }
   } catch (error: unknown) {
+    console.error('❌ getPostsByCategory error:', error)
     return { posts: [], error: error instanceof Error ? error.message : String(error) }
   }
 }
