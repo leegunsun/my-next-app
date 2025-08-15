@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  /* Light Theme Design System Colors */
-  --color-primary: rgb(59, 130, 246);
+  /* Modern Pastel Design System Colors */
+  --color-primary: rgb(90, 169, 255);
   --color-primary-foreground: rgb(255, 255, 255);
   
   --color-background: rgb(255, 255, 255);
@@ -23,11 +23,12 @@
   --color-overlay-card: rgba(255, 255, 255, 0.8);
   --color-overlay-hover: rgba(0, 0, 0, 0.04);
   
-  --color-accent-success: rgb(34, 197, 94);
+  --color-accent-success: rgb(108, 210, 143);
   --color-accent-warning: rgb(245, 158, 11);
   --color-accent-error: rgb(239, 68, 68);
-  --color-accent-info: rgb(14, 165, 233);
-  --color-accent-purple: rgb(147, 51, 234);
+  --color-accent-info: rgb(122, 180, 245);
+  --color-accent-purple: rgb(196, 167, 245);
+  --color-accent-blend: rgb(88, 195, 169);
   
   /* Legacy support colors */
   --color-card: rgb(255, 255, 255);
@@ -41,7 +42,7 @@
   --color-destructive: rgb(239, 68, 68);
   --color-destructive-foreground: rgb(255, 255, 255);
   --color-input: rgb(255, 255, 255);
-  --color-ring: rgb(59, 130, 246);
+  --color-ring: rgb(90, 169, 255);
   
   /* Transitions */
   --transition-colors: color 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -106,9 +107,9 @@
     -webkit-line-clamp: 3;
   }
   
-  /* Linear Design System Button Utilities */
+  /* Modern Design System Button Utilities */
   .btn-primary {
-    @apply bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-all;
+    @apply bg-accent-blend text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-all;
     @apply hover:opacity-90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
   
@@ -122,7 +123,7 @@
     @apply hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
   
-  /* Light Theme Card Utilities */
+  /* Modern Theme Card Utilities */
   .card-primary {
     @apply bg-card rounded-3xl p-8 border border-border shadow-sm;
   }
@@ -139,7 +140,7 @@
     @apply bg-card rounded-3xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-200;
   }
   
-  /* Light Theme Typography Utilities */
+  /* Modern Theme Typography Utilities */
   .text-gradient-fade {
     background: linear-gradient(to right, rgb(17, 24, 39), rgba(17, 24, 39, 0.6) 80%);
     -webkit-background-clip: text;
@@ -148,27 +149,27 @@
   }
   
   .text-gradient-primary {
-    background: linear-gradient(135deg, rgb(59, 130, 246), rgb(147, 51, 234));
+    background: linear-gradient(135deg, rgb(90, 169, 255), rgb(196, 167, 245));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-gradient-flutter {
-    background: linear-gradient(135deg, rgba(1, 117, 194, 0.8), rgba(1, 117, 194, 0.4));
+    background: linear-gradient(135deg, rgb(90, 169, 255), rgb(122, 180, 245));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-gradient-spring {
-    background: linear-gradient(135deg, rgba(109, 179, 63, 0.8), rgba(109, 179, 63, 0.4));
+    background: linear-gradient(135deg, rgb(108, 210, 143), rgb(88, 195, 169));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   
-  /* Linear Focus Ring */
+  /* Modern Focus Ring */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
@@ -198,7 +199,7 @@
   }
 }
 
-/* Linear Design System Animations */
+/* Modern Design System Animations */
 @keyframes linear-fade-in {
   from {
     opacity: 0;
@@ -232,7 +233,7 @@
   }
 }
 
-/* Scroll animations with Linear easing */
+/* Scroll animations with Modern easing */
 @media (prefers-reduced-motion: no-preference) {
   .animate-on-scroll {
     opacity: 0;

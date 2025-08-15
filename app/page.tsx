@@ -211,7 +211,7 @@ class NotificationHandler : TextWebSocketHandler() {
               whileHover={{ scale: 1.05 }}
               href="#contact"
               onClick={() => trackButtonClick('nav_contact', 'navigation')}
-              className="bg-primary text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
+              className="bg-accent-blend text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
             >
               Contact
             </motion.a>
@@ -295,7 +295,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   trackButtonClick('download_resume', 'hero_section')
                   downloadResume()
                 }}
-                className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-3 text-base rounded-md font-medium transition-all shadow-lg flex items-center gap-2"
+                className="bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 text-base rounded-md font-medium transition-all shadow-lg flex items-center gap-2"
               >
                 <Download size={20} />
                 이력서 다운로드
@@ -383,6 +383,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.2 }}
                       onClick={() => trackCustomEvent('skill_click', { skill: 'flutter', section: 'about' })}
                       className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
@@ -393,6 +394,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.3 }}
                       onClick={() => trackCustomEvent('skill_click', { skill: 'spring_boot', section: 'about' })}
                       className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
@@ -403,6 +405,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.4 }}
                       onClick={() => trackCustomEvent('skill_click', { skill: 'docker_kubernetes', section: 'about' })}
                       className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
@@ -413,6 +416,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.5 }}
                       onClick={() => trackCustomEvent('skill_click', { skill: 'mssql', section: 'about' })}
                       className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
@@ -635,6 +639,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.5 }}
                       className="flex items-center gap-3"
                     >
@@ -644,6 +649,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.6 }}
                       className="flex items-center gap-3"
                     >
@@ -653,6 +659,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.7 }}
                       className="flex items-center gap-3"
                     >
@@ -735,6 +742,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.2 }}
                       onClick={() => trackButtonClick('email_contact', 'contact_section')}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
@@ -751,6 +759,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.3 }}
                       onClick={() => {
                         trackButtonClick('github_contact', 'contact_section')
@@ -771,6 +780,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
                       transition={{ delay: 0.4 }}
                       onClick={() => trackButtonClick('linkedin_contact', 'contact_section')}
                       className="flex items-center gap-4 group cursor-pointer hover:bg-background-secondary p-3 rounded-lg transition-colors"
@@ -812,6 +822,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ delay: 0.3 }}
                   >
                     <label className="block text-sm font-medium mb-2">이름</label>
@@ -829,6 +840,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ delay: 0.4 }}
                   >
                     <label className="block text-sm font-medium mb-2">이메일</label>
@@ -846,6 +858,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ delay: 0.5 }}
                   >
                     <label className="block text-sm font-medium mb-2">메시지</label>
@@ -863,6 +876,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     whileHover={{ scale: isSubmitting ? 1 : 1.02, y: isSubmitting ? 0 : -2 }}
                     whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                     transition={{ delay: 0.6 }}
@@ -871,7 +885,7 @@ class NotificationHandler : TextWebSocketHandler() {
                     className={`w-full px-6 py-3 rounded-md font-medium transition-all shadow-lg flex items-center justify-center gap-2 ${
                       isSubmitting 
                         ? 'bg-foreground-muted text-background cursor-not-allowed' 
-                        : 'bg-primary text-primary-foreground hover:opacity-90'
+                        : 'bg-accent-blend text-primary-foreground hover:opacity-90'
                     }`}
                   >
                     {isSubmitting ? (

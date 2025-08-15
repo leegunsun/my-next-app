@@ -98,6 +98,7 @@ export default function ProjectCard({
               key={tag}
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
               transition={{ delay: delay + 0.1 * index, duration: 0.3 }}
               className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-full"
             >
