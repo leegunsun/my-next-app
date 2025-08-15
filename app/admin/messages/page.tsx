@@ -429,7 +429,7 @@ export default function AdminMessagesPage() {
                       <Button
                         onClick={() => saveAdminNotes(selectedMessage.id)}
                         disabled={updating}
-                        className="mt-3 w-full glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
+                        className="mt-3 w-full glass-effect border-border/50 rounded-xl hover:border-primary/30 hover:bg-primary/5 hover:shadow-lg transition-all duration-200"
                         variant="outline"
                       >
                         {updating ? '저장 중...' : '메모 저장'}
@@ -450,7 +450,7 @@ export default function AdminMessagesPage() {
                           disabled={updating}
                           variant="outline"
                           size="sm"
-                          className="glass-effect border-border/50 rounded-xl hover:shadow-md transition-all"
+                          className="glass-effect border-border/50 rounded-xl hover:border-primary/30 hover:bg-primary/5 hover:shadow-lg transition-all duration-200"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           읽음 처리
