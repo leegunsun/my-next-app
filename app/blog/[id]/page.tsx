@@ -18,7 +18,7 @@ export default function BlogPostPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const [scrollProgress, setScrollProgress] = useState(0)
+  // const [scrollProgress, setScrollProgress] = useState(0) // Reserved for scroll indicator
 
   useEffect(() => {
     if (params.id) {

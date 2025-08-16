@@ -23,7 +23,7 @@ export default function BlogPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [cachedPosts, setCachedPosts] = useState<{[key: string]: BlogPost[]}>({})
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  // const [isTransitioning, setIsTransitioning] = useState(false) // Reserved for future use
 
   // Categories for filtering
   const categories = [

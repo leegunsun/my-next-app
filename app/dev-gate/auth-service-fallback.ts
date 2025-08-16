@@ -18,7 +18,7 @@ export interface AuthResult {
 /**
  * 하드코딩된 값으로 인증 (Firestore 접근 불가 시 대체)
  */
-export async function validateCredentialsFallback(inputId: string, inputPass: string): Promise<AuthResult> {
+export async function validateCredentialsFallback(_inputId: string, _inputPass: string): Promise<AuthResult> {
   try {
     // 간단한 대기 시간으로 비동기 작업 시뮬레이션
     await new Promise(resolve => setTimeout(resolve, 100));

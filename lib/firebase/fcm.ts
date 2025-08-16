@@ -1,10 +1,15 @@
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { getAdminFCMToken, updateAdminFCMToken } from './firestore'
+import { updateAdminFCMToken } from './firestore'
 import { auth } from './config'
 import { isMasterUser } from './auth'
 import { db } from './config'
 import app from './config'
+
+// Firebase Error interface for proper typing
+interface FirebaseError extends Error {
+  code?: string
+}
 
 // FCM custom endpoint URL
 const FCM_ENDPOINT_URL = 'https://sendpushnotification-tzvcof2hmq-uc.a.run.app'
@@ -182,7 +187,7 @@ export async function getAdminFCMTokenDirectly(): Promise<string | null> {
     if (error instanceof Error) {
       console.error('📋 Error details:', {
         message: error.message,
-        code: (error as any).code,
+        code: (error as FirebaseError)?.code || 'unknown',
         name: error.name
       })
     }
