@@ -18,6 +18,7 @@ export interface AuthResult {
 /**
  * 하드코딩된 값으로 인증 (Firestore 접근 불가 시 대체)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function validateCredentialsFallback(_inputId: string, _inputPass: string): Promise<AuthResult> {
   try {
     // 간단한 대기 시간으로 비동기 작업 시뮬레이션

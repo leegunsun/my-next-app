@@ -26,18 +26,18 @@ export default function BlogPostPage() {
     }
   }, [params.id])
 
-  // Scroll progress tracking
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollPercent = scrollTop / docHeight
-      setScrollProgress(scrollPercent)
-    }
+  // Scroll progress tracking - temporarily disabled
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const scrollTop = window.scrollY
+  //     const docHeight = document.documentElement.scrollHeight - window.innerHeight
+  //     const scrollPercent = scrollTop / docHeight
+  //     setScrollProgress(scrollPercent)
+  //   }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  //   window.addEventListener('scroll', handleScroll)
+  //   return () => window.removeEventListener('scroll', handleScroll)
+  // }, [])
 
   const loadPost = async (postId: string) => {
     setLoading(true)

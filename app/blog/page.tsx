@@ -105,7 +105,7 @@ export default function BlogPage() {
     // }
     
     // If no cached data, show transition state instead of full loading
-    setIsTransitioning(true)
+    // setIsTransitioning(true) // Disabled until transition feature is implemented
     setLoadingCategory(categoryId)
     
     try {
@@ -135,7 +135,7 @@ export default function BlogPage() {
     } catch (error) {
       console.error('Category filter error:', error)
     } finally {
-      setIsTransitioning(false)
+      // setIsTransitioning(false) // Disabled until transition feature is implemented
       setLoadingCategory(null)
     }
   }
