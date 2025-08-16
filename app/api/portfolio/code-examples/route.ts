@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../lib/firebase/config'
-import { collection, getDocs, addDoc, orderBy, query } from 'firebase/firestore'
 import { CodeExample } from '../../../../lib/types/portfolio'
 
-export async function GET() {
-  try {
-    const codeExamplesCollection = collection(db, 'portfolio-code-examples')
-    const q = query(codeExamplesCollection, orderBy('order', 'asc'))
-    const snapshot = await getDocs(q)
+// In-memory storage for development (in production, you'd use a proper database)
+let codeExamplesDataStore: CodeExample[] | null = null
 
-    if (snapshot.empty) {
-      // Return default code examples if none exist
-      const defaultCodeExamples: CodeExample[] = [
-        {
-          id: 'flutter-provider',
-          title: 'Flutter Provider 패턴',
-          language: 'dart',
-          code: `class CartProvider extends ChangeNotifier {
+// Default code examples data
+const getDefaultCodeExamplesData = (): CodeExample[] => [
+  {
+    id: 'flutter-provider',
+    title: 'Flutter Provider 패턴',
+    language: 'dart',
+    code: `class CartProvider extends ChangeNotifier {
   List<CartItem> _items = [];
   
   List<CartItem> get items => List.unmodifiable(_items);
@@ -38,17 +32,17 @@ export async function GET() {
     0.0, (sum, item) => sum + item.totalPrice,
   );
 }`,
-          description: 'Flutter에서 상태 관리를 위한 Provider 패턴 구현',
-          isActive: true,
-          order: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'spring-websocket',
-          title: 'Spring Boot WebSocket 설정',
-          language: 'kotlin',
-          code: `@Configuration
+    description: 'Flutter에서 상태 관리를 위한 Provider 패턴 구현',
+    isActive: true,
+    order: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'spring-websocket',
+    title: 'Spring Boot WebSocket 설정',
+    language: 'kotlin',
+    code: `@Configuration
 @EnableWebSocket
 class WebSocketConfig : WebSocketConfigurer {
     
@@ -76,29 +70,69 @@ class NotificationHandler : TextWebSocketHandler() {
         }
     }
 }`,
-          description: 'Spring Boot에서 실시간 통신을 위한 WebSocket 설정',
-          isActive: true,
-          order: 2,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
+    description: 'Spring Boot에서 실시간 통신을 위한 WebSocket 설정',
+    isActive: true,
+    order: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'docker-compose',
+    title: 'Docker Compose 다중 서비스 설정',
+    language: 'yaml',
+    code: `version: '3.8'
 
-      return NextResponse.json({
-        success: true,
-        data: defaultCodeExamples,
-        message: 'Default code examples retrieved'
-      })
-    }
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - DATABASE_URL=jdbc:postgresql://db:5432/myapp
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
 
-    const codeExamples = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as CodeExample[]
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=myapp
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:`,
+    description: 'Docker Compose로 다중 서비스 환경 구성',
+    isActive: true,
+    order: 3,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+]
+
+export async function GET() {
+  try {
+    // If no data exists, return default data
+    const data = codeExamplesDataStore || getDefaultCodeExamplesData()
+    
     return NextResponse.json({
       success: true,
-      data: codeExamples,
+      data,
       message: 'Code examples retrieved successfully'
     })
   } catch (error) {
@@ -118,10 +152,18 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
+    
+    // Generate new ID and create code example
+    const newCodeExample: CodeExample = {
+      id: Date.now().toString(),
+      ...codeExampleData
+    }
 
-    const codeExamplesCollection = collection(db, 'portfolio-code-examples')
-    const docRef = await addDoc(codeExamplesCollection, codeExampleData)
-    const newCodeExample = { id: docRef.id, ...codeExampleData }
+    // Initialize store if needed and add new code example
+    if (!codeExamplesDataStore) {
+      codeExamplesDataStore = getDefaultCodeExamplesData()
+    }
+    codeExamplesDataStore.push(newCodeExample)
 
     return NextResponse.json({
       success: true,
@@ -133,6 +175,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       message: 'Failed to create code example'
+    }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const updatedData: CodeExample[] = body
+
+    // Store the updated code examples data
+    codeExamplesDataStore = updatedData
+
+    return NextResponse.json({
+      success: true,
+      data: updatedData,
+      message: 'Code examples updated successfully'
+    })
+  } catch (error) {
+    console.error('Error updating code examples:', error)
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to update code examples'
     }, { status: 500 })
   }
 }
