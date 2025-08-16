@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../lib/firebase/config'
-import { collection, doc, getDoc, setDoc, getDocs, orderBy, query } from 'firebase/firestore'
+import { collection, doc, getDoc, setDoc, getDocs, orderBy, query, deleteDoc } from 'firebase/firestore'
 import { PortfolioSection, PortfolioSectionSettings } from '../../../../lib/types/portfolio'
 
 // Default portfolio sections
@@ -246,6 +246,55 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       message: 'Failed to create custom section'
+    }, { status: 500 })
+  }
+}
+
+// DELETE - Remove custom section
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const sectionId = searchParams.get('id')
+    
+    if (!sectionId) {
+      return NextResponse.json({
+        success: false,
+        message: 'Section ID is required'
+      }, { status: 400 })
+    }
+
+    // Only allow deletion of custom sections
+    if (!sectionId.startsWith('custom-')) {
+      return NextResponse.json({
+        success: false,
+        message: 'Only custom sections can be deleted'
+      }, { status: 403 })
+    }
+
+    // Check if section exists before deletion
+    const sectionsCollection = collection(db, 'portfolio-sections')
+    const sectionDocRef = doc(sectionsCollection, sectionId)
+    const sectionDoc = await getDoc(sectionDocRef)
+    
+    if (!sectionDoc.exists()) {
+      return NextResponse.json({
+        success: false,
+        message: 'Section not found'
+      }, { status: 404 })
+    }
+
+    // Delete from Firestore
+    await deleteDoc(sectionDocRef)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Section deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting section:', error)
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to delete section'
     }, { status: 500 })
   }
 }

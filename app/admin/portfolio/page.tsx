@@ -26,6 +26,7 @@ export default function PortfolioManagementPage() {
   const [settings, setSettings] = useState<PortfolioSectionSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
@@ -216,19 +217,32 @@ export default function PortfolioManagementPage() {
     }
 
     try {
-      // For custom sections, we'll implement actual deletion
-      // For default sections, we'll just mark them as inactive
+      setIsDeleting(sectionId)
       const section = sections.find(s => s.id === sectionId)
       if (!section) return
 
       if (section.id.startsWith('custom-')) {
-        // TODO: Implement actual deletion for custom sections
-        // For now, we'll just remove from local state
-        setSections(prev => prev.filter(s => s.id !== sectionId))
-        setSaveStatus({
-          type: 'success',
-          message: '커스텀 섹션이 삭제되었습니다!'
+        // Delete custom sections from Firebase
+        const response = await fetch(`/api/portfolio/sections?id=${sectionId}`, {
+          method: 'DELETE'
         })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          // Remove from local state only after successful deletion
+          setSections(prev => prev.filter(s => s.id !== sectionId))
+          setSaveStatus({
+            type: 'success',
+            message: '커스텀 섹션이 삭제되었습니다!'
+          })
+        } else {
+          throw new Error(result.message || 'Failed to delete section')
+        }
       } else {
         // For default sections, just mark as inactive and hide from admin
         setSections(prev => prev.map(s => 
@@ -247,8 +261,11 @@ export default function PortfolioManagementPage() {
       console.error('Error deleting section:', error)
       setSaveStatus({
         type: 'error',
-        message: '섹션 삭제 중 오류가 발생했습니다.'
+        message: error instanceof Error ? error.message : '섹션 삭제 중 오류가 발생했습니다.'
       })
+      setTimeout(() => setSaveStatus({ type: null, message: '' }), 3000)
+    } finally {
+      setIsDeleting(null)
     }
   }
 
@@ -539,10 +556,17 @@ export default function PortfolioManagementPage() {
                         e.stopPropagation()
                         handleDeleteSection(section.id)
                       }}
-                      className="p-2 rounded-lg transition-all hover:bg-red-500/20 text-red-500"
-                      title="섹션 삭제"
+                      disabled={isDeleting === section.id}
+                      className={`p-2 rounded-lg transition-all hover:bg-red-500/20 text-red-500 ${
+                        isDeleting === section.id ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      title={isDeleting === section.id ? '삭제 중...' : '섹션 삭제'}
                     >
-                      <Trash2 size={16} />
+                      {isDeleting === section.id ? (
+                        <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full" />
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
                     </motion.button>
                   </div>
                 </>
