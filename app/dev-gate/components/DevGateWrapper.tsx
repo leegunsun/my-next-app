@@ -2,8 +2,8 @@
 
 import { useAuth } from '../auth-context';
 import UnderDevelopment from './UnderDevelopment';
-import LogoutButton from './LogoutButton';
-import DevModeIndicator from './DevModeIndicator';
+// import LogoutButton from './LogoutButton';
+// import DevModeIndicator from './DevModeIndicator';
 
 export default function DevGateWrapper({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -22,12 +22,10 @@ export default function DevGateWrapper({ children }: { children: React.ReactNode
     return <UnderDevelopment />;
   }
 
-  // If authenticated, show the actual app with dev indicators
+  // If authenticated, show the actual app
   return (
     <>
       {children}
-      <DevModeIndicator />
-      <LogoutButton />
     </>
   );
 }
