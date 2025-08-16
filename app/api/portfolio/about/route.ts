@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { db } from '../../../../lib/firebase/config'
+import { collection, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { AboutMeData } from '../../../../lib/types/portfolio'
-
-// In-memory storage for development (in production, you'd use a proper database)
-let aboutDataStore: AboutMeData | null = null
 
 // Default data
 const getDefaultAboutData = (): AboutMeData => ({
@@ -24,20 +23,37 @@ const getDefaultAboutData = (): AboutMeData => ({
 
 export async function GET() {
   try {
-    // If no data exists, return default data
-    const data = aboutDataStore || getDefaultAboutData()
+    const aboutDocRef = doc(db, 'portfolio-about', 'about')
+    const aboutDoc = await getDoc(aboutDocRef)
+    
+    if (!aboutDoc.exists()) {
+      // If no data exists in Firestore, return default data
+      const defaultData = getDefaultAboutData()
+      
+      return NextResponse.json({
+        success: true,
+        data: defaultData,
+        message: 'Default about data retrieved (no data in database)'
+      })
+    }
+
+    const data = aboutDoc.data() as AboutMeData
     
     return NextResponse.json({
       success: true,
       data,
-      message: 'About data retrieved successfully'
+      message: 'About data retrieved successfully from database'
     })
   } catch (error) {
     console.error('Error fetching about data:', error)
+    
+    // Fallback to default data if Firebase fails
+    const defaultData = getDefaultAboutData()
     return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch about data'
-    }, { status: 500 })
+      success: true,
+      data: defaultData,
+      message: 'Default about data retrieved (database error)'
+    })
   }
 }
 
@@ -46,22 +62,24 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const aboutData: AboutMeData = {
       ...body,
+      id: 'about',
       updatedAt: new Date().toISOString()
     }
 
-    // Store in memory (in production, save to database)
-    aboutDataStore = aboutData
+    // Save to Firestore
+    const aboutDocRef = doc(db, 'portfolio-about', 'about')
+    await setDoc(aboutDocRef, aboutData)
 
     return NextResponse.json({
       success: true,
       data: aboutData,
-      message: 'About data updated successfully'
+      message: 'About data saved successfully to database'
     })
   } catch (error) {
     console.error('Error updating about data:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to update about data'
+      message: 'Failed to save about data to database'
     }, { status: 500 })
   }
 }

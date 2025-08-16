@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { db } from '../../../../lib/firebase/config'
+import { collection, doc, getDocs, setDoc, orderBy, query } from 'firebase/firestore'
 import { SkillCategory } from '../../../../lib/types/portfolio'
-
-// In-memory storage for development (in production, you'd use a proper database)
-let skillsDataStore: SkillCategory[] | null = null
 
 // Default skills data
 const getDefaultSkillsData = (): SkillCategory[] => [
@@ -46,20 +45,41 @@ const getDefaultSkillsData = (): SkillCategory[] => [
 
 export async function GET() {
   try {
-    // If no data exists, return default data
-    const data = skillsDataStore || getDefaultSkillsData()
+    const skillsCollection = collection(db, 'portfolio-skills')
+    const q = query(skillsCollection, orderBy('order', 'asc'))
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      // If no data exists in Firestore, return default data
+      const defaultData = getDefaultSkillsData()
+      
+      return NextResponse.json({
+        success: true,
+        data: defaultData,
+        message: 'Default skills data retrieved (no data in database)'
+      })
+    }
+
+    const skills = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as SkillCategory[]
     
     return NextResponse.json({
       success: true,
-      data,
-      message: 'Skills retrieved successfully'
+      data: skills,
+      message: 'Skills retrieved successfully from database'
     })
   } catch (error) {
     console.error('Error fetching skills:', error)
+    
+    // Fallback to default data if Firebase fails
+    const defaultData = getDefaultSkillsData()
     return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch skills'
-    }, { status: 500 })
+      success: true,
+      data: defaultData,
+      message: 'Default skills data retrieved (database error)'
+    })
   }
 }
 
@@ -99,19 +119,27 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const updatedData: SkillCategory[] = body
 
-    // Store the updated skills data
-    skillsDataStore = updatedData
+    // Clear existing data and save new data to Firestore
+    const skillsCollection = collection(db, 'portfolio-skills')
+    
+    // Save each skill category to Firestore
+    const savePromises = updatedData.map(skill => {
+      const skillDocRef = doc(skillsCollection, skill.id)
+      return setDoc(skillDocRef, skill)
+    })
+    
+    await Promise.all(savePromises)
 
     return NextResponse.json({
       success: true,
       data: updatedData,
-      message: 'Skills updated successfully'
+      message: 'Skills saved successfully to database'
     })
   } catch (error) {
     console.error('Error updating skills:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to update skills'
+      message: 'Failed to save skills to database'
     }, { status: 500 })
   }
 }

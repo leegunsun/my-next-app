@@ -83,6 +83,30 @@ export interface GitHubRepository {
   updatedAt: string
 }
 
+// Portfolio Section Management Types
+export interface PortfolioSection {
+  id: string
+  title: string
+  description: string
+  icon: string // Lucide icon name
+  color: string // Tailwind CSS class
+  href: string
+  homeSection: string // Home page section ID (about, portfolio, skills, code-examples, contact)
+  isActive: boolean
+  showInNavigation: boolean
+  showInAdminGrid: boolean
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PortfolioSectionSettings {
+  navigationOrder: string[] // Array of section IDs in display order
+  enabledSections: string[] // Array of active section IDs
+  customSections: PortfolioSection[] // User-added custom sections
+  lastUpdated: string
+}
+
 export interface PortfolioContent {
   aboutMe: AboutMeData
   timeline: TimelineItem[]

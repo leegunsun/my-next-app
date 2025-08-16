@@ -29,6 +29,14 @@ export default function Home() {
   const [isLoadingRepos, setIsLoadingRepos] = useState(true)
   const [portfolioProjects, setPortfolioProjects] = useState<any[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(true)
+  const [aboutData, setAboutData] = useState<any>(null)
+  const [skillsData, setSkillsData] = useState<any[]>([])
+  const [codeExamplesData, setCodeExamplesData] = useState<any[]>([])
+  const [sectionSettings, setSectionSettings] = useState<any>(null)
+  const [isLoadingAbout, setIsLoadingAbout] = useState(true)
+  const [isLoadingSkills, setIsLoadingSkills] = useState(true)
+  const [isLoadingCodeExamples, setIsLoadingCodeExamples] = useState(true)
+  const [isLoadingSections, setIsLoadingSections] = useState(true)
 
   // Analytics Hook 사용
   const { 
@@ -41,10 +49,12 @@ export default function Home() {
     // Request notification permission on component mount
     requestNotificationPermission()
     
-    // Fetch GitHub repositories for homepage
+    // Fetch all data for homepage
+    fetchAboutData()
+    fetchSkillsData()
+    fetchCodeExamplesData()
+    fetchSectionSettings()
     fetchGitHubRepos()
-    
-    // Fetch portfolio projects
     fetchPortfolioProjects()
   }, [])
 
@@ -89,6 +99,74 @@ export default function Home() {
       setPortfolioProjects(fallbackProjects)
     } finally {
       setIsLoadingProjects(false)
+    }
+  }
+
+  const fetchAboutData = async () => {
+    try {
+      setIsLoadingAbout(true)
+      const response = await fetch('/api/portfolio/about')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        setAboutData(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching about data:', error)
+    } finally {
+      setIsLoadingAbout(false)
+    }
+  }
+
+  const fetchSkillsData = async () => {
+    try {
+      setIsLoadingSkills(true)
+      const response = await fetch('/api/portfolio/skills')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        setSkillsData(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching skills data:', error)
+    } finally {
+      setIsLoadingSkills(false)
+    }
+  }
+
+  const fetchCodeExamplesData = async () => {
+    try {
+      setIsLoadingCodeExamples(true)
+      const response = await fetch('/api/portfolio/code-examples')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        // Only show active code examples, sorted by order
+        const activeExamples = result.data
+          .filter((example: any) => example.isActive)
+          .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+        setCodeExamplesData(activeExamples)
+      }
+    } catch (error) {
+      console.error('Error fetching code examples data:', error)
+    } finally {
+      setIsLoadingCodeExamples(false)
+    }
+  }
+
+  const fetchSectionSettings = async () => {
+    try {
+      setIsLoadingSections(true)
+      const response = await fetch('/api/portfolio/sections')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        setSectionSettings(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching section settings:', error)
+    } finally {
+      setIsLoadingSections(false)
     }
   }
 
@@ -189,8 +267,98 @@ export default function Home() {
     }
   ]
 
-  // Sample code snippets
-  const codeExamples = [
+  // Fallback code examples (used when API fails)
+  // Get active sections for navigation
+  const getActiveSections = () => {
+    if (!sectionSettings || !sectionSettings.sections) {
+      // Fallback navigation items when section settings are not loaded
+      return [
+        { id: 'about', homeSection: 'about', title: 'About', showInNavigation: true, isActive: true },
+        { id: 'projects', homeSection: 'portfolio', title: 'Portfolio', showInNavigation: true, isActive: true },
+        { id: 'skills', homeSection: 'skills', title: 'Skills', showInNavigation: true, isActive: true },
+        { id: 'code-examples', homeSection: 'code-examples', title: 'Code', showInNavigation: true, isActive: true }
+      ]
+    }
+    
+    return sectionSettings.sections
+      .filter((section: any) => section.showInNavigation && section.isActive)
+      .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+  }
+
+  // Render navigation items dynamically
+  const renderNavigationItems = () => {
+    const activeSections = getActiveSections()
+    const navigationItems = []
+
+    // Add sections that are active and should show in navigation
+    activeSections.forEach((section: any) => {
+      const navItem = getNavigationItem(section)
+      if (navItem) {
+        navigationItems.push(navItem)
+      }
+    })
+
+    // Always add Blog and Contact (not managed by section system)
+    navigationItems.push(
+      <motion.a 
+        key="blog"
+        whileHover={{ scale: 1.05 }}
+        href="/blog"
+        onClick={() => trackButtonClick('nav_blog', 'navigation')}
+        className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
+      >
+        Blog
+      </motion.a>,
+      <motion.a 
+        key="contact"
+        whileHover={{ scale: 1.05 }}
+        href="#contact"
+        onClick={() => trackButtonClick('nav_contact', 'navigation')}
+        className="bg-accent-blend text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
+      >
+        Contact
+      </motion.a>
+    )
+
+    return navigationItems
+  }
+
+  // Get navigation item for a section
+  const getNavigationItem = (section: any) => {
+    const navConfig = {
+      'about': { href: '#about', label: 'About', trackId: 'nav_about' },
+      'portfolio': { href: '#portfolio', label: 'Portfolio', trackId: 'nav_portfolio' },
+      'skills': { href: '#skills', label: 'Skills', trackId: 'nav_skills' },
+      'code-examples': { href: '#code-examples', label: 'Code', trackId: 'nav_code' }
+    }
+
+    const config = navConfig[section.homeSection as keyof typeof navConfig]
+    if (!config) return null
+
+    return (
+      <motion.a 
+        key={section.homeSection}
+        whileHover={{ scale: 1.05 }}
+        href={config.href}
+        onClick={() => trackButtonClick(config.trackId, 'navigation')}
+        className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
+      >
+        {config.label}
+      </motion.a>
+    )
+  }
+
+  // Check if a section should be rendered
+  const shouldRenderSection = (sectionId: string) => {
+    if (!sectionSettings || !sectionSettings.sections) {
+      return true // Show all sections by default if settings not loaded
+    }
+    
+    const section = sectionSettings.sections.find((s: any) => s.homeSection === sectionId)
+    return section ? section.isActive : true
+  }
+
+  const fallbackCodeExamples = [
     {
       title: "Flutter Provider 패턴",
       language: "dart",
@@ -270,54 +438,8 @@ class NotificationHandler : TextWebSocketHandler() {
             Portfolio
           </motion.div>
           <div className="flex items-center gap-6">
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="#about"
-              onClick={() => trackButtonClick('nav_about', 'navigation')}
-              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              About
-            </motion.a>
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="#portfolio"
-              onClick={() => trackButtonClick('nav_portfolio', 'navigation')}
-              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              Portfolio
-            </motion.a>
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="#skills"
-              onClick={() => trackButtonClick('nav_skills', 'navigation')}
-              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              Skills
-            </motion.a>
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="#code-examples"
-              onClick={() => trackButtonClick('nav_code', 'navigation')}
-              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              Code
-            </motion.a>
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="/blog"
-              onClick={() => trackButtonClick('nav_blog', 'navigation')}
-              className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              Blog
-            </motion.a>
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
-              href="#contact"
-              onClick={() => trackButtonClick('nav_contact', 'navigation')}
-              className="bg-accent-blend text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all"
-            >
-              Contact
-            </motion.a>
+            {/* Dynamic Navigation Based on Section Settings */}
+            {renderNavigationItems()}
           </div>
         </div>
       </motion.nav>
@@ -426,8 +548,14 @@ class NotificationHandler : TextWebSocketHandler() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-4xl md:text-5xl font-medium leading-tight mb-6"
             >
-              사용자의 문제를 구조적으로 해결하는<br />
-              <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span> 개발자
+              {!isLoadingAbout && aboutData ? (
+                <span dangerouslySetInnerHTML={{ __html: aboutData.heroTitle }} />
+              ) : (
+                <>
+                  사용자의 문제를 구조적으로 해결하는<br />
+                  <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span> 개발자
+                </>
+              )}
             </motion.h1>
             
             <motion.p
@@ -436,8 +564,9 @@ class NotificationHandler : TextWebSocketHandler() {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="text-lg text-foreground-secondary mb-8 leading-relaxed max-w-2xl mx-auto"
             >
-              모바일과 백엔드 개발의 경계를 넘나들며, 사용자 중심의 기술 솔루션을 
-              설계하고 구현합니다. 문제 해결을 통한 가치 창출에 집중합니다.
+              {!isLoadingAbout && aboutData ? aboutData.heroSubtitle : (
+                '모바일과 백엔드 개발의 경계를 넘나들며, 사용자 중심의 기술 솔루션을 설계하고 구현합니다. 문제 해결을 통한 가치 창출에 집중합니다.'
+              )}
             </motion.p>
             
             <motion.div
@@ -525,7 +654,8 @@ class NotificationHandler : TextWebSocketHandler() {
         </section>
 
         {/* About Section */}
-        <section id="about" className="py-20" aria-label="소개 세부 정보">
+        {shouldRenderSection('about') && (
+          <section id="about" className="py-20" aria-label="소개 세부 정보">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection className="text-center mb-12">
@@ -538,59 +668,82 @@ class NotificationHandler : TextWebSocketHandler() {
                 <AnimatedSection delay={0.1} className="card-primary">
                   <h3 className="text-xl font-medium mb-4">전문 분야</h3>
                   <div className="space-y-3">
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.2 }}
-                      onClick={() => trackCustomEvent('skill_click', { skill: 'flutter', section: 'about' })}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
-                    >
-                      <div className="w-3 h-3 bg-primary rounded-full"></div>
-                      <span>Flutter 모바일 앱 개발</span>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 }}
-                      onClick={() => trackCustomEvent('skill_click', { skill: 'spring_boot', section: 'about' })}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
-                    >
-                      <div className="w-3 h-3 bg-accent-success rounded-full"></div>
-                      <span>Spring Boot 백엔드 API 개발</span>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.4 }}
-                      onClick={() => trackCustomEvent('skill_click', { skill: 'docker_kubernetes', section: 'about' })}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
-                    >
-                      <div className="w-3 h-3 bg-accent-purple rounded-full"></div>
-                      <span>Docker & Kubernetes 컨테이너 운영</span>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.5 }}
-                      onClick={() => trackCustomEvent('skill_click', { skill: 'mssql', section: 'about' })}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
-                    >
-                      <div className="w-3 h-3 bg-accent-warning rounded-full"></div>
-                      <span>MSSQL 데이터베이스 설계</span>
-                    </motion.div>
+                    {!isLoadingAbout && aboutData && aboutData.specialties ? (
+                      aboutData.specialties.map((specialty: any, index: number) => (
+                        <motion.div 
+                          key={specialty.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.2 + index * 0.1 }}
+                          onClick={() => trackCustomEvent('skill_click', { skill: specialty.name, section: 'about' })}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
+                        >
+                          <div className={`w-3 h-3 rounded-full ${specialty.color === 'primary' ? 'bg-primary' : 
+                            specialty.color === 'accent-success' ? 'bg-accent-success' :
+                            specialty.color === 'accent-purple' ? 'bg-accent-purple' :
+                            specialty.color === 'accent-warning' ? 'bg-accent-warning' : 'bg-primary'}`}></div>
+                          <span>{specialty.name}</span>
+                        </motion.div>
+                      ))
+                    ) : (
+                      // Fallback content
+                      <>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.2 }}
+                          onClick={() => trackCustomEvent('skill_click', { skill: 'flutter', section: 'about' })}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
+                        >
+                          <div className="w-3 h-3 bg-primary rounded-full"></div>
+                          <span>Flutter 모바일 앱 개발</span>
+                        </motion.div>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 }}
+                          onClick={() => trackCustomEvent('skill_click', { skill: 'spring_boot', section: 'about' })}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
+                        >
+                          <div className="w-3 h-3 bg-accent-success rounded-full"></div>
+                          <span>Spring Boot 백엔드 API 개발</span>
+                        </motion.div>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.4 }}
+                          onClick={() => trackCustomEvent('skill_click', { skill: 'docker_kubernetes', section: 'about' })}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
+                        >
+                          <div className="w-3 h-3 bg-accent-purple rounded-full"></div>
+                          <span>Docker & Kubernetes 컨테이너 운영</span>
+                        </motion.div>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.5 }}
+                          onClick={() => trackCustomEvent('skill_click', { skill: 'mssql', section: 'about' })}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-background-tertiary p-2 rounded-lg transition-colors"
+                        >
+                          <div className="w-3 h-3 bg-accent-warning rounded-full"></div>
+                          <span>MSSQL 데이터베이스 설계</span>
+                        </motion.div>
+                      </>
+                    )}
                   </div>
                 </AnimatedSection>
 
                 <AnimatedSection delay={0.2} className="card-primary">
                   <h3 className="text-xl font-medium mb-4">개발 철학</h3>
                   <p className="text-foreground-secondary leading-relaxed">
-                    단순히 기능을 구현하는 것을 넘어, 사용자의 실제 문제를 이해하고 
-                    그 본질적 해결책을 찾는 것이 진정한 개발이라고 믿습니다. 
-                    기술은 도구이며, 목적은 사용자의 삶을 더 편리하고 가치있게 만드는 것입니다.
+                    {!isLoadingAbout && aboutData ? aboutData.philosophy : (
+                      '단순히 기능을 구현하는 것을 넘어, 사용자의 실제 문제를 이해하고 그 본질적 해결책을 찾는 것이 진정한 개발이라고 믿습니다. 기술은 도구이며, 목적은 사용자의 삶을 더 편리하고 가치있게 만드는 것입니다.'
+                    )}
                   </p>
                 </AnimatedSection>
               </div>
@@ -695,9 +848,11 @@ class NotificationHandler : TextWebSocketHandler() {
           </div>
         </div>
         </section>
+        )}
 
         {/* Portfolio Section */}
-        <section id="portfolio" className="py-20 bg-background-secondary" aria-label="포트폴리오">
+        {shouldRenderSection('portfolio') && (
+          <section id="portfolio" className="py-20 bg-background-secondary" aria-label="포트폴리오">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection className="text-center mb-12">
@@ -743,99 +898,134 @@ class NotificationHandler : TextWebSocketHandler() {
           </div>
         </div>
         </section>
+        )}
 
         {/* Skills Section */}
-        <section id="skills" className="py-20" aria-label="기술 스택">
+        {shouldRenderSection('skills') && (
+          <section id="skills" className="py-20" aria-label="기술 스택">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <h2 className="text-3xl font-medium">기술 스택</h2>
             </AnimatedSection>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Skills Categories */}
-              <div className="space-y-8">
-                <AnimatedSection delay={0.1} className="card-primary">
-                  <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
-                    <div className="w-6 h-6 bg-primary rounded-full"></div>
-                    Frontend & Mobile
-                  </h3>
-                  <div className="space-y-4">
-                    <SkillProgress name="Flutter" percentage={90} color="primary" delay={0.2} />
-                    <SkillProgress name="Dart" percentage={85} color="primary" delay={0.3} />
-                    <SkillProgress name="React/Next.js" percentage={75} color="primary" delay={0.4} />
-                  </div>
-                </AnimatedSection>
-
-                <AnimatedSection delay={0.2} className="card-primary">
-                  <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent-success rounded-full"></div>
-                    Backend & Database
-                  </h3>
-                  <div className="space-y-4">
-                    <SkillProgress name="Spring Boot" percentage={85} color="success" delay={0.2} />
-                    <SkillProgress name="Kotlin" percentage={80} color="success" delay={0.3} />
-                    <SkillProgress name="MSSQL" percentage={75} color="success" delay={0.4} />
-                  </div>
-                </AnimatedSection>
+            {!isLoadingSkills && skillsData.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {skillsData.map((category: any, categoryIndex: number) => (
+                  <AnimatedSection key={category.id} delay={0.1 * categoryIndex} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full ${
+                        category.color === 'primary' ? 'bg-primary' :
+                        category.color === 'success' ? 'bg-accent-success' :
+                        category.color === 'purple' ? 'bg-accent-purple' :
+                        category.color === 'warning' ? 'bg-accent-warning' :
+                        category.color === 'info' ? 'bg-accent-info' : 'bg-primary'
+                      }`}></div>
+                      {category.name}
+                    </h3>
+                    <div className="space-y-4">
+                      {category.skills.map((skill: any, skillIndex: number) => (
+                        <SkillProgress 
+                          key={skill.id}
+                          name={skill.name} 
+                          percentage={skill.percentage} 
+                          color={skill.color} 
+                          delay={0.2 + skillIndex * 0.1} 
+                        />
+                      ))}
+                    </div>
+                  </AnimatedSection>
+                ))}
               </div>
+            ) : (
+              // Fallback content
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Skills Categories */}
+                <div className="space-y-8">
+                  <AnimatedSection delay={0.1} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
+                      <div className="w-6 h-6 bg-primary rounded-full"></div>
+                      Frontend & Mobile
+                    </h3>
+                    <div className="space-y-4">
+                      <SkillProgress name="Flutter" percentage={90} color="primary" delay={0.2} />
+                      <SkillProgress name="Dart" percentage={85} color="primary" delay={0.3} />
+                      <SkillProgress name="React/Next.js" percentage={75} color="primary" delay={0.4} />
+                    </div>
+                  </AnimatedSection>
 
-              <div className="space-y-8">
-                <AnimatedSection delay={0.3} className="card-primary">
-                  <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent-purple rounded-full"></div>
-                    DevOps & Cloud
-                  </h3>
-                  <div className="space-y-4">
-                    <SkillProgress name="Docker" percentage={80} color="purple" delay={0.2} />
-                    <SkillProgress name="Kubernetes" percentage={70} color="purple" delay={0.3} />
-                    <SkillProgress name="GitHub Actions" percentage={75} color="purple" delay={0.4} />
-                  </div>
-                </AnimatedSection>
+                  <AnimatedSection delay={0.2} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
+                      <div className="w-6 h-6 bg-accent-success rounded-full"></div>
+                      Backend & Database
+                    </h3>
+                    <div className="space-y-4">
+                      <SkillProgress name="Spring Boot" percentage={85} color="success" delay={0.2} />
+                      <SkillProgress name="Kotlin" percentage={80} color="success" delay={0.3} />
+                      <SkillProgress name="MSSQL" percentage={75} color="success" delay={0.4} />
+                    </div>
+                  </AnimatedSection>
+                </div>
 
-                <AnimatedSection delay={0.4} className="card-primary">
-                  <h3 className="text-xl font-medium mb-6">최근 학습 중</h3>
-                  <div className="space-y-3">
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.5 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="w-2 h-2 bg-accent-info rounded-full"></div>
-                      <span className="text-sm">GraphQL API 설계</span>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.6 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="w-2 h-2 bg-accent-warning rounded-full"></div>
-                      <span className="text-sm">Microservices Architecture</span>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.7 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <span className="text-sm">Flutter Web 최적화</span>
-                    </motion.div>
-                  </div>
-                </AnimatedSection>
+                <div className="space-y-8">
+                  <AnimatedSection delay={0.3} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
+                      <div className="w-6 h-6 bg-accent-purple rounded-full"></div>
+                      DevOps & Cloud
+                    </h3>
+                    <div className="space-y-4">
+                      <SkillProgress name="Docker" percentage={80} color="purple" delay={0.2} />
+                      <SkillProgress name="Kubernetes" percentage={70} color="purple" delay={0.3} />
+                      <SkillProgress name="GitHub Actions" percentage={75} color="purple" delay={0.4} />
+                    </div>
+                  </AnimatedSection>
+
+                  <AnimatedSection delay={0.4} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6">최근 학습 중</h3>
+                    <div className="space-y-3">
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.5 }}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="w-2 h-2 bg-accent-info rounded-full"></div>
+                        <span className="text-sm">GraphQL API 설계</span>
+                      </motion.div>
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.6 }}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="w-2 h-2 bg-accent-warning rounded-full"></div>
+                        <span className="text-sm">Microservices Architecture</span>
+                      </motion.div>
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.7 }}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span className="text-sm">Flutter Web 최적화</span>
+                      </motion.div>
+                    </div>
+                  </AnimatedSection>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         </section>
+        )}
 
         {/* Code Examples & GitHub */}
-        <section id="code-examples" className="py-20 bg-background-secondary" aria-label="코드 예제 및 GitHub">
+        {shouldRenderSection('code-examples') && (
+          <section id="code-examples" className="py-20 bg-background-secondary" aria-label="코드 예제 및 GitHub">
           <div className="container mx-auto px-6">
             <div className="max-w-6xl mx-auto">
               <AnimatedSection className="text-center mb-12">
@@ -852,17 +1042,32 @@ class NotificationHandler : TextWebSocketHandler() {
                   <h3 className="text-2xl font-medium text-center">코드 스니펫</h3>
                 </AnimatedSection>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {codeExamples.map((example) => (
-                    <CodeSnippet
-                      key={example.title}
-                      title={example.title}
-                      language={example.language}
-                      code={example.code}
-                      className="w-full"
-                    />
-                  ))}
-                </div>
+                {!isLoadingCodeExamples && codeExamplesData.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {codeExamplesData.map((example) => (
+                      <CodeSnippet
+                        key={example.id}
+                        title={example.title}
+                        language={example.language}
+                        code={example.code}
+                        className="w-full"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  // Fallback content
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {fallbackCodeExamples.map((example) => (
+                      <CodeSnippet
+                        key={example.title}
+                        title={example.title}
+                        language={example.language}
+                        code={example.code}
+                        className="w-full"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* GitHub Repositories */}
@@ -905,6 +1110,7 @@ class NotificationHandler : TextWebSocketHandler() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Contact Section */}
         <section id="contact" className="py-20" aria-label="연락처">

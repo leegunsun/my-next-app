@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { db } from '../../../../lib/firebase/config'
+import { collection, doc, getDocs, setDoc, orderBy, query } from 'firebase/firestore'
 import { CodeExample } from '../../../../lib/types/portfolio'
-
-// In-memory storage for development (in production, you'd use a proper database)
-let codeExamplesDataStore: CodeExample[] | null = null
 
 // Default code examples data
 const getDefaultCodeExamplesData = (): CodeExample[] => [
@@ -127,20 +126,41 @@ volumes:
 
 export async function GET() {
   try {
-    // If no data exists, return default data
-    const data = codeExamplesDataStore || getDefaultCodeExamplesData()
+    const codeExamplesCollection = collection(db, 'portfolio-code-examples')
+    const q = query(codeExamplesCollection, orderBy('order', 'asc'))
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      // If no data exists in Firestore, return default data
+      const defaultData = getDefaultCodeExamplesData()
+      
+      return NextResponse.json({
+        success: true,
+        data: defaultData,
+        message: 'Default code examples data retrieved (no data in database)'
+      })
+    }
+
+    const codeExamples = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as CodeExample[]
     
     return NextResponse.json({
       success: true,
-      data,
-      message: 'Code examples retrieved successfully'
+      data: codeExamples,
+      message: 'Code examples retrieved successfully from database'
     })
   } catch (error) {
     console.error('Error fetching code examples:', error)
+    
+    // Fallback to default data if Firebase fails
+    const defaultData = getDefaultCodeExamplesData()
     return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch code examples'
-    }, { status: 500 })
+      success: true,
+      data: defaultData,
+      message: 'Default code examples data retrieved (database error)'
+    })
   }
 }
 
@@ -184,19 +204,27 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const updatedData: CodeExample[] = body
 
-    // Store the updated code examples data
-    codeExamplesDataStore = updatedData
+    // Clear existing data and save new data to Firestore
+    const codeExamplesCollection = collection(db, 'portfolio-code-examples')
+    
+    // Save each code example to Firestore
+    const savePromises = updatedData.map(example => {
+      const exampleDocRef = doc(codeExamplesCollection, example.id)
+      return setDoc(exampleDocRef, example)
+    })
+    
+    await Promise.all(savePromises)
 
     return NextResponse.json({
       success: true,
       data: updatedData,
-      message: 'Code examples updated successfully'
+      message: 'Code examples saved successfully to database'
     })
   } catch (error) {
     console.error('Error updating code examples:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to update code examples'
+      message: 'Failed to save code examples to database'
     }, { status: 500 })
   }
 }
