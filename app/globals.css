@@ -68,6 +68,8 @@
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-width: 320px;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -244,6 +246,18 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
   
+  /* Mobile Header Optimization */
+  .mobile-header-safe {
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+  .mobile-flex-safe {
+    min-width: 0;
+    flex-basis: 0;
+  }
+
   /* Screen Reader Only */
   .sr-only {
     position: absolute;

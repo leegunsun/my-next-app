@@ -28,23 +28,23 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
   const navItems = currentLang === "ko" ? navigationItems.ko : navigationItems.en
 
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 w-full z-50 transition-all duration-300 overflow-hidden ${
       isScrolled ? "bg-background/80 backdrop-blur-md border-b" : "bg-transparent"
     }`}>
-      <nav className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div className="flex items-center justify-between min-w-0">
           {/* Logo */}
-          <Link href="#home" className="font-bold text-xl hover:text-primary transition-colors">
+          <Link href="#home" className="font-bold text-xl hover:text-primary transition-colors flex-shrink-0">
             Portfolio
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 flex-shrink-0">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium hover:text-primary transition-colors"
+                className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
               >
                 {item.name}
               </Link>
@@ -52,7 +52,7 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
           </div>
 
           {/* Right side controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <LanguageToggle 
               currentLang={currentLang} 
               onLanguageChange={onLanguageChange} 
@@ -85,13 +85,13 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t">
+          <div className="md:hidden mt-4 pb-4 border-t overflow-hidden">
             <div className="flex flex-col space-y-2 pt-4">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-sm font-medium hover:text-primary transition-colors py-2"
+                  className="text-sm font-medium hover:text-primary transition-colors py-2 block truncate"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
