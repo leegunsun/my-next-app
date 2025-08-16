@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../../lib/firebase/config'
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore'
 import { PortfolioProject } from '../../../../../lib/types/portfolio'
 
 export async function GET(
@@ -39,16 +39,32 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    const projectData: Partial<PortfolioProject> = {
-      ...body,
-      updatedAt: new Date().toISOString()
+    const projectData = {
+      title: body.title,
+      description: body.description,
+      tags: body.tags || [],
+      icon: body.icon || 'Project',
+      iconBg: body.iconBg || 'bg-primary',
+      liveUrl: body.liveUrl || '',
+      githubUrl: body.githubUrl || '',
+      isActive: body.isActive !== undefined ? body.isActive : true,
+      order: body.order || 99,
+      updatedAt: Timestamp.now()
     }
 
     const projectDoc = doc(db, 'portfolio-projects', params.id)
     await updateDoc(projectDoc, projectData)
     
     const updatedDocSnap = await getDoc(projectDoc)
-    const updatedProject = { id: updatedDocSnap.id, ...updatedDocSnap.data() } as PortfolioProject
+    const docData = updatedDocSnap.data()
+    
+    // Convert Timestamps to ISO strings for response
+    const updatedProject = {
+      id: updatedDocSnap.id,
+      ...docData,
+      createdAt: docData?.createdAt?.toDate?.()?.toISOString() || docData?.createdAt,
+      updatedAt: docData?.updatedAt?.toDate?.()?.toISOString() || docData?.updatedAt
+    } as PortfolioProject
 
     return NextResponse.json({
       success: true,

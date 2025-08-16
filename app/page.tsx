@@ -27,6 +27,8 @@ export default function Home() {
   })
   const [githubRepos, setGithubRepos] = useState<any[]>([])
   const [isLoadingRepos, setIsLoadingRepos] = useState(true)
+  const [portfolioProjects, setPortfolioProjects] = useState<any[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true)
 
   // Analytics Hook 사용
   const { 
@@ -41,6 +43,9 @@ export default function Home() {
     
     // Fetch GitHub repositories for homepage
     fetchGitHubRepos()
+    
+    // Fetch portfolio projects
+    fetchPortfolioProjects()
   }, [])
 
   const fetchGitHubRepos = async () => {
@@ -60,6 +65,30 @@ export default function Home() {
       setGithubRepos(fallbackGithubRepos)
     } finally {
       setIsLoadingRepos(false)
+    }
+  }
+
+  const fetchPortfolioProjects = async () => {
+    try {
+      setIsLoadingProjects(true)
+      const response = await fetch('/api/portfolio/projects')
+      const result = await response.json()
+      
+      if (result.success && result.data.length > 0) {
+        // Filter active projects and sort by order
+        const activeProjects = result.data
+          .filter((project: any) => project.isActive)
+          .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+        setPortfolioProjects(activeProjects)
+      } else {
+        console.log('No projects found or API error, using default projects')
+        setPortfolioProjects(fallbackProjects)
+      }
+    } catch (error) {
+      console.error('Error fetching portfolio projects:', error)
+      setPortfolioProjects(fallbackProjects)
+    } finally {
+      setIsLoadingProjects(false)
     }
   }
 
@@ -88,6 +117,46 @@ export default function Home() {
     const { name, value } = e.target
     setContactForm(prev => ({ ...prev, [name]: value }))
   }
+
+  // Fallback portfolio projects (used when API fails)
+  const fallbackProjects = [
+    {
+      id: 'project-1',
+      title: 'E-Commerce 모바일 앱',
+      description: 'Flutter로 개발한 크로스플랫폼 쇼핑 앱. Spring Boot API와 연동하여 실시간 결제 처리 및 주문 관리 시스템 구현.',
+      tags: ['Flutter', 'Dart', 'REST API'],
+      icon: 'Flutter',
+      iconBg: 'bg-primary',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 1
+    },
+    {
+      id: 'project-2',
+      title: '실시간 알림 시스템',
+      description: 'Spring Boot와 WebSocket을 활용한 실시간 푸시 알림 시스템. Redis 캐싱으로 성능 최적화 구현.',
+      tags: ['Spring Boot', 'Kotlin', 'WebSocket'],
+      icon: 'Spring',
+      iconBg: 'bg-accent-success',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 2
+    },
+    {
+      id: 'project-3',
+      title: '컨테이너 오케스트레이션',
+      description: 'Docker 컨테이너화 및 Kubernetes 클러스터 구성. CI/CD 파이프라인으로 자동 배포 구현.',
+      tags: ['Docker', 'Kubernetes', 'CI/CD'],
+      icon: 'K8s',
+      iconBg: 'bg-accent-purple',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 3
+    }
+  ]
 
   // Fallback GitHub repositories (used when API fails)
   const fallbackGithubRepos = [
@@ -635,40 +704,42 @@ class NotificationHandler : TextWebSocketHandler() {
               <h2 className="text-3xl font-medium">포트폴리오</h2>
             </AnimatedSection>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <ProjectCard
-                title="E-Commerce 모바일 앱"
-                description="Flutter로 개발한 크로스플랫폼 쇼핑 앱. Spring Boot API와 연동하여 실시간 결제 처리 및 주문 관리 시스템 구현."
-                tags={["Flutter", "Dart", "REST API"]}
-                icon="Flutter"
-                iconBg="bg-primary"
-                liveUrl="#"
-                githubUrl="#"
-                delay={0.1}
-              />
-              
-              <ProjectCard
-                title="실시간 알림 시스템"
-                description="Spring Boot와 WebSocket을 활용한 실시간 푸시 알림 시스템. Redis 캐싱으로 성능 최적화 구현."
-                tags={["Spring Boot", "Kotlin", "WebSocket"]}
-                icon="Spring"
-                iconBg="bg-accent-success"
-                liveUrl="#"
-                githubUrl="#"
-                delay={0.2}
-              />
-              
-              <ProjectCard
-                title="컨테이너 오케스트레이션"
-                description="Docker 컨테이너화 및 Kubernetes 클러스터 구성. CI/CD 파이프라인으로 자동 배포 구현."
-                tags={["Docker", "Kubernetes", "CI/CD"]}
-                icon="K8s"
-                iconBg="bg-accent-purple"
-                liveUrl="#"
-                githubUrl="#"
-                delay={0.3}
-              />
-            </div>
+            {isLoadingProjects ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-foreground-secondary">프로젝트를 불러오는 중...</p>
+                </div>
+              </div>
+            ) : portfolioProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {portfolioProjects.map((project, index) => (
+                  <ProjectCard
+                    key={project.id}
+                    title={project.title}
+                    description={project.description}
+                    tags={project.tags}
+                    icon={project.icon}
+                    iconBg={project.iconBg}
+                    liveUrl={project.liveUrl}
+                    githubUrl={project.githubUrl}
+                    delay={index * 0.1}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📂</span>
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">표시할 프로젝트가 없습니다</h3>
+                  <p className="text-foreground-secondary text-sm">
+                    관리자 페이지에서 포트폴리오 프로젝트를 추가해주세요.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         </section>

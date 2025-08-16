@@ -4,8 +4,10 @@ import * as React from "react"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import ProjectCard from "@/components/ProjectCard"
 import { projects } from "@/lib/data/portfolio"
 import type { Project } from "@/lib/data/portfolio"
+import type { PortfolioProject } from "@/lib/types/portfolio"
 
 interface ProjectsSectionProps {
   currentLang: string
@@ -16,7 +18,7 @@ interface ProjectCardProps {
   currentLang: string
 }
 
-function ProjectCard({ project, currentLang }: ProjectCardProps) {
+function OriginalProjectCard({ project, currentLang }: ProjectCardProps) {
   const isKorean = currentLang === "ko"
   
   return (
@@ -86,6 +88,8 @@ function ProjectCard({ project, currentLang }: ProjectCardProps) {
 export function ProjectsSection({ currentLang }: ProjectsSectionProps) {
   const isKorean = currentLang === "ko"
   const [filter, setFilter] = React.useState<string>("all")
+  const [portfolioProjects, setPortfolioProjects] = React.useState<PortfolioProject[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
   
   const categories = ["all", "mobile", "backend", "devops"]
   const categoryLabels = {
@@ -95,6 +99,25 @@ export function ProjectsSection({ currentLang }: ProjectsSectionProps) {
     devops: isKorean ? "데브옵스" : "DevOps"
   }
   
+  // Fetch portfolio projects from Firebase
+  React.useEffect(() => {
+    const fetchPortfolioProjects = async () => {
+      try {
+        const response = await fetch('/api/portfolio/projects')
+        const result = await response.json()
+        if (result.success) {
+          setPortfolioProjects(result.data.filter((project: PortfolioProject) => project.isActive))
+        }
+      } catch (error) {
+        console.error('Error fetching portfolio projects:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchPortfolioProjects()
+  }, [])
+  
   const filteredProjects = filter === "all" 
     ? projects 
     : projects.filter(project => 
@@ -102,6 +125,17 @@ export function ProjectsSection({ currentLang }: ProjectsSectionProps) {
           if (filter === "mobile") return ["Flutter", "Dart", "React Native"].includes(tech)
           if (filter === "backend") return ["Spring Boot", "Kotlin", "Node.js", "Python"].includes(tech)
           if (filter === "devops") return ["Docker", "Kubernetes", "AWS", "CI/CD"].includes(tech)
+          return false
+        })
+      )
+  
+  const filteredPortfolioProjects = filter === "all"
+    ? portfolioProjects
+    : portfolioProjects.filter(project =>
+        project.tags.some(tag => {
+          if (filter === "mobile") return ["Flutter", "Dart", "React Native"].includes(tag)
+          if (filter === "backend") return ["Spring Boot", "Kotlin", "Node.js", "Python"].includes(tag)
+          if (filter === "devops") return ["Docker", "Kubernetes", "AWS", "CI/CD"].includes(tag)
           return false
         })
       )
@@ -135,16 +169,74 @@ export function ProjectsSection({ currentLang }: ProjectsSectionProps) {
           ))}
         </div>
 
-        {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              currentLang={currentLang}
-            />
-          ))}
-        </div>
+        {/* Portfolio Projects Grid (Firebase) */}
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-background-secondary rounded-3xl p-6 h-96">
+                  <div className="h-48 bg-background-tertiary rounded-2xl mb-6"></div>
+                  <div className="h-6 bg-background-tertiary rounded mb-3"></div>
+                  <div className="h-4 bg-background-tertiary rounded mb-4"></div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-16 bg-background-tertiary rounded-full"></div>
+                    <div className="h-6 w-20 bg-background-tertiary rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredPortfolioProjects.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {filteredPortfolioProjects
+              .sort((a, b) => a.order - b.order)
+              .map((project, index) => (
+                <ProjectCard
+                  key={project.id}
+                  title={project.title}
+                  description={project.description}
+                  tags={project.tags}
+                  icon={project.icon}
+                  iconBg={project.iconBg}
+                  liveUrl={project.liveUrl}
+                  githubUrl={project.githubUrl}
+                  delay={index * 0.1}
+                />
+              ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 mb-16">
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-foreground-secondary" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium mb-2">
+                {isKorean ? "프로젝트를 준비 중입니다" : "Projects Coming Soon"}
+              </h3>
+              <p className="text-foreground-secondary text-sm">
+                {isKorean 
+                  ? "관리자가 새로운 프로젝트를 추가하고 있습니다."
+                  : "New projects are being added by the admin."
+                }
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {/* Original Projects Grid (Static data) - Show if no Firebase projects */}
+        {!isLoading && filteredPortfolioProjects.length === 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => (
+              <OriginalProjectCard
+                key={project.id}
+                project={project}
+                currentLang={currentLang}
+              />
+            ))}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="text-center mt-12">

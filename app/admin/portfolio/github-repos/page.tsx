@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff, Home, Monitor } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
+import GitHubCard from '../../../../components/GitHubCard'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
 
 export default function GitHubReposManagementPage() {
@@ -299,7 +300,7 @@ export default function GitHubReposManagementPage() {
             }`}
           >
             {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
-            {isPreviewMode ? '편집 모드' : '미리보기'}
+            {isPreviewMode ? '편집 모드' : '홈페이지 미리보기'}
           </motion.button>
 
           {/* Save Button */}
@@ -366,76 +367,94 @@ export default function GitHubReposManagementPage() {
       )}
 
       {isPreviewMode ? (
-        // Preview Mode
+        // Preview Mode - Show actual homepage UI
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="space-y-8"
         >
-          {repositories.map((repo) => (
-            <motion.div
-              key={repo.id}
-              whileHover={{ scale: 1.02 }}
-              className="card-primary p-6 border border-border hover:border-primary transition-colors"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-3 h-3 rounded-full ${getLanguageColor(repo.language)}`}></div>
-                    <span className="text-sm text-foreground-secondary">{repo.language}</span>
-                    {repo.showOnHomepage && (
-                      <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">
-                        <Home size={10} />
-                        <span>홈페이지 노출</span>
+          {/* Preview Header */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-blue-800 mb-2">
+              <Eye size={16} />
+              <span className="font-medium">홈페이지 미리보기</span>
+            </div>
+            <p className="text-sm text-blue-700">
+              아래는 실제 홈페이지에서 나타날 GitHub 저장소 섹션의 모습입니다. 
+              '홈페이지 노출'이 활성화된 저장소만 표시됩니다.
+            </p>
+          </div>
+
+          {/* Actual Homepage Section Preview */}
+          <div className="bg-background-secondary p-8 rounded-lg border border-border">
+            <div className="max-w-6xl mx-auto">
+              {/* Section Title (as it appears on homepage) */}
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-medium mb-4">코드 예제 & GitHub</h2>
+                <p className="text-foreground-secondary max-w-2xl mx-auto">
+                  실제 프로젝트에서 사용한 코드 패턴과 GitHub 저장소를 통해 
+                  개발 역량과 코드 품질을 확인해보세요.
+                </p>
+              </div>
+
+              {/* GitHub Repositories Section */}
+              <div>
+                <div className="mb-8">
+                  <h3 className="text-2xl font-medium text-center">GitHub 저장소</h3>
+                </div>
+                
+                {repositories.filter(repo => repo.showOnHomepage && repo.isActive).length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {repositories
+                      .filter(repo => repo.showOnHomepage && repo.isActive)
+                      .sort((a, b) => a.order - b.order)
+                      .map((repo, index) => (
+                        <GitHubCard
+                          key={repo.id}
+                          repo={{
+                            name: repo.name,
+                            description: repo.description,
+                            language: repo.language,
+                            stars: repo.stars,
+                            forks: repo.forks,
+                            lastUpdated: repo.lastUpdated,
+                            url: repo.url
+                          }}
+                          delay={index * 0.1}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
+                        <Github size={24} className="text-foreground-secondary" />
                       </div>
-                    )}
+                      <h3 className="text-lg font-medium mb-2">표시할 저장소가 없습니다</h3>
+                      <p className="text-foreground-secondary text-sm">
+                        홈페이지에 표시할 저장소를 선택하려면 편집 모드로 전환하세요.
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{repo.name}</h3>
-                  <p className="text-foreground-secondary text-sm leading-relaxed">
-                    {repo.description}
-                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Info */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <Monitor size={16} className="text-gray-600 mt-0.5" />
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-1">
+                  현재 홈페이지에 표시되는 저장소: {repositories.filter(repo => repo.showOnHomepage && repo.isActive).length}개
                 </div>
-                <div className="flex items-center gap-2">
-                  {repo.showOnHomepage && (
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      className="p-2 text-green-600 bg-green-50 rounded-lg"
-                      title="홈페이지에 표시됨"
-                    >
-                      <Monitor size={16} />
-                    </motion.div>
-                  )}
-                  <motion.a
-                    href={repo.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 text-foreground-secondary hover:text-primary transition-colors"
-                  >
-                    <ExternalLink size={16} />
-                  </motion.a>
+                <div className="text-xs text-gray-600">
+                  편집 모드에서 각 저장소의 "홈페이지 노출" 토글을 사용하여 표시 여부를 변경할 수 있습니다.
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between text-sm text-foreground-secondary mb-3">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Star size={14} />
-                    <span>{repo.stars}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <GitFork size={14} />
-                    <span>{repo.forks}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  <span>{formatDate(repo.lastUpdated)}</span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+            </div>
+          </div>
         </motion.div>
       ) : (
         // Edit Mode

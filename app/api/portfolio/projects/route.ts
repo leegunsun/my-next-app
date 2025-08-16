@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../lib/firebase/config'
-import { collection, getDocs, addDoc, orderBy, query } from 'firebase/firestore'
+import { collection, getDocs, addDoc, orderBy, query, Timestamp } from 'firebase/firestore'
 import { PortfolioProject } from '../../../../lib/types/portfolio'
 
 export async function GET() {
@@ -85,26 +85,53 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const projectData: Omit<PortfolioProject, 'id'> = {
-      ...body,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    
+    // Validate required fields
+    if (!body.title || !body.description) {
+      return NextResponse.json({
+        success: false,
+        message: 'Title and description are required'
+      }, { status: 400 })
+    }
+
+    const projectData = {
+      title: body.title,
+      description: body.description,
+      tags: body.tags || [],
+      icon: body.icon || 'Project',
+      iconBg: body.iconBg || 'bg-primary',
+      liveUrl: body.liveUrl || '',
+      githubUrl: body.githubUrl || '',
+      isActive: body.isActive !== undefined ? body.isActive : true,
+      order: body.order || 99,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     }
 
     const projectsCollection = collection(db, 'portfolio-projects')
     const docRef = await addDoc(projectsCollection, projectData)
-    const newProject = { id: docRef.id, ...projectData }
+    
+    // Return the created project with the generated ID
+    const newProject = { 
+      id: docRef.id, 
+      ...projectData,
+      // Convert Timestamp to ISO string for response
+      createdAt: projectData.createdAt.toDate().toISOString(),
+      updatedAt: projectData.updatedAt.toDate().toISOString()
+    }
 
     return NextResponse.json({
       success: true,
       data: newProject,
       message: 'Project created successfully'
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating project:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return NextResponse.json({
       success: false,
-      message: 'Failed to create project'
+      message: `Failed to create project: ${errorMessage}`
     }, { status: 500 })
   }
 }
+

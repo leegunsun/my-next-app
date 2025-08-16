@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Edit2, Trash2, Eye, Save, X, ExternalLink, Github } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { PortfolioProject } from '../../../../lib/types/portfolio'
+import { CustomSelect, SelectOption } from '../../../../components/ui/select'
 
 interface ProjectFormData {
   title: string
@@ -18,25 +19,25 @@ interface ProjectFormData {
   order: number
 }
 
-const iconOptions = [
-  { value: 'Flutter', label: 'Flutter' },
-  { value: 'Spring', label: 'Spring Boot' },
-  { value: 'React', label: 'React' },
-  { value: 'Vue', label: 'Vue.js' },
-  { value: 'Angular', label: 'Angular' },
-  { value: 'Node', label: 'Node.js' },
-  { value: 'Python', label: 'Python' },
-  { value: 'Docker', label: 'Docker' },
-  { value: 'K8s', label: 'Kubernetes' }
+const iconOptions: SelectOption[] = [
+  { id: 'flutter', name: 'Flutter', value: 'Flutter' },
+  { id: 'spring', name: 'Spring Boot', value: 'Spring' },
+  { id: 'react', name: 'React', value: 'React' },
+  { id: 'vue', name: 'Vue.js', value: 'Vue' },
+  { id: 'angular', name: 'Angular', value: 'Angular' },
+  { id: 'node', name: 'Node.js', value: 'Node' },
+  { id: 'python', name: 'Python', value: 'Python' },
+  { id: 'docker', name: 'Docker', value: 'Docker' },
+  { id: 'k8s', name: 'Kubernetes', value: 'K8s' }
 ]
 
-const iconBgOptions = [
-  { value: 'bg-primary', label: 'Primary', class: 'bg-primary' },
-  { value: 'bg-accent-success', label: 'Success', class: 'bg-accent-success' },
-  { value: 'bg-accent-purple', label: 'Purple', class: 'bg-accent-purple' },
-  { value: 'bg-accent-warning', label: 'Warning', class: 'bg-accent-warning' },
-  { value: 'bg-accent-info', label: 'Info', class: 'bg-accent-info' },
-  { value: 'bg-accent-error', label: 'Error', class: 'bg-accent-error' }
+const iconBgOptions: SelectOption[] = [
+  { id: 'primary', name: 'Primary', value: 'bg-primary' },
+  { id: 'success', name: 'Success', value: 'bg-accent-success' },
+  { id: 'purple', name: 'Purple', value: 'bg-accent-purple' },
+  { id: 'warning', name: 'Warning', value: 'bg-accent-warning' },
+  { id: 'info', name: 'Info', value: 'bg-accent-info' },
+  { id: 'error', name: 'Error', value: 'bg-accent-error' }
 ]
 
 export default function ProjectsManagementPage() {
@@ -189,12 +190,12 @@ export default function ProjectsManagementPage() {
           description="포트폴리오 프로젝트를 추가, 수정, 삭제할 수 있습니다."
         />
         <motion.button
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsCreating(true)}
-          className="bg-primary text-white px-6 py-2 rounded-lg flex items-center gap-2"
+          className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-4 text-lg rounded-2xl font-medium transition-all shadow-lg flex items-center gap-3"
         >
-          <Plus size={16} />
+          <Plus size={20} />
           새 프로젝트 추가
         </motion.button>
       </div>
@@ -317,20 +318,21 @@ export default function ProjectsManagementPage() {
             onClick={(e) => e.target === e.currentTarget && resetForm()}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-background rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-background-card border border-border/30 shadow-elevated rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold">
                   {editingProject ? '프로젝트 수정' : '새 프로젝트 추가'}
                 </h2>
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={resetForm}
-                  className="p-2 hover:bg-background-secondary rounded-lg"
+                  className="p-3 text-foreground-secondary hover:text-primary hover:bg-primary/10 rounded-xl transition-all shadow-sm hover:shadow-md"
                 >
                   <X size={20} />
                 </motion.button>
@@ -343,7 +345,7 @@ export default function ProjectsManagementPage() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                     placeholder="프로젝트 제목을 입력하세요"
                   />
                 </div>
@@ -354,41 +356,27 @@ export default function ProjectsManagementPage() {
                     rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                    className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm resize-none"
                     placeholder="프로젝트에 대한 상세 설명을 입력하세요"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">아이콘</label>
-                    <select
-                      value={formData.icon}
-                      onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      {iconOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="아이콘"
+                    options={iconOptions}
+                    value={formData.icon}
+                    onChange={(value) => setFormData({ ...formData, icon: value })}
+                    placeholder="아이콘 선택"
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">아이콘 배경색</label>
-                    <select
-                      value={formData.iconBg}
-                      onChange={(e) => setFormData({ ...formData, iconBg: e.target.value })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      {iconBgOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="아이콘 배경색"
+                    options={iconBgOptions}
+                    value={formData.iconBg}
+                    onChange={(value) => setFormData({ ...formData, iconBg: value })}
+                    placeholder="배경색 선택"
+                  />
                 </div>
 
                 {/* Tags */}
@@ -400,14 +388,14 @@ export default function ProjectsManagementPage() {
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                      className="flex-1 p-2 bg-background-secondary border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="flex-1 p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                       placeholder="태그 입력 후 Enter"
                     />
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={addTag}
-                      className="bg-primary text-white px-4 py-2 rounded"
+                      className="bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 rounded-2xl font-medium transition-all shadow-md"
                     >
                       추가
                     </motion.button>
@@ -437,7 +425,7 @@ export default function ProjectsManagementPage() {
                       type="url"
                       value={formData.liveUrl}
                       onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                       placeholder="https://example.com"
                     />
                   </div>
@@ -448,7 +436,7 @@ export default function ProjectsManagementPage() {
                       type="url"
                       value={formData.githubUrl}
                       onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                       placeholder="https://github.com/username/repo"
                     />
                   </div>
@@ -462,39 +450,38 @@ export default function ProjectsManagementPage() {
                       min="1"
                       value={formData.order}
                       onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">상태</label>
-                    <select
-                      value={formData.isActive.toString()}
-                      onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'true' })}
-                      className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      <option value="true">활성화</option>
-                      <option value="false">비활성화</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="상태"
+                    options={[
+                      { id: 'active', name: '활성화', value: 'true' },
+                      { id: 'inactive', name: '비활성화', value: 'false' }
+                    ]}
+                    value={formData.isActive.toString()}
+                    onChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
+                    placeholder="상태 선택"
+                  />
                 </div>
               </div>
 
               <div className="flex items-center gap-3 mt-6 pt-6 border-t border-border">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleSubmit}
-                  className="bg-primary text-white px-6 py-2 rounded-lg flex items-center gap-2"
+                  className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-3 rounded-2xl font-medium transition-all shadow-lg flex items-center gap-2"
                 >
                   <Save size={16} />
                   {editingProject ? '수정' : '추가'}
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={resetForm}
-                  className="bg-background-secondary text-foreground px-6 py-2 rounded-lg border border-border"
+                  className="bg-background-secondary text-foreground hover:bg-background-tertiary px-8 py-3 rounded-2xl font-medium transition-all border border-border"
                 >
                   취소
                 </motion.button>

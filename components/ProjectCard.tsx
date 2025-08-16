@@ -62,22 +62,28 @@ export default function ProjectCard({
           >
             <div className="flex gap-3">
               {liveUrl && (
-                <motion.button
+                <motion.a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white"
                 >
                   <ExternalLink size={16} />
-                </motion.button>
+                </motion.a>
               )}
               {githubUrl && (
-                <motion.button
+                <motion.a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 bg-foreground rounded-full flex items-center justify-center text-background"
                 >
                   <Github size={16} />
-                </motion.button>
+                </motion.a>
               )}
             </div>
           </motion.div>
@@ -110,24 +116,30 @@ export default function ProjectCard({
         {/* Action Buttons */}
         <div className="flex items-center gap-3 mt-auto">
           {liveUrl && (
-            <motion.button
+            <motion.a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="bg-primary text-primary-foreground hover:opacity-90 px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2"
             >
               <ExternalLink size={14} />
               Live Demo
-            </motion.button>
+            </motion.a>
           )}
           {githubUrl && (
-            <motion.button
+            <motion.a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="bg-transparent text-foreground-secondary hover:text-foreground px-4 py-2 text-sm transition-all flex items-center gap-2"
             >
               <Github size={14} />
               GitHub
-            </motion.button>
+            </motion.a>
           )}
         </div>
       </motion.div>
