@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff, Home, Monitor } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff, Home, Monitor, CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import GitHubCard from '../../../../components/GitHubCard'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
@@ -81,23 +81,23 @@ export default function GitHubReposManagementPage() {
         
         if (forceRefresh) {
           if (result.source === 'github-api') {
-            showNotification('success', `GitHub에서 ${result.data.length}개의 저장소를 성공적으로 가져왔습니다.`)
+            showNotification('success', `GitHub에서 ${result.data.length}개의 저장소 데이터를 성공적으로 동기화했습니다.`)
           } else {
-            showNotification('info', 'GitHub API를 사용할 수 없어 캐시된 데이터를 사용합니다.')
+            showNotification('info', 'GitHub API에 연결할 수 없어 캐시된 데이터를 표시합니다. 네트워크 상태를 확인해 주세요.')
           }
         }
       } else {
         console.error('API error:', result.message)
         setIsOnline(false)
         if (forceRefresh) {
-          showNotification('error', result.message || 'GitHub 저장소를 가져오는데 실패했습니다.')
+          showNotification('error', result.message || 'GitHub 저장소 데이터를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.')
         }
       }
     } catch (error) {
       console.error('Error fetching repositories:', error)
       setIsOnline(false)
       if (forceRefresh) {
-        showNotification('error', '네트워크 오류가 발생했습니다. 연결을 확인해 주세요.')
+        showNotification('error', '네트워크 연결에 문제가 있습니다. 인터넷 연결 상태를 확인한 후 다시 시도해 주세요.')
       }
     } finally {
       setIsLoading(false)
@@ -123,15 +123,21 @@ export default function GitHubReposManagementPage() {
       })
       
       const result = await response.json()
+      
+      // Handle different response scenarios
       if (result.success) {
         setRepositories(result.data)
-        showNotification('success', '저장소 데이터가 성공적으로 저장되었습니다.')
+        showNotification('success', result.message)
+      } else if (response.status === 207) {
+        // Partial success (saved to cache but not Firestore)
+        setRepositories(result.data)
+        showNotification('info', result.message)
       } else {
-        showNotification('error', result.message || '저장 중 오류가 발생했습니다.')
+        showNotification('error', result.message || '저장 중 예상치 못한 오류가 발생했습니다. 다시 시도해 주세요.')
       }
     } catch (error) {
       console.error('Error saving repositories:', error)
-      showNotification('error', '저장 중 네트워크 오류가 발생했습니다.')
+      showNotification('error', '저장 중 네트워크 오류가 발생했습니다. 인터넷 연결 상태를 확인한 후 다시 시도해 주세요.')
     } finally {
       setSaving(false)
     }
@@ -800,26 +806,47 @@ export default function GitHubReposManagementPage() {
         </motion.div>
       )}
 
-      {/* Notification Toast */}
+      {/* Notification Toast - Design System Compliant */}
       <AnimatePresence>
         {notification.show && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-lg z-50 max-w-sm ${
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className={`fixed bottom-6 right-6 glass-effect backdrop-blur-md border rounded-2xl shadow-elevated z-50 max-w-sm min-w-[320px] ${
               notification.type === 'success' 
-                ? 'bg-green-600 text-white' 
+                ? 'bg-accent-success/10 border-accent-success/30 text-accent-success' 
                 : notification.type === 'error'
-                ? 'bg-red-600 text-white'
-                : 'bg-blue-600 text-white'
+                ? 'bg-accent-error/10 border-accent-error/30 text-accent-error'
+                : 'bg-accent-info/10 border-accent-info/30 text-accent-info'
             }`}
           >
-            <div className="flex items-center gap-2">
-              {notification.type === 'success' && <span className="text-xl">✅</span>}
-              {notification.type === 'error' && <span className="text-xl">❌</span>}
-              {notification.type === 'info' && <span className="text-xl">ℹ️</span>}
-              <p className="text-sm font-medium">{notification.message}</p>
+            <div className="p-4">
+              <div className="flex items-start gap-3">
+                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                  notification.type === 'success'
+                    ? 'bg-accent-success/20'
+                    : notification.type === 'error'
+                    ? 'bg-accent-error/20' 
+                    : 'bg-accent-info/20'
+                }`}>
+                  {notification.type === 'success' && <CheckCircle size={16} className="text-accent-success" />}
+                  {notification.type === 'error' && <AlertCircle size={16} className="text-accent-error" />}
+                  {notification.type === 'info' && <Info size={16} className="text-accent-info" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-relaxed">{notification.message}</p>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+                  className="flex-shrink-0 p-1 rounded-lg hover:bg-current/10 transition-colors"
+                >
+                  <X size={14} className="opacity-70" />
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
 import { fetchGitHubRepositories, checkGitHubAPIHealth } from '../../../../lib/utils/github-api'
+import { saveGitHubRepositories, loadGitHubRepositories, checkFirestoreAvailability } from '../../../../lib/firebase/github-repos'
 
-// In-memory storage for development (in production, you'd use a proper database)
+// In-memory cache for performance (backed by Firestore for persistence)
 let githubReposDataStore: GitHubRepository[] | null = null
 let lastFetchTime: number = 0
+let lastFirestoreSync: number = 0
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes cache
+const FIRESTORE_SYNC_INTERVAL = 1 * 60 * 1000 // 1 minute sync interval
 
 // GitHub username to fetch repositories from
 const GITHUB_USERNAME = 'leegunsun'
@@ -97,6 +100,23 @@ export async function GET(request: NextRequest) {
     const homepageOnly = searchParams.get('homepage') === 'true' // Filter for homepage display only
     
     const now = Date.now()
+    
+    // Check if we should sync with Firestore first
+    const shouldSyncFirestore = !githubReposDataStore || (now - lastFirestoreSync) > FIRESTORE_SYNC_INTERVAL
+    
+    if (shouldSyncFirestore) {
+      try {
+        const firestoreData = await loadGitHubRepositories()
+        if (firestoreData.success && firestoreData.repositories.length > 0) {
+          githubReposDataStore = firestoreData.repositories
+          lastFirestoreSync = now
+          console.log('🔄 Synced with Firestore:', firestoreData.repositories.length, 'repositories')
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to sync with Firestore, continuing with cache:', error)
+      }
+    }
+    
     const shouldFetchFromAPI = useReal && (
       forceRefresh || 
       !githubReposDataStore || 
@@ -140,8 +160,13 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Return cached data or default data
+    // Return Firestore data, cached data, or default data
     let data = githubReposDataStore || getDefaultGitHubReposData()
+    let dataSource = 'default'
+    
+    if (githubReposDataStore) {
+      dataSource = 'firestore-cache'
+    }
     
     // Filter for homepage display if requested
     if (homepageOnly) {
@@ -152,15 +177,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data,
-      message: `GitHub repositories retrieved from ${githubReposDataStore ? 'cache' : 'default data'}${homepageOnly ? ' (homepage only)' : ''}`,
-      source: githubReposDataStore ? 'cache' : 'default',
+      message: `GitHub repositories retrieved from ${dataSource}${homepageOnly ? ' (homepage only)' : ''}`,
+      source: dataSource,
       lastUpdated: lastFetchTime > 0 ? new Date(lastFetchTime).toISOString() : null
     })
   } catch (error) {
     console.error('Error in GET /api/portfolio/github-repos:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to fetch GitHub repositories',
+      message: 'GitHub 저장소 데이터를 가져올 수 없습니다. 잠시 후 다시 시도해 주세요.',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
@@ -190,13 +215,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: newRepo,
-      message: 'GitHub repository created successfully'
+      message: 'GitHub 저장소가 성공적으로 추가되었습니다.'
     })
   } catch (error) {
     console.error('Error creating GitHub repository:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to create GitHub repository'
+      message: 'GitHub 저장소 생성 중 오류가 발생했습니다. 다시 시도해 주세요.'
     }, { status: 500 })
   }
 }
@@ -206,19 +231,60 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const updatedData: GitHubRepository[] = body
 
-    // Store the updated GitHub repositories data
-    githubReposDataStore = updatedData
+    // Validate data structure
+    if (!Array.isArray(updatedData)) {
+      return NextResponse.json({
+        success: false,
+        message: '잘못된 데이터 형식입니다. 저장소 배열이 필요합니다.'
+      }, { status: 400 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: updatedData,
-      message: 'GitHub repositories updated successfully'
-    })
+    // Check if Firestore is available
+    const isFirestoreAvailable = await checkFirestoreAvailability()
+    
+    if (isFirestoreAvailable) {
+      // Save to Firestore
+      const saveResult = await saveGitHubRepositories(updatedData)
+      
+      if (saveResult.success) {
+        // Update in-memory cache after successful Firestore save
+        githubReposDataStore = updatedData
+        lastFirestoreSync = Date.now()
+        
+        return NextResponse.json({
+          success: true,
+          data: updatedData,
+          message: 'Firebase에 성공적으로 저장되었습니다! 페이지를 새로고침해도 데이터가 유지됩니다.',
+          source: 'firestore'
+        })
+      } else {
+        // Firestore save failed, but update cache anyway as fallback
+        githubReposDataStore = updatedData
+        
+        return NextResponse.json({
+          success: false,
+          data: updatedData,
+          message: `Firebase 저장에 실패했지만 임시 캐시에는 저장되었습니다. 서버 재시작 시 데이터가 손실될 수 있습니다. (오류: ${saveResult.error})`,
+          source: 'cache-only'
+        }, { status: 207 }) // 207 Multi-Status: partial success
+      }
+    } else {
+      // Firestore not available, save to cache only
+      githubReposDataStore = updatedData
+      
+      return NextResponse.json({
+        success: false,
+        data: updatedData,
+        message: 'Firebase에 연결할 수 없어 임시 캐시에만 저장되었습니다. 서버 재시작 시 데이터가 손실될 수 있습니다.',
+        source: 'cache-only'
+      }, { status: 207 }) // 207 Multi-Status: partial success
+    }
   } catch (error) {
     console.error('Error updating GitHub repositories:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to update GitHub repositories'
+      message: `GitHub 저장소 업데이트 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
