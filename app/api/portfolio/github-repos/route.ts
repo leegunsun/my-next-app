@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
+import { fetchGitHubRepositories, checkGitHubAPIHealth } from '../../../../lib/utils/github-api'
 
 // In-memory storage for development (in production, you'd use a proper database)
 let githubReposDataStore: GitHubRepository[] | null = null
+let lastFetchTime: number = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes cache
+
+// GitHub username to fetch repositories from
+const GITHUB_USERNAME = 'leegunsun'
 
 // Default GitHub repositories data
 const getDefaultGitHubReposData = (): GitHubRepository[] => [
@@ -78,21 +84,65 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
   }
 ]
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // If no data exists, return default data
+    const { searchParams } = new URL(request.url)
+    const forceRefresh = searchParams.get('refresh') === 'true'
+    const useReal = searchParams.get('real') !== 'false' // Default to true
+    
+    const now = Date.now()
+    const shouldFetchFromAPI = useReal && (
+      forceRefresh || 
+      !githubReposDataStore || 
+      (now - lastFetchTime) > CACHE_DURATION
+    )
+    
+    if (shouldFetchFromAPI) {
+      try {
+        // Check GitHub API health first
+        const isAPIHealthy = await checkGitHubAPIHealth()
+        
+        if (isAPIHealthy) {
+          const realRepos = await fetchGitHubRepositories(GITHUB_USERNAME)
+          
+          if (realRepos.length > 0) {
+            githubReposDataStore = realRepos
+            lastFetchTime = now
+            
+            return NextResponse.json({
+              success: true,
+              data: realRepos,
+              message: `GitHub repositories retrieved successfully from API (${realRepos.length} repos)`,
+              source: 'github-api',
+              lastUpdated: new Date().toISOString()
+            })
+          }
+        }
+        
+        // If API fetch failed, fall back to cached or default data
+        console.warn('GitHub API fetch failed, falling back to cached/default data')
+      } catch (error) {
+        console.error('Error fetching from GitHub API:', error)
+        // Continue to fallback
+      }
+    }
+    
+    // Return cached data or default data
     const data = githubReposDataStore || getDefaultGitHubReposData()
     
     return NextResponse.json({
       success: true,
       data,
-      message: 'GitHub repositories retrieved successfully'
+      message: `GitHub repositories retrieved from ${githubReposDataStore ? 'cache' : 'default data'}`,
+      source: githubReposDataStore ? 'cache' : 'default',
+      lastUpdated: lastFetchTime > 0 ? new Date(lastFetchTime).toISOString() : null
     })
   } catch (error) {
-    console.error('Error fetching GitHub repositories:', error)
+    console.error('Error in GET /api/portfolio/github-repos:', error)
     return NextResponse.json({
       success: false,
-      message: 'Failed to fetch GitHub repositories'
+      message: 'Failed to fetch GitHub repositories',
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }

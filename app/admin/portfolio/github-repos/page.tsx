@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
 
@@ -10,6 +10,7 @@ export default function GitHubReposManagementPage() {
   const [repositories, setRepositories] = useState<GitHubRepository[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setSaving] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [editingRepo, setEditingRepo] = useState<string | null>(null)
   const [newRepo, setNewRepo] = useState({
     name: '',
@@ -21,6 +22,14 @@ export default function GitHubReposManagementPage() {
     url: ''
   })
   const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [dataSource, setDataSource] = useState<'github-api' | 'cache' | 'default'>('default')
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const [isOnline, setIsOnline] = useState(true)
+  const [notification, setNotification] = useState<{ 
+    type: 'success' | 'error' | 'info'; 
+    message: string; 
+    show: boolean 
+  }>({ type: 'info', message: '', show: false })
 
   const languageOptions = [
     { value: 'JavaScript', label: 'JavaScript', color: 'bg-yellow-500' },
@@ -39,17 +48,66 @@ export default function GitHubReposManagementPage() {
     fetchRepositories()
   }, [])
 
-  const fetchRepositories = async () => {
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification(prev => ({ ...prev, show: false }))
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification.show])
+
+  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+    setNotification({ type, message, show: true })
+  }
+
+  const fetchRepositories = async (forceRefresh = false) => {
     try {
-      const response = await fetch('/api/portfolio/github-repos')
+      setIsLoading(true)
+      const url = forceRefresh 
+        ? '/api/portfolio/github-repos?refresh=true' 
+        : '/api/portfolio/github-repos'
+      
+      const response = await fetch(url)
       const result = await response.json()
+      
       if (result.success) {
         setRepositories(result.data)
+        setDataSource(result.source || 'default')
+        setLastUpdated(result.lastUpdated)
+        setIsOnline(result.source === 'github-api')
+        
+        if (forceRefresh) {
+          if (result.source === 'github-api') {
+            showNotification('success', `GitHub에서 ${result.data.length}개의 저장소를 성공적으로 가져왔습니다.`)
+          } else {
+            showNotification('info', 'GitHub API를 사용할 수 없어 캐시된 데이터를 사용합니다.')
+          }
+        }
+      } else {
+        console.error('API error:', result.message)
+        setIsOnline(false)
+        if (forceRefresh) {
+          showNotification('error', result.message || 'GitHub 저장소를 가져오는데 실패했습니다.')
+        }
       }
     } catch (error) {
       console.error('Error fetching repositories:', error)
+      setIsOnline(false)
+      if (forceRefresh) {
+        showNotification('error', '네트워크 오류가 발생했습니다. 연결을 확인해 주세요.')
+      }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const refreshFromGitHub = async () => {
+    setIsRefreshing(true)
+    try {
+      await fetchRepositories(true)
+    } finally {
+      setIsRefreshing(false)
     }
   }
 
@@ -65,13 +123,13 @@ export default function GitHubReposManagementPage() {
       const result = await response.json()
       if (result.success) {
         setRepositories(result.data)
-        alert('저장되었습니다.')
+        showNotification('success', '저장소 데이터가 성공적으로 저장되었습니다.')
       } else {
-        alert('저장 중 오류가 발생했습니다.')
+        showNotification('error', result.message || '저장 중 오류가 발생했습니다.')
       }
     } catch (error) {
       console.error('Error saving repositories:', error)
-      alert('저장 중 오류가 발생했습니다.')
+      showNotification('error', '저장 중 네트워크 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }
@@ -128,25 +186,105 @@ export default function GitHubReposManagementPage() {
     return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return '알 수 없음'
+    
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+    
+    if (diffMins < 1) return '방금 전'
+    if (diffMins < 60) return `${diffMins}분 전`
+    if (diffHours < 24) return `${diffHours}시간 전`
+    if (diffDays < 30) return `${diffDays}일 전`
+    return formatDate(dateString)
+  }
+
+  const getDataSourceInfo = () => {
+    switch (dataSource) {
+      case 'github-api':
+        return { 
+          label: 'GitHub API (실시간)', 
+          icon: Github, 
+          color: 'text-green-600',
+          bgColor: 'bg-green-50 border-green-200' 
+        }
+      case 'cache':
+        return { 
+          label: '캐시된 데이터', 
+          icon: Database, 
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50 border-blue-200' 
+        }
+      default:
+        return { 
+          label: '기본 데이터', 
+          icon: Database, 
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50 border-gray-200' 
+        }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-foreground-secondary">데이터를 불러오는 중...</p>
+          <div className="relative">
+            <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <Github size={20} className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary" />
+          </div>
+          <p className="text-foreground-secondary font-medium">GitHub 저장소 데이터를 불러오는 중...</p>
+          <p className="text-sm text-foreground-secondary mt-2">잠시만 기다려주세요.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-8 relative">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <AdminTitle
           title="GitHub 저장소 관리"
           description="개발 프로젝트와 GitHub 저장소 정보를 관리합니다."
         />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Data Source Indicator */}
+          {(() => {
+            const sourceInfo = getDataSourceInfo()
+            const IconComponent = sourceInfo.icon
+            return (
+              <div className={`px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 ${sourceInfo.bgColor}`}>
+                <IconComponent size={14} className={sourceInfo.color} />
+                <span className={sourceInfo.color}>{sourceInfo.label}</span>
+                {isOnline ? <Wifi size={12} className="text-green-500" /> : <WifiOff size={12} className="text-red-500" />}
+              </div>
+            )
+          })()}
+
+          {/* Last Updated */}
+          {lastUpdated && (
+            <div className="text-xs text-foreground-secondary">
+              업데이트: {formatRelativeTime(lastUpdated)}
+            </div>
+          )}
+
+          {/* GitHub Refresh Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={refreshFromGitHub}
+            disabled={isRefreshing}
+            className="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 hover:bg-gray-700 transition-colors"
+          >
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            {isRefreshing ? 'GitHub에서 가져오는 중...' : 'GitHub에서 새로고침'}
+          </motion.button>
+
+          {/* Preview/Edit Toggle */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -160,6 +298,8 @@ export default function GitHubReposManagementPage() {
             {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
             {isPreviewMode ? '편집 모드' : '미리보기'}
           </motion.button>
+
+          {/* Save Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -172,6 +312,55 @@ export default function GitHubReposManagementPage() {
           </motion.button>
         </div>
       </div>
+
+      {/* GitHub Integration Status */}
+      {dataSource === 'github-api' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-50 border border-green-200 rounded-lg p-4"
+        >
+          <div className="flex items-center gap-2 text-green-800">
+            <Github size={16} />
+            <span className="font-medium">GitHub API 연결됨</span>
+          </div>
+          <p className="text-sm text-green-700 mt-1">
+            실시간으로 GitHub에서 저장소 데이터를 가져오고 있습니다. 데이터는 5분마다 자동으로 캐시됩니다.
+          </p>
+        </motion.div>
+      )}
+
+      {dataSource === 'cache' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+        >
+          <div className="flex items-center gap-2 text-blue-800">
+            <Database size={16} />
+            <span className="font-medium">캐시된 데이터 사용 중</span>
+          </div>
+          <p className="text-sm text-blue-700 mt-1">
+            GitHub API에서 가져온 캐시된 데이터를 사용하고 있습니다. 새로고침 버튼을 클릭하여 최신 데이터를 가져올 수 있습니다.
+          </p>
+        </motion.div>
+      )}
+
+      {dataSource === 'default' && !isOnline && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+        >
+          <div className="flex items-center gap-2 text-yellow-800">
+            <WifiOff size={16} />
+            <span className="font-medium">오프라인 모드</span>
+          </div>
+          <p className="text-sm text-yellow-700 mt-1">
+            GitHub API에 연결할 수 없어 기본 데이터를 사용하고 있습니다. 네트워크 연결을 확인한 후 새로고침해 주세요.
+          </p>
+        </motion.div>
+      )}
 
       {isPreviewMode ? (
         // Preview Mode
@@ -235,9 +424,35 @@ export default function GitHubReposManagementPage() {
           animate={{ opacity: 1 }}
           className="space-y-8"
         >
+          {/* Repository Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="card-primary p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">{repositories.length}</div>
+              <div className="text-sm text-foreground-secondary">총 저장소</div>
+            </div>
+            <div className="card-primary p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">
+                {repositories.reduce((sum, repo) => sum + repo.stars, 0)}
+              </div>
+              <div className="text-sm text-foreground-secondary">총 스타</div>
+            </div>
+            <div className="card-primary p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">
+                {repositories.reduce((sum, repo) => sum + repo.forks, 0)}
+              </div>
+              <div className="text-sm text-foreground-secondary">총 포크</div>
+            </div>
+          </div>
+
           {/* Add New Repository */}
           <div className="card-primary p-6">
-            <h3 className="text-xl font-semibold mb-4">새 GitHub 저장소 추가</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-xl font-semibold">수동으로 저장소 추가</h3>
+              <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">선택사항</div>
+            </div>
+            <p className="text-sm text-foreground-secondary mb-4">
+              GitHub API로 자동 동기화되지 않은 저장소나 추가 정보가 필요한 저장소를 수동으로 추가할 수 있습니다.
+            </p>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
@@ -479,6 +694,31 @@ export default function GitHubReposManagementPage() {
           </div>
         </motion.div>
       )}
+
+      {/* Notification Toast */}
+      <AnimatePresence>
+        {notification.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-lg z-50 max-w-sm ${
+              notification.type === 'success' 
+                ? 'bg-green-600 text-white' 
+                : notification.type === 'error'
+                ? 'bg-red-600 text-white'
+                : 'bg-blue-600 text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {notification.type === 'success' && <span className="text-xl">✅</span>}
+              {notification.type === 'error' && <span className="text-xl">❌</span>}
+              {notification.type === 'info' && <span className="text-xl">ℹ️</span>}
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
