@@ -129,8 +129,8 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
       </div>
 
       {/* Meta Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="lg:col-span-1">
           <CustomSelect
             label="카테고리"
             options={categories}
@@ -140,7 +140,7 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
           />
         </div>
 
-        <div>
+        <div className="lg:col-span-2 xl:col-span-3">
           <label className="block text-sm font-medium mb-2">태그 (쉼표로 구분)</label>
           <input
             type="text"
@@ -165,23 +165,23 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
       {/* Excerpt */}
       <div>
         <label className="block text-sm font-medium mb-2">
-          요약 <span className="text-foreground-secondary">(자동 생성되지만 직접 수정 가능)</span>
+          요약 <span className="text-foreground-secondary text-xs">(자동 생성되지만 직접 수정 가능)</span>
         </label>
         <textarea
           value={formData.excerpt}
           onChange={(e) => handleInputChange('excerpt', e.target.value)}
-          rows={3}
+          rows={4}
           placeholder="게시물 요약을 입력하세요"
           className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
         />
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-6 border-t border-border">
-        <div className="flex items-center gap-4 text-sm text-foreground-secondary">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start lg:items-center justify-between pt-6 border-t border-border">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-sm text-foreground-secondary">
           <div className="flex items-center gap-1">
             <User size={16} />
-            {user?.displayName || user?.email}
+            <span className="truncate max-w-xs">{user?.displayName || user?.email}</span>
           </div>
           {formData.content && (
             <div className="flex items-center gap-1">
@@ -191,7 +191,7 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4">
           {initialPost && (
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -209,7 +209,7 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
             whileTap={{ scale: 0.95 }}
             onClick={() => handleSave('draft')}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-background-secondary hover:bg-background-tertiary rounded-lg font-medium transition-colors disabled:opacity-70"
+            className="flex items-center gap-2 px-6 py-2 bg-background-secondary hover:bg-background-tertiary rounded-lg font-medium transition-colors disabled:opacity-70"
           >
             <Save size={16} />
             {saving ? '저장 중...' : '초안 저장'}
@@ -220,7 +220,7 @@ export default function PostEditor({ initialPost }: PostEditorProps) {
             whileTap={{ scale: 0.95 }}
             onClick={() => handleSave('published')}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-blend text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-70"
+            className="flex items-center gap-2 px-6 py-2 bg-accent-blend text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-70"
           >
             <Save size={16} />
             {saving ? '게시 중...' : '게시하기'}
