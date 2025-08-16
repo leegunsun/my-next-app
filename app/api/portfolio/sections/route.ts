@@ -219,10 +219,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate new section
+    const timestamp = Date.now()
     const newSection: PortfolioSection = {
-      id: `custom-${Date.now()}`,
+      id: `custom-${timestamp}`,
       ...sectionData,
-      href: sectionData.href || `/admin/portfolio/custom/${Date.now()}`,
+      href: sectionData.href || `/admin/portfolio/custom/${timestamp}`,
       isActive: sectionData.isActive !== undefined ? sectionData.isActive : true,
       showInNavigation: sectionData.showInNavigation !== undefined ? sectionData.showInNavigation : true,
       showInAdminGrid: sectionData.showInAdminGrid !== undefined ? sectionData.showInAdminGrid : true,

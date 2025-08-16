@@ -10,6 +10,7 @@ import ProjectCard from "../components/ProjectCard"
 import CodeSnippet from "../components/CodeSnippet"
 import GitHubCard from "../components/GitHubCard"
 import AdminNavigation from "../components/admin/AdminNavigation"
+import CustomSection from "../components/CustomSection"
 import { downloadResume, submitContactForm, requestNotificationPermission, type ContactFormData } from "../lib/utils"
 import { useAnalytics } from "../lib/analytics"
 
@@ -61,11 +62,22 @@ export default function Home() {
   // Debug: Log section integration status
   useEffect(() => {
     if (sectionsData && !isLoadingSections) {
+      const customSections = sectionsData.sections?.filter((s: any) => s.id.startsWith('custom-')) || []
       console.log('🔄 Section Integration Status:', {
         sectionsLoaded: !!sectionsData,
         totalSections: sectionsData.sections?.length || 0,
         activeSections: sectionsData.sections?.filter((s: any) => s.isActive).length || 0,
         navigationSections: sectionsData.sections?.filter((s: any) => s.showInNavigation && s.isActive).length || 0,
+        customSections: customSections.length,
+        activeCustomSections: customSections.filter((s: any) => s.isActive).length,
+        customSectionDetails: customSections.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          isActive: s.isActive,
+          showInNavigation: s.showInNavigation,
+          homeSection: s.homeSection,
+          order: s.order
+        })),
         settings: sectionsData.settings
       })
     }
@@ -357,6 +369,25 @@ export default function Home() {
       'code-examples': { href: '#code-examples', label: 'Code', trackId: 'nav_code' }
     }
 
+    // Handle custom sections
+    if (section.id.startsWith('custom-')) {
+      const displayLabel = section.title.replace(' 관리', '')
+      const sectionAnchor = section.homeSection || section.id
+      
+      return (
+        <motion.a 
+          key={section.id}
+          whileHover={{ scale: 1.05 }}
+          href={`#${sectionAnchor}`}
+          onClick={() => trackButtonClick(`nav_${section.id}`, 'navigation')}
+          className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
+        >
+          {displayLabel}
+        </motion.a>
+      )
+    }
+
+    // Handle default sections
     const config = navConfig[section.homeSection as keyof typeof navConfig]
     if (!config) return null
 
@@ -389,6 +420,47 @@ export default function Home() {
     const shouldRender = section ? section.isActive : true
     console.log(`📄 Section ${sectionId}:`, { found: !!section, isActive: section?.isActive, shouldRender })
     return shouldRender
+  }
+
+  // Get custom sections that should be rendered on homepage
+  const getCustomSections = () => {
+    if (!sectionsData || !sectionsData.sections) {
+      return []
+    }
+    
+    const customSections = sectionsData.sections
+      .filter((section: any) => 
+        section.id.startsWith('custom-') && 
+        section.isActive
+      )
+      .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+    
+    console.log('🎨 Custom sections to render:', customSections.map(s => ({
+      id: s.id,
+      title: s.title,
+      order: s.order,
+      isActive: s.isActive
+    })))
+    
+    return customSections
+  }
+
+  // Render custom sections
+  const renderCustomSections = () => {
+    const customSections = getCustomSections()
+    
+    if (customSections.length === 0) {
+      return null
+    }
+
+    return customSections.map((section: any, index: number) => (
+      <CustomSection
+        key={section.id}
+        section={section}
+        delay={index * 0.1}
+        className={index % 2 === 0 ? "" : "bg-background-secondary"}
+      />
+    ))
   }
 
   const fallbackCodeExamples = [
@@ -1144,6 +1216,9 @@ class NotificationHandler : TextWebSocketHandler() {
           </div>
         </section>
         )}
+
+        {/* Custom Sections */}
+        {renderCustomSections()}
 
         {/* Contact Section */}
         <section id="contact" className="py-20" aria-label="연락처">
