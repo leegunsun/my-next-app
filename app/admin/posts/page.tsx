@@ -9,7 +9,6 @@ import { useAuth } from '../../../contexts/AuthContext'
 import Link from 'next/link'
 import AdminHeader from '../../../components/admin/AdminHeader'
 import PostStatusBadge from '../../../components/admin/PostStatusBadge'
-import QuickActions from '../../../components/admin/QuickActions'
 import { CustomSelect, SelectOption } from '../../../components/ui/select'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 
@@ -145,14 +144,6 @@ export default function AdminPostsPage() {
                 </div>
               </div>
 
-              {/* Enhanced Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                <QuickActions variant="compact" />
-              </motion.div>
             </motion.div>
 
             {/* Enhanced Posts List */}

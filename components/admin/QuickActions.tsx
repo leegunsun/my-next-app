@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { 
   Plus, 
@@ -52,15 +53,20 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   variant = 'full'
 }) => {
   const { user, isMaster } = useAuth()
+  const pathname = usePathname()
 
   if (!user || !isMaster) {
     return null
   }
 
   if (variant === 'compact') {
+    // 현재 페이지와 같은 경로의 액션은 제외
+    const availableActions = quickActions.filter(action => action.href !== pathname)
+    const actionsToShow = availableActions.slice(0, 2)
+    
     return (
       <div className={`flex gap-3 ${className}`}>
-        {quickActions.slice(0, 2).map((action, index) => {
+        {actionsToShow.map((action, index) => {
           const Icon = action.icon
           return (
             <Link key={action.href} href={action.href}>
@@ -70,7 +76,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className={`${action.color} text-white p-3 rounded-lg shadow-lg hover:opacity-90 transition-all flex items-center gap-2`}
+                className={`${action.color} text-white p-3 rounded-2xl shadow-lg hover:opacity-90 transition-all flex items-center gap-2 glass-effect backdrop-blur-sm`}
                 title={action.description}
               >
                 <Icon size={18} />
@@ -83,9 +89,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     )
   }
 
+  // 풀 모드에서도 현재 페이지와 같은 경로의 액션은 제외
+  const availableActions = quickActions.filter(action => action.href !== pathname)
+  
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${className}`}>
-      {quickActions.map((action, index) => {
+      {availableActions.map((action, index) => {
         const Icon = action.icon
         return (
           <motion.div
@@ -98,10 +107,10 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               <motion.div
                 whileHover={{ scale: 1.02, y: -4 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-background-card rounded-lg border border-border p-6 hover:shadow-lg transition-all cursor-pointer group"
+                className="bg-background-card rounded-2xl border border-border/30 p-6 hover:shadow-lg transition-all cursor-pointer group glass-effect backdrop-blur-sm"
               >
                 <div className="flex items-start gap-4">
-                  <div className={`${action.color} text-white p-3 rounded-lg group-hover:scale-110 transition-transform`}>
+                  <div className={`${action.color} text-white p-3 rounded-xl group-hover:scale-110 transition-transform shadow-lg`}>
                     <Icon size={24} />
                   </div>
                   <div className="flex-1">
