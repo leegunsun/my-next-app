@@ -99,3 +99,23 @@ export function requestNotificationPermission() {
     Notification.requestPermission()
   }
 }
+
+// HTML processing utility for dangerouslySetInnerHTML
+export function processHtmlForGradientText(html: string): string {
+  if (!html) return html
+  
+  // Convert className to class for proper HTML rendering
+  // This is needed because dangerouslySetInnerHTML expects plain HTML, not JSX
+  return html
+    .replace(/className=/g, 'class=')
+    .replace(/class="text-gradient-flutter"/g, 'class="text-gradient-flutter"')
+    .replace(/class="text-gradient-spring"/g, 'class="text-gradient-spring"')
+}
+
+// Safe HTML renderer that ensures gradient text classes work properly
+export function createSafeGradientHtml(text: string): string {
+  // Process text to ensure Flutter and Spring Boot get proper gradient classes
+  return text
+    .replace(/Flutter/g, '<span class="text-gradient-flutter">Flutter</span>')
+    .replace(/Spring Boot/g, '<span class="text-gradient-spring">Spring Boot</span>')
+}

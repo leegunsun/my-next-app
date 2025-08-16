@@ -6,6 +6,7 @@ import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Palette } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { AboutMeData } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
+import { processHtmlForGradientText } from '../../../../lib/utils'
 
 
 export default function AboutManagementPage() {
@@ -200,7 +201,7 @@ export default function AboutManagementPage() {
               
               {/* Hero Title */}
               <h1 className="text-4xl md:text-5xl font-medium leading-tight">
-                <span dangerouslySetInnerHTML={{ __html: aboutData.heroTitle }} />
+                <span dangerouslySetInnerHTML={{ __html: processHtmlForGradientText(aboutData.heroTitle) }} />
               </h1>
               
               {/* Hero Subtitle */}
@@ -398,6 +399,14 @@ export default function AboutManagementPage() {
                   onChange={(e) => setAboutData({ ...aboutData, heroTitle: e.target.value })}
                   className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                 />
+                <div className="mt-2 p-3 bg-accent-info/10 border border-accent-info/20 rounded-lg">
+                  <p className="text-sm text-accent-info">
+                    <strong>💡 그라데이션 텍스트 팁:</strong> Flutter와 Spring Boot 텍스트에 색상을 입히려면 다음과 같이 입력하세요:
+                  </p>
+                  <code className="text-xs bg-background mt-2 p-2 rounded block font-mono">
+                    {`<span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span>`}
+                  </code>
+                </div>
               </div>
               
               <div>

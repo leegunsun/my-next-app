@@ -11,7 +11,7 @@ import CodeSnippet from "../components/CodeSnippet"
 import GitHubCard from "../components/GitHubCard"
 import AdminNavigation from "../components/admin/AdminNavigation"
 import CustomSection from "../components/CustomSection"
-import { downloadResume, submitContactForm, requestNotificationPermission, type ContactFormData } from "../lib/utils"
+import { downloadResume, submitContactForm, requestNotificationPermission, processHtmlForGradientText, type ContactFormData } from "../lib/utils"
 import { useAnalytics } from "../lib/analytics"
 
 export default function Home() {
@@ -654,7 +654,7 @@ class NotificationHandler : TextWebSocketHandler() {
               className="text-4xl md:text-5xl font-medium leading-tight mb-6"
             >
               {!isLoadingAbout && aboutData ? (
-                <span dangerouslySetInnerHTML={{ __html: aboutData.heroTitle }} />
+                <span dangerouslySetInnerHTML={{ __html: processHtmlForGradientText(aboutData.heroTitle) }} />
               ) : (
                 <>
                   사용자의 문제를 구조적으로 해결하는<br />
@@ -1151,7 +1151,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {codeExamplesData.map((example) => (
                       <CodeSnippet
-                        key={example.id}
+                        key={`admin-${example.id}`}
                         title={example.title}
                         language={example.language}
                         code={example.code}
@@ -1162,9 +1162,9 @@ class NotificationHandler : TextWebSocketHandler() {
                 ) : (
                   // Fallback content
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {fallbackCodeExamples.map((example) => (
+                    {fallbackCodeExamples.map((example, index) => (
                       <CodeSnippet
-                        key={example.title}
+                        key={`fallback-${index}`}
                         title={example.title}
                         language={example.language}
                         code={example.code}
