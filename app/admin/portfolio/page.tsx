@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Settings, FileText, Code, Github, User, Target, 
   ToggleLeft, ToggleRight, Plus, Eye, EyeOff, 
-  GripVertical, Save, X, Check
+  GripVertical, Save, X, Check, Edit3, Trash2
 } from 'lucide-react'
 import AdminTitle from '../../../components/admin/AdminTitle'
 import { PortfolioSection, PortfolioSectionSettings } from '../../../lib/types/portfolio'
@@ -27,6 +27,7 @@ export default function PortfolioManagementPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: ''
@@ -209,6 +210,57 @@ export default function PortfolioManagementPage() {
     }
   }
 
+  const handleDeleteSection = async (sectionId: string) => {
+    if (!confirm('이 섹션을 삭제하시겠습니까? 삭제된 섹션은 복구할 수 없습니다.')) {
+      return
+    }
+
+    try {
+      // For custom sections, we'll implement actual deletion
+      // For default sections, we'll just mark them as inactive
+      const section = sections.find(s => s.id === sectionId)
+      if (!section) return
+
+      if (section.id.startsWith('custom-')) {
+        // TODO: Implement actual deletion for custom sections
+        // For now, we'll just remove from local state
+        setSections(prev => prev.filter(s => s.id !== sectionId))
+        setSaveStatus({
+          type: 'success',
+          message: '커스텀 섹션이 삭제되었습니다!'
+        })
+      } else {
+        // For default sections, just mark as inactive and hide from admin
+        setSections(prev => prev.map(s => 
+          s.id === sectionId 
+            ? { ...s, isActive: false, showInAdminGrid: false, updatedAt: new Date().toISOString() }
+            : s
+        ))
+        setSaveStatus({
+          type: 'success',
+          message: '섹션이 비활성화되었습니다!'
+        })
+      }
+      
+      setTimeout(() => setSaveStatus({ type: null, message: '' }), 3000)
+    } catch (error) {
+      console.error('Error deleting section:', error)
+      setSaveStatus({
+        type: 'error',
+        message: '섹션 삭제 중 오류가 발생했습니다.'
+      })
+    }
+  }
+
+  const toggleEditMode = () => {
+    setIsEditMode(prev => !prev)
+    // Clear any drag states when exiting edit mode
+    if (isEditMode) {
+      setDraggedItem(null)
+      setDragOverItem(null)
+    }
+  }
+
   // Filter and sort sections for display
   const activeSections = sections
     .filter(section => section.showInAdminGrid)
@@ -240,6 +292,19 @@ export default function PortfolioManagementPage() {
           description="포트폴리오 페이지의 모든 콘텐츠를 관리하고 편집할 수 있습니다."
         />
         <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleEditMode}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              isEditMode 
+                ? 'bg-accent-warning text-white hover:opacity-90' 
+                : 'bg-background-secondary text-foreground hover:bg-background-tertiary border border-border'
+            }`}
+          >
+            <Edit3 size={20} />
+            {isEditMode ? '편집 완료' : '섹션 편집'}
+          </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -386,62 +451,97 @@ export default function PortfolioManagementPage() {
               onHoverStart={() => setHoveredCard(section.id)}
               onHoverEnd={() => setHoveredCard(null)}
               className={`relative ${section.isActive ? '' : 'opacity-50'} ${
-                dragOverItem === section.id ? 'ring-2 ring-primary ring-opacity-50' : ''
-              } ${draggedItem === section.id ? 'opacity-30' : ''}`}
-              draggable
-              onDragStart={(e) => handleDragStart(e, section.id)}
-              onDragOver={(e) => handleDragOver(e, section.id)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, section.id)}
-              onDragEnd={handleDragEnd}
+                dragOverItem === section.id && isEditMode ? 'ring-2 ring-primary ring-opacity-50' : ''
+              } ${draggedItem === section.id && isEditMode ? 'opacity-30' : ''}`}
+              draggable={isEditMode}
+              onDragStart={isEditMode ? (e) => handleDragStart(e, section.id) : undefined}
+              onDragOver={isEditMode ? (e) => handleDragOver(e, section.id) : undefined}
+              onDragLeave={isEditMode ? handleDragLeave : undefined}
+              onDrop={isEditMode ? (e) => handleDrop(e, section.id) : undefined}
+              onDragEnd={isEditMode ? handleDragEnd : undefined}
             >
-              {/* Drag Handle */}
-              <div className="absolute top-2 left-2 z-10">
-                <div className="p-2 rounded-lg bg-background-secondary/80 hover:bg-background-secondary cursor-grab active:cursor-grabbing transition-colors">
-                  <GripVertical size={16} className="text-foreground-secondary" />
-                </div>
-              </div>
+              {/* Edit Mode Controls */}
+              {isEditMode && (
+                <>
+                  {/* Drag Handle */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="p-2 rounded-lg bg-background-secondary/80 hover:bg-background-secondary cursor-grab active:cursor-grabbing transition-colors"
+                    >
+                      <GripVertical size={16} className="text-foreground-secondary" />
+                    </motion.div>
+                  </div>
 
-              {/* Toggle Controls */}
-              <div className="absolute top-2 right-2 z-10 flex gap-1">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleToggleSection(section.id, 'showInNavigation')}
-                  className={`p-2 rounded-lg transition-all ${
-                    section.showInNavigation 
-                      ? 'bg-accent-info/20 text-accent-info' 
-                      : 'bg-gray-500/20 text-gray-500'
-                  }`}
-                  title={section.showInNavigation ? '네비게이션에서 숨기기' : '네비게이션에 표시'}
-                >
-                  {section.showInNavigation ? <Eye size={16} /> : <EyeOff size={16} />}
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleToggleSection(section.id, 'isActive')}
-                  className="p-2 rounded-lg transition-all"
-                  title={section.isActive ? '비활성화' : '활성화'}
-                >
-                  {section.isActive ? (
-                    <ToggleRight size={16} className="text-accent-success" />
-                  ) : (
-                    <ToggleLeft size={16} className="text-gray-500" />
-                  )}
-                </motion.button>
-              </div>
+                  {/* Edit Controls */}
+                  <div className="absolute top-2 right-2 z-10 flex gap-1">
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleToggleSection(section.id, 'showInNavigation')}
+                      className={`p-2 rounded-lg transition-all ${
+                        section.showInNavigation 
+                          ? 'bg-accent-info/20 text-accent-info' 
+                          : 'bg-gray-500/20 text-gray-500'
+                      }`}
+                      title={section.showInNavigation ? '네비게이션에서 숨기기' : '네비게이션에 표시'}
+                    >
+                      {section.showInNavigation ? <Eye size={16} /> : <EyeOff size={16} />}
+                    </motion.button>
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleToggleSection(section.id, 'isActive')}
+                      className="p-2 rounded-lg transition-all"
+                      title={section.isActive ? '비활성화' : '활성화'}
+                    >
+                      {section.isActive ? (
+                        <ToggleRight size={16} className="text-accent-success" />
+                      ) : (
+                        <ToggleLeft size={16} className="text-gray-500" />
+                      )}
+                    </motion.button>
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleDeleteSection(section.id)
+                      }}
+                      className="p-2 rounded-lg transition-all hover:bg-red-500/20 text-red-500"
+                      title="섹션 삭제"
+                    >
+                      <Trash2 size={16} />
+                    </motion.button>
+                  </div>
+                </>
+              )}
 
               <motion.a
-                href={section.href}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="block h-full"
+                href={isEditMode ? undefined : section.href}
+                whileHover={isEditMode ? {} : { y: -4, scale: 1.02 }}
+                whileTap={isEditMode ? {} : { scale: 0.98 }}
+                className={`block h-full ${isEditMode ? 'pointer-events-none' : ''}`}
+                onClick={isEditMode ? (e) => e.preventDefault() : undefined}
               >
-                <div className={`card-primary h-full p-6 hover:shadow-lg transition-all duration-300 border-l-4 ${
-                  section.isActive 
-                    ? 'border-transparent hover:border-primary' 
-                    : 'border-gray-300'
+                <div className={`card-primary h-full p-6 transition-all duration-300 border-l-4 ${
+                  isEditMode 
+                    ? 'border-accent-warning shadow-md' 
+                    : section.isActive 
+                      ? 'border-transparent hover:border-primary hover:shadow-lg' 
+                      : 'border-gray-300'
                 }`}>
                   {/* Header */}
                   <div className="flex items-start gap-4 mb-4">
@@ -555,19 +655,36 @@ export default function PortfolioManagementPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="card-primary p-6 border-l-4 border-accent-info"
+        className={`card-primary p-6 border-l-4 ${isEditMode ? 'border-accent-warning' : 'border-accent-info'}`}
       >
         <div className="flex items-start gap-3">
-          <FileText size={20} className="text-accent-info mt-1 flex-shrink-0" />
+          {isEditMode ? (
+            <Edit3 size={20} className="text-accent-warning mt-1 flex-shrink-0" />
+          ) : (
+            <FileText size={20} className="text-accent-info mt-1 flex-shrink-0" />
+          )}
           <div>
-            <h3 className="text-lg font-semibold mb-2">섹션 관리 가이드</h3>
-            <ul className="space-y-2 text-sm text-foreground-secondary">
-              <li>• <strong>활성화/비활성화</strong>: 토글 버튼으로 섹션을 활성화하거나 비활성화할 수 있습니다.</li>
-              <li>• <strong>네비게이션 표시</strong>: 홈페이지 네비게이션 메뉴에 표시할지 선택할 수 있습니다.</li>
-              <li>• <strong>순서 변경</strong>: 왼쪽 상단의 드래그 핸들을 이용해 섹션 순서를 변경할 수 있습니다.</li>
-              <li>• <strong>새 섹션 추가</strong>: 커스텀 섹션을 추가하여 포트폴리오를 확장할 수 있습니다.</li>
-              <li>• <strong>변경사항 저장</strong>: 설정을 변경한 후 반드시 '변경사항 저장' 버튼을 눌러주세요.</li>
-            </ul>
+            <h3 className="text-lg font-semibold mb-2">
+              {isEditMode ? '편집 모드 활성화됨' : '섹션 관리 가이드'}
+            </h3>
+            {isEditMode ? (
+              <ul className="space-y-2 text-sm text-foreground-secondary">
+                <li>• <strong>드래그 앤 드롭</strong>: 왼쪽 상단의 드래그 핸들을 이용해 섹션 순서를 변경할 수 있습니다.</li>
+                <li>• <strong>표시 설정</strong>: 눈 아이콘으로 네비게이션에 표시할지 선택할 수 있습니다.</li>
+                <li>• <strong>활성화/비활성화</strong>: 토글 버튼으로 섹션을 활성화하거나 비활성화할 수 있습니다.</li>
+                <li>• <strong>섹션 삭제</strong>: 휴지통 아이콘을 클릭하여 섹션을 삭제할 수 있습니다.</li>
+                <li>• <strong>편집 완료</strong>: 변경사항을 적용한 후 '편집 완료' 버튼을 눌러 일반 모드로 돌아가세요.</li>
+                <li>• <strong>변경사항 저장</strong>: 모든 설정을 변경한 후 반드시 '변경사항 저장' 버튼을 눌러주세요.</li>
+              </ul>
+            ) : (
+              <ul className="space-y-2 text-sm text-foreground-secondary">
+                <li>• <strong>섹션 편집</strong>: '섹션 편집' 버튼을 클릭하면 드래그, 설정 변경, 삭제 기능을 사용할 수 있습니다.</li>
+                <li>• <strong>섹션 관리</strong>: 각 섹션 카드를 클릭하여 해당 섹션의 상세 설정을 관리할 수 있습니다.</li>
+                <li>• <strong>새 섹션 추가</strong>: '새 섹션 추가' 버튼으로 커스텀 섹션을 추가하여 포트폴리오를 확장할 수 있습니다.</li>
+                <li>• <strong>실시간 반영</strong>: 설정 변경사항은 홈페이지에 실시간으로 반영됩니다.</li>
+                <li>• <strong>변경사항 저장</strong>: 설정을 변경한 후 반드시 '변경사항 저장' 버튼을 눌러주세요.</li>
+              </ul>
+            )}
           </div>
         </div>
       </motion.div>

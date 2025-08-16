@@ -32,7 +32,7 @@ export default function Home() {
   const [aboutData, setAboutData] = useState<any>(null)
   const [skillsData, setSkillsData] = useState<any[]>([])
   const [codeExamplesData, setCodeExamplesData] = useState<any[]>([])
-  const [sectionSettings, setSectionSettings] = useState<any>(null)
+  const [sectionsData, setSectionsData] = useState<any>(null)
   const [isLoadingAbout, setIsLoadingAbout] = useState(true)
   const [isLoadingSkills, setIsLoadingSkills] = useState(true)
   const [isLoadingCodeExamples, setIsLoadingCodeExamples] = useState(true)
@@ -57,6 +57,19 @@ export default function Home() {
     fetchGitHubRepos()
     fetchPortfolioProjects()
   }, [])
+
+  // Debug: Log section integration status
+  useEffect(() => {
+    if (sectionsData && !isLoadingSections) {
+      console.log('🔄 Section Integration Status:', {
+        sectionsLoaded: !!sectionsData,
+        totalSections: sectionsData.sections?.length || 0,
+        activeSections: sectionsData.sections?.filter((s: any) => s.isActive).length || 0,
+        navigationSections: sectionsData.sections?.filter((s: any) => s.showInNavigation && s.isActive).length || 0,
+        settings: sectionsData.settings
+      })
+    }
+  }, [sectionsData, isLoadingSections])
 
   const fetchGitHubRepos = async () => {
     try {
@@ -161,7 +174,9 @@ export default function Home() {
       const result = await response.json()
       
       if (result.success && result.data) {
-        setSectionSettings(result.data)
+        // Store the complete data object with sections and settings
+        setSectionsData(result.data)
+        console.log('📋 Portfolio sections loaded:', result.data)
       }
     } catch (error) {
       console.error('Error fetching section settings:', error)
@@ -270,7 +285,7 @@ export default function Home() {
   // Fallback code examples (used when API fails)
   // Get active sections for navigation
   const getActiveSections = () => {
-    if (!sectionSettings || !sectionSettings.sections) {
+    if (!sectionsData || !sectionsData.sections) {
       // Fallback navigation items when section settings are not loaded
       return [
         { id: 'about', homeSection: 'about', title: 'About', showInNavigation: true, isActive: true },
@@ -280,7 +295,7 @@ export default function Home() {
       ]
     }
     
-    return sectionSettings.sections
+    return sectionsData.sections
       .filter((section: any) => section.showInNavigation && section.isActive)
       .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
   }
@@ -290,13 +305,23 @@ export default function Home() {
     const activeSections = getActiveSections()
     const navigationItems = []
 
-    // Add sections that are active and should show in navigation
-    activeSections.forEach((section: any) => {
-      const navItem = getNavigationItem(section)
-      if (navItem) {
-        navigationItems.push(navItem)
-      }
-    })
+    // Show loading indicator if sections are still loading
+    if (isLoadingSections) {
+      navigationItems.push(
+        <div key="loading" className="flex items-center gap-2 px-3 py-2">
+          <div className="animate-spin w-4 h-4 border-2 border-foreground-secondary border-t-transparent rounded-full"></div>
+          <span className="text-sm text-foreground-secondary">Loading...</span>
+        </div>
+      )
+    } else {
+      // Add sections that are active and should show in navigation
+      activeSections.forEach((section: any) => {
+        const navItem = getNavigationItem(section)
+        if (navItem) {
+          navigationItems.push(navItem)
+        }
+      })
+    }
 
     // Always add Blog and Contact (not managed by section system)
     navigationItems.push(
@@ -335,6 +360,11 @@ export default function Home() {
     const config = navConfig[section.homeSection as keyof typeof navConfig]
     if (!config) return null
 
+    // Use section title from admin settings if available, otherwise use config label
+    const displayLabel = section.title && section.title !== section.id ? 
+      (section.title.includes('관리') ? config.label : section.title) : 
+      config.label
+
     return (
       <motion.a 
         key={section.homeSection}
@@ -343,19 +373,22 @@ export default function Home() {
         onClick={() => trackButtonClick(config.trackId, 'navigation')}
         className="bg-transparent text-foreground-secondary hover:bg-overlay-hover hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-all"
       >
-        {config.label}
+        {displayLabel}
       </motion.a>
     )
   }
 
   // Check if a section should be rendered
   const shouldRenderSection = (sectionId: string) => {
-    if (!sectionSettings || !sectionSettings.sections) {
+    if (!sectionsData || !sectionsData.sections) {
+      console.log(`📄 Section ${sectionId}: Using fallback (sections not loaded)`)
       return true // Show all sections by default if settings not loaded
     }
     
-    const section = sectionSettings.sections.find((s: any) => s.homeSection === sectionId)
-    return section ? section.isActive : true
+    const section = sectionsData.sections.find((s: any) => s.homeSection === sectionId)
+    const shouldRender = section ? section.isActive : true
+    console.log(`📄 Section ${sectionId}:`, { found: !!section, isActive: section?.isActive, shouldRender })
+    return shouldRender
   }
 
   const fallbackCodeExamples = [
