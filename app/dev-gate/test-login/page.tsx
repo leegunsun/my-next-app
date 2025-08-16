@@ -6,21 +6,14 @@ import { validateCredentials } from '../auth-service';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, AUTH_COLLECTION } from '../firestore-config';
 
+// 보안상 이유로 하드코딩된 테스트 인증정보 제거됨
+// 테스트는 실제 Firestore 데이터 또는 환경변수 기반으로 수행해야 함
+
 export default function TestLoginPage() {
   const [testResults, setTestResults] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 테스트 케이스
-  const testCredentials = {
-    correct: {
-      id: 'leegunsun01@gmail.com',
-      pass: 'skdml777&'
-    },
-    incorrect: {
-      id: 'wrong@email.com',
-      pass: 'wrongpass'
-    }
-  };
+
 
   const addResult = (message: string, success: boolean) => {
     const emoji = success ? '✅' : '❌';
@@ -49,25 +42,13 @@ export default function TestLoginPage() {
         return;
       }
 
-      // Test 2: 올바른 자격 증명 테스트
-      addResult('Test 2: 올바른 자격 증명 테스트', true);
-      const correctResult = await validateCredentials(
-        testCredentials.correct.id,
-        testCredentials.correct.pass
-      );
-      
-      if (correctResult.success) {
-        addResult(`로그인 성공: ${testCredentials.correct.id}`, true);
-      } else {
-        addResult(`로그인 실패: ${correctResult.error}`, false);
-      }
+      // Test 2: 보안상 이유로 하드코딩된 인증정보 테스트 비활성화
+      addResult('Test 2: 하드코딩된 인증정보 테스트 - SKIPPED (보안상 이유)', false);
+      addResult('실제 Firestore 데이터를 사용한 테스트로 전환 필요', false);
 
       // Test 3: 잘못된 자격 증명 테스트
       addResult('Test 3: 잘못된 자격 증명 테스트', true);
-      const incorrectResult = await validateCredentials(
-        testCredentials.incorrect.id,
-        testCredentials.incorrect.pass
-      );
+      const incorrectResult = await validateCredentials('invalid_user', 'invalid_pass');
       
       if (!incorrectResult.success) {
         addResult('잘못된 자격 증명 거부 성공', true);
@@ -85,19 +66,10 @@ export default function TestLoginPage() {
         addResult('빈 값이 통과됨 (오류)', false);
       }
 
-      // Test 5: 실제 로그인 시뮬레이션
-      addResult('Test 5: 실제 로그인 시뮬레이션', true);
-      const loginTest = await validateCredentials(
-        'leegunsun01@gmail.com',
-        'skdml777&'
-      );
-      
-      if (loginTest.success) {
-        addResult('실제 계정으로 로그인 성공!', true);
-        addResult('세션이 생성되었습니다', true);
-      } else {
-        addResult(`로그인 실패: ${loginTest.error}`, false);
-      }
+      // Test 5: 실제 로그인 시뮬레이션 - 비활성화됨
+      addResult('Test 5: 실제 로그인 시뮬레이션 - SKIPPED (보안상 이유)', false);
+      addResult('하드코딩된 인증정보 제거로 인해 비활성화됨', false);
+      addResult('환경변수 또는 실제 Firestore 데이터 기반 테스트 필요', false);
 
       // 최종 결과
       addResult('=== 테스트 완료 ===', true);
@@ -118,8 +90,6 @@ export default function TestLoginPage() {
           <h2 className="text-xl font-semibold text-white mb-4">테스트 정보</h2>
           <div className="space-y-2 text-gray-300">
             <p>📍 Firestore 경로: <code className="bg-gray-700 px-2 py-1 rounded">testUser/R5nOcUf97xB7k3gt0idd</code></p>
-            <p>👤 테스트 ID: <code className="bg-gray-700 px-2 py-1 rounded">leegunsun01@gmail.com</code></p>
-            <p>🔑 테스트 비밀번호: <code className="bg-gray-700 px-2 py-1 rounded">skdml777&</code></p>
           </div>
         </div>
 

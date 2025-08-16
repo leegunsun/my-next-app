@@ -12,11 +12,7 @@ export interface AuthResult {
   mode?: 'firestore' | 'fallback';
 }
 
-// Fallback 인증 정보 (Firestore 접근 불가 시)
-const FALLBACK_CREDENTIALS = {
-  id: 'leegunsun01@gmail.com',
-  pass: 'skdml777&'
-};
+
 
 /**
  * Firestore testUser 컬렉션에서 인증 정보를 검증합니다.
@@ -61,10 +57,8 @@ export async function validateCredentials(inputId: string, inputPass: string): P
       console.warn('Firestore 권한 오류 - Fallback 모드 사용');
       console.warn('Firestore 보안 규칙을 수정하세요: testUser 컬렉션 읽기 허용 필요');
       
-      // Fallback 인증 (하드코딩된 값)
-      if (inputId === FALLBACK_CREDENTIALS.id && inputPass === FALLBACK_CREDENTIALS.pass) {
-        return { success: true, mode: 'fallback' };
-      }
+      // 보안상 이유로 하드코딩된 fallback 인증 제거됨
+      // 서버사이드 환경변수 또는 안전한 인증 방식 구현 필요
       
       return { 
         success: false, 

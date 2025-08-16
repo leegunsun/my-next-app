@@ -13,11 +13,7 @@ export interface AuthResult {
   error?: string;
 }
 
-// 하드코딩된 인증 정보 (Firestore 접근 불가 시 사용)
-const FALLBACK_CREDENTIALS: AuthCredentials = {
-  id: 'leegunsun01@gmail.com',
-  pass: 'skdml777&'
-};
+
 
 /**
  * 하드코딩된 값으로 인증 (Firestore 접근 불가 시 대체)
@@ -27,14 +23,11 @@ export async function validateCredentialsFallback(inputId: string, inputPass: st
     // 간단한 대기 시간으로 비동기 작업 시뮬레이션
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // 하드코딩된 값과 비교
-    if (inputId === FALLBACK_CREDENTIALS.id && inputPass === FALLBACK_CREDENTIALS.pass) {
-      return { success: true };
-    }
-
+    // 보안상 이유로 하드코딩된 인증정보 제거됨
+    // 환경변수 또는 서버사이드 인증 구현 필요
     return { 
       success: false, 
-      error: '아이디 또는 비밀번호가 일치하지 않습니다' 
+      error: '보안상 이유로 fallback 인증이 비활성화되었습니다' 
     };
   } catch (error) {
     console.error('Fallback authentication error:', error);
