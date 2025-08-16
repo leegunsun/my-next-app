@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Code, Copy, Check } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { CodeExample } from '../../../../lib/types/portfolio'
+import CodeSnippet from '../../../../components/CodeSnippet'
+import AnimatedSection from '../../../../components/AnimatedSection'
 
 export default function CodeExamplesManagementPage() {
   const [codeExamples, setCodeExamples] = useState<CodeExample[]>([])
@@ -140,24 +142,24 @@ export default function CodeExamplesManagementPage() {
         />
         <div className="flex items-center gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsPreviewMode(!isPreviewMode)}
-            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-2xl font-medium transition-all flex items-center gap-2 border shadow-sm ${
               isPreviewMode 
-                ? 'bg-accent-warning text-white' 
-                : 'bg-background-secondary text-foreground border border-border'
+                ? 'bg-accent-warning text-white border-accent-warning' 
+                : 'bg-background-secondary text-foreground border-border hover:bg-background-tertiary'
             }`}
           >
             {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
             {isPreviewMode ? '편집 모드' : '미리보기'}
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
+            className="bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 rounded-2xl font-medium transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
           >
             <Save size={16} />
             {isSaving ? '저장 중...' : '저장'}
@@ -166,42 +168,86 @@ export default function CodeExamplesManagementPage() {
       </div>
 
       {isPreviewMode ? (
-        // Preview Mode
+        // Preview Mode - Matching actual homepage code examples section layout
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-6"
+          className="space-y-8"
         >
-          {codeExamples.map((example) => (
-            <div key={example.id} className="card-primary p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getLanguageColor(example.language)}`}>
-                    {example.language.toUpperCase()}
+          {/* Code Examples Section Preview */}
+          <div className="bg-background-secondary rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+            <h3 className="text-xl font-medium mb-6 text-center">홈페이지 코드 예제 섹션 미리보기</h3>
+            
+            {/* Section Header */}
+            <AnimatedSection className="text-center mb-12">
+              <h2 className="text-3xl font-medium mb-4">코드 예제 & GitHub</h2>
+              <p className="text-foreground-secondary max-w-2xl mx-auto">
+                실제 프로젝트에서 사용한 코드 패턴과 GitHub 저장소를 통해 
+                개발 역량과 코드 품질을 확인해보세요.
+              </p>
+            </AnimatedSection>
+
+            {/* Code Examples Section */}
+            <div className="mb-16">
+              <AnimatedSection delay={0.1} className="mb-8">
+                <h3 className="text-2xl font-medium text-center">코드 스니펫</h3>
+              </AnimatedSection>
+              
+              {(() => {
+                const activeCodeExamples = codeExamples
+                  .filter(example => example.isActive)
+                  .sort((a, b) => (a.order || 99) - (b.order || 99))
+                
+                if (activeCodeExamples.length > 0) {
+                  return (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {activeCodeExamples.map((example) => (
+                        <CodeSnippet
+                          key={example.id}
+                          title={example.title}
+                          language={example.language}
+                          code={example.code}
+                          className="w-full"
+                        />
+                      ))}
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div className="text-center py-12">
+                      <div className="max-w-md mx-auto">
+                        <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Code size={24} className="text-foreground-secondary" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">표시할 코드 예제가 없습니다</h3>
+                        <p className="text-foreground-secondary text-sm">
+                          활성화된 코드 예제가 없거나 코드 예제를 추가해주세요.
+                        </p>
+                      </div>
+                    </div>
+                  )
+                }
+              })()}
+            </div>
+
+            {/* GitHub Repositories Section Preview */}
+            <div>
+              <AnimatedSection delay={0.2} className="mb-8">
+                <h3 className="text-2xl font-medium text-center">GitHub 저장소</h3>
+              </AnimatedSection>
+              
+              <div className="text-center py-8">
+                <div className="max-w-md mx-auto">
+                  <div className="w-12 h-12 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-xl">📁</span>
                   </div>
-                  <h3 className="text-xl font-semibold">{example.title}</h3>
+                  <p className="text-foreground-secondary text-sm">
+                    GitHub 저장소는 별도 관리 페이지에서 설정됩니다.
+                  </p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => copyToClipboard(example.code, example.id)}
-                  className="p-2 text-foreground-secondary hover:text-primary transition-colors"
-                >
-                  {copiedId === example.id ? <Check size={16} /> : <Copy size={16} />}
-                </motion.button>
-              </div>
-              
-              {example.description && (
-                <p className="text-foreground-secondary mb-4">{example.description}</p>
-              )}
-              
-              <div className="bg-background rounded-lg p-4 overflow-x-auto">
-                <pre className="text-sm">
-                  <code>{example.code}</code>
-                </pre>
               </div>
             </div>
-          ))}
+          </div>
         </motion.div>
       ) : (
         // Edit Mode

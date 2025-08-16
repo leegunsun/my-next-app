@@ -6,6 +6,8 @@ import { Save, Plus, Trash2, Edit2, Eye, EyeOff, GripVertical, Palette } from 'l
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { SkillCategory } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
+import SkillProgress from '../../../../components/SkillProgress'
+import AnimatedSection from '../../../../components/AnimatedSection'
 
 export default function SkillsManagementPage() {
   const [skillsData, setSkillsData] = useState<SkillCategory[]>([])
@@ -205,49 +207,64 @@ export default function SkillsManagementPage() {
       </div>
 
       {isPreviewMode ? (
-        // Preview Mode
+        // Preview Mode - Matching actual homepage skills section layout
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-6"
+          className="space-y-8"
         >
-          {skillsData.map((category) => (
-            <div key={category.id} className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`w-6 h-6 bg-${category.color} rounded-full`}></div>
-                <h3 className="text-xl font-medium">{category.name}</h3>
-              </div>
-              <div className="space-y-4">
-                {category.skills.map((skill, skillIndex) => (
-                  <motion.div
-                    key={skill.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + skillIndex * 0.1 }}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-medium">{skill.name}</span>
-                      <span className="text-sm text-foreground-secondary">
-                        {skill.percentage}%
-                      </span>
+          {/* Skills Section Preview */}
+          <div className="bg-background rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+            <h3 className="text-xl font-medium mb-6 text-center">홈페이지 기술 스택 섹션 미리보기</h3>
+            
+            {/* Skills Section Title */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-medium">기술 스택</h2>
+            </div>
+            
+            {/* Skills Grid Layout */}
+            {skillsData.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {skillsData.map((category, categoryIndex) => (
+                  <AnimatedSection key={category.id} delay={0.1 * categoryIndex} className="card-primary">
+                    <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full ${
+                        category.color === 'primary' ? 'bg-primary' :
+                        category.color === 'success' ? 'bg-accent-success' :
+                        category.color === 'purple' ? 'bg-accent-purple' :
+                        category.color === 'warning' ? 'bg-accent-warning' :
+                        category.color === 'info' ? 'bg-accent-info' : 'bg-primary'
+                      }`}></div>
+                      {category.name}
+                    </h3>
+                    <div className="space-y-4">
+                      {category.skills.map((skill, skillIndex) => (
+                        <SkillProgress 
+                          key={skill.id}
+                          name={skill.name} 
+                          percentage={skill.percentage} 
+                          color={skill.color} 
+                          delay={0.2 + skillIndex * 0.1} 
+                        />
+                      ))}
                     </div>
-                    <div className="w-full bg-background-secondary rounded-full h-2">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${skill.percentage}%` }}
-                        transition={{ duration: 0.8, delay: 0.3 + skillIndex * 0.1, ease: "easeOut" }}
-                        className={`h-2 bg-${skill.color === 'success' ? 'accent-success' :
-                                   skill.color === 'purple' ? 'accent-purple' :
-                                   skill.color === 'warning' ? 'accent-warning' :
-                                   skill.color === 'info' ? 'accent-info' : 'primary'} rounded-full`}
-                      />
-                    </div>
-                  </motion.div>
+                  </AnimatedSection>
                 ))}
               </div>
-            </div>
-          ))}
+            ) : (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📚</span>
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">표시할 기술 스택이 없습니다</h3>
+                  <p className="text-foreground-secondary text-sm">
+                    기술 카테고리와 스킬을 추가해주세요.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </motion.div>
       ) : (
         // Edit Mode

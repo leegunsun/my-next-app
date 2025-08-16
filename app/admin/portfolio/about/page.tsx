@@ -183,8 +183,44 @@ export default function AboutManagementPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-8"
+          className="space-y-12"
         >
+          {/* Hero Section Preview */}
+          <div className="bg-background rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+            <h3 className="text-xl font-medium mb-6 text-center">홈페이지 Hero 섹션 미리보기</h3>
+            
+            {/* Hero Content Preview */}
+            <div className="text-center space-y-6">
+              {/* Profile Image */}
+              <div className="w-32 h-32 bg-background-secondary rounded-full mx-auto mb-8 flex items-center justify-center shadow-lg border border-border">
+                <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent-purple rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">Dev</span>
+                </div>
+              </div>
+              
+              {/* Hero Title */}
+              <h1 className="text-4xl md:text-5xl font-medium leading-tight">
+                <span dangerouslySetInnerHTML={{ __html: aboutData.heroTitle }} />
+              </h1>
+              
+              {/* Hero Subtitle */}
+              <p className="text-lg text-foreground-secondary leading-relaxed max-w-2xl mx-auto">
+                {aboutData.heroSubtitle}
+              </p>
+              
+              {/* Action Buttons Preview */}
+              <div className="flex items-center justify-center gap-4 flex-wrap pt-4">
+                <div className="bg-accent-blend text-primary-foreground px-6 py-3 text-base rounded-md font-medium shadow-lg flex items-center gap-2">
+                  <span>📥</span>
+                  이력서 다운로드
+                </div>
+                <div className="bg-transparent text-foreground border border-border px-6 py-3 text-base rounded-md font-medium shadow-sm">
+                  프로젝트 보기
+                </div>
+              </div>
+            </div>
+          </div>
+          
           {/* About Me Section Title */}
           <div className="text-center">
             <h2 className="text-3xl font-medium">About Me</h2>
@@ -223,6 +259,14 @@ export default function AboutManagementPage() {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Description Card (from basic info) */}
+              <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+                <h3 className="text-xl font-medium mb-4">상세 설명</h3>
+                <p className="text-foreground-secondary leading-relaxed">
+                  {aboutData.description}
+                </p>
               </div>
 
               {/* Philosophy Card */}

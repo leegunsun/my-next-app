@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit2, Trash2, Eye, Save, X, ExternalLink, Github } from 'lucide-react'
+import { Plus, Edit2, Trash2, Eye, EyeOff, Save, X, ExternalLink, Github } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { PortfolioProject } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
+import ProjectCard from '../../../../components/ProjectCard'
 
 interface ProjectFormData {
   title: string
@@ -57,6 +58,7 @@ export default function ProjectsManagementPage() {
     order: 1
   })
   const [tagInput, setTagInput] = useState('')
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
 
   useEffect(() => {
     fetchProjects()
@@ -189,123 +191,198 @@ export default function ProjectsManagementPage() {
           title="프로젝트 관리"
           description="포트폴리오 프로젝트를 추가, 수정, 삭제할 수 있습니다."
         />
-        <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsCreating(true)}
-          className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-4 text-lg rounded-2xl font-medium transition-all shadow-lg flex items-center gap-3"
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsPreviewMode(!isPreviewMode)}
+            className={`px-6 py-3 rounded-2xl font-medium transition-all flex items-center gap-2 border shadow-sm ${
+              isPreviewMode 
+                ? 'bg-accent-warning text-white border-accent-warning' 
+                : 'bg-background-secondary text-foreground border-border hover:bg-background-tertiary'
+            }`}
+          >
+            {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
+            {isPreviewMode ? '편집 모드' : '미리보기'}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsCreating(true)}
+            className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-4 text-lg rounded-2xl font-medium transition-all shadow-lg flex items-center gap-3"
+          >
+            <Plus size={20} />
+            새 프로젝트 추가
+          </motion.button>
+        </div>
+      </div>
+
+      {isPreviewMode ? (
+        // Preview Mode - Matching actual homepage portfolio section layout
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-8"
         >
-          <Plus size={20} />
-          새 프로젝트 추가
-        </motion.button>
-      </div>
-
-      {/* Project List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence>
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: index * 0.1 }}
-              className="card-primary p-6 group hover:shadow-lg transition-all duration-300"
-            >
-              {/* Project Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className={`w-12 h-12 ${project.iconBg} rounded-lg flex items-center justify-center text-white font-medium shadow-md`}>
-                  {project.icon}
+          {/* Portfolio Section Preview */}
+          <div className="bg-background-secondary rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+            <h3 className="text-xl font-medium mb-6 text-center">홈페이지 포트폴리오 섹션 미리보기</h3>
+            
+            {/* Portfolio Section Title */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-medium">포트폴리오</h2>
+            </div>
+            
+            {/* Active Projects Grid */}
+            {(() => {
+              const activeProjects = projects
+                .filter(project => project.isActive)
+                .sort((a, b) => (a.order || 99) - (b.order || 99))
+              
+              if (activeProjects.length > 0) {
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {activeProjects.map((project, index) => (
+                      <ProjectCard
+                        key={project.id}
+                        title={project.title}
+                        description={project.description}
+                        tags={project.tags}
+                        icon={project.icon}
+                        iconBg={project.iconBg}
+                        liveUrl={project.liveUrl}
+                        githubUrl={project.githubUrl}
+                        delay={index * 0.1}
+                      />
+                    ))}
+                  </div>
+                )
+              } else {
+                return (
+                  <div className="text-center py-12">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl">📂</span>
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">표시할 프로젝트가 없습니다</h3>
+                      <p className="text-foreground-secondary text-sm">
+                        활성화된 프로젝트가 없거나 프로젝트를 추가해주세요.
+                      </p>
+                    </div>
+                  </div>
+                )
+              }
+            })()}
+          </div>
+        </motion.div>
+      ) : (
+        // Edit Mode - Project Management List
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence>
+            {projects.map((project, index) => (
+              <motion.div
+                key={project.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.1 }}
+                className="card-primary p-6 group hover:shadow-lg transition-all duration-300"
+              >
+                {/* Project Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-12 h-12 ${project.iconBg} rounded-lg flex items-center justify-center text-white font-medium shadow-md`}>
+                    {project.icon}
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => startEdit(project)}
+                      className="p-2 text-foreground-secondary hover:text-primary hover:bg-background-secondary rounded"
+                    >
+                      <Edit2 size={14} />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleDelete(project.id)}
+                      className="p-2 text-foreground-secondary hover:text-accent-error hover:bg-background-secondary rounded"
+                    >
+                      <Trash2 size={14} />
+                    </motion.button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => startEdit(project)}
-                    className="p-2 text-foreground-secondary hover:text-primary hover:bg-background-secondary rounded"
-                  >
-                    <Edit2 size={14} />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDelete(project.id)}
-                    className="p-2 text-foreground-secondary hover:text-accent-error hover:bg-background-secondary rounded"
-                  >
-                    <Trash2 size={14} />
-                  </motion.button>
+
+                {/* Project Content */}
+                <h3 className="text-lg font-semibold mb-2 line-clamp-2">{project.title}</h3>
+                <p className="text-sm text-foreground-secondary mb-4 line-clamp-3 leading-relaxed">
+                  {project.description}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {project.tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {project.tags.length > 3 && (
+                    <span className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border">
+                      +{project.tags.length - 3}
+                    </span>
+                  )}
                 </div>
-              </div>
 
-              {/* Project Content */}
-              <h3 className="text-lg font-semibold mb-2 line-clamp-2">{project.title}</h3>
-              <p className="text-sm text-foreground-secondary mb-4 line-clamp-3 leading-relaxed">
-                {project.description}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {project.tags.slice(0, 3).map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {project.tags.length > 3 && (
-                  <span className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border">
-                    +{project.tags.length - 3}
-                  </span>
-                )}
-              </div>
-
-              {/* Links */}
-              <div className="flex items-center gap-3">
-                {project.liveUrl && (
-                  <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm"
-                  >
-                    <ExternalLink size={14} />
-                    Live
-                  </a>
-                )}
-                {project.githubUrl && (
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-foreground-secondary hover:text-foreground text-sm"
-                  >
-                    <Github size={14} />
-                    GitHub
-                  </a>
-                )}
-              </div>
-
-              {/* Status */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <div className="flex items-center justify-between text-xs">
-                  <span className={`px-2 py-1 rounded-full ${
-                    project.isActive 
-                      ? 'bg-accent-success/10 text-accent-success' 
-                      : 'bg-foreground-muted/10 text-foreground-muted'
-                  }`}>
-                    {project.isActive ? '활성화' : '비활성화'}
-                  </span>
-                  <span className="text-foreground-secondary">
-                    순서: {project.order}
-                  </span>
+                {/* Links */}
+                <div className="flex items-center gap-3">
+                  {project.liveUrl && (
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm"
+                    >
+                      <ExternalLink size={14} />
+                      Live
+                    </a>
+                  )}
+                  {project.githubUrl && (
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-foreground-secondary hover:text-foreground text-sm"
+                    >
+                      <Github size={14} />
+                      GitHub
+                    </a>
+                  )}
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+
+                {/* Status */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`px-2 py-1 rounded-full ${
+                      project.isActive 
+                        ? 'bg-accent-success/10 text-accent-success' 
+                        : 'bg-foreground-muted/10 text-foreground-muted'
+                    }`}>
+                      {project.isActive ? '활성화' : '비활성화'}
+                    </span>
+                    <span className="text-foreground-secondary">
+                      순서: {project.order}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Create/Edit Modal */}
       <AnimatePresence>
