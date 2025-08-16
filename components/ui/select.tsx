@@ -105,7 +105,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative", isOpen && "z-[10000]", className)}>
       {label && (
         <label className="block text-sm font-medium mb-2 text-foreground">
           {label}
@@ -169,11 +169,27 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "absolute top-full left-0 right-0 mt-2 z-[9999]",
-                "bg-background/95 border border-border/30 rounded-2xl shadow-xl",
-                "backdrop-blur-sm",
-                "max-h-60 overflow-y-auto scrollbar-thin"
+                "absolute top-full left-0 right-0 mt-2",
+                "border border-border/30 rounded-2xl shadow-2xl",
+                "max-h-60 overflow-y-auto scrollbar-thin",
+                "dropdown-overlay"
               )}
+              style={{ 
+                isolation: 'isolate',
+                zIndex: 99999,
+                position: 'absolute',
+                backgroundColor: 'rgba(255, 255, 255, 0.99)',
+                border: '1px solid rgba(229, 231, 235, 0.3)',
+                borderRadius: '16px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                // Force new stacking context and prevent backdrop-filter interference
+                transform: 'translateZ(0)',
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+                // Ensure no backdrop-filter is applied to this element
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none'
+              }}
             >
               <div className="p-1">
                 {options.map((option, index) => (

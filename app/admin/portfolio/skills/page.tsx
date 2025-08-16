@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, GripVertical } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff, GripVertical, Palette } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { SkillCategory } from '../../../../lib/types/portfolio'
+import { CustomSelect, SelectOption } from '../../../../components/ui/select'
 
 export default function SkillsManagementPage() {
   const [skillsData, setSkillsData] = useState<SkillCategory[]>([])
@@ -16,12 +17,38 @@ export default function SkillsManagementPage() {
   const [newSkill, setNewSkill] = useState({ name: '', percentage: 50, color: 'primary' })
   const [isPreviewMode, setIsPreviewMode] = useState(false)
 
-  const colorOptions = [
-    { value: 'primary', label: 'Primary', class: 'bg-primary' },
-    { value: 'success', label: 'Success', class: 'bg-accent-success' },
-    { value: 'purple', label: 'Purple', class: 'bg-accent-purple' },
-    { value: 'warning', label: 'Warning', class: 'bg-accent-warning' },
-    { value: 'info', label: 'Info', class: 'bg-accent-info' }
+  // Color options formatted for CustomSelect with icon previews
+  const colorOptions: SelectOption[] = [
+    { 
+      id: 'primary', 
+      name: 'Primary (파란색)', 
+      value: 'primary',
+      icon: <div className="w-4 h-4 bg-primary rounded-full" />
+    },
+    { 
+      id: 'success', 
+      name: 'Success (초록색)', 
+      value: 'success',
+      icon: <div className="w-4 h-4 bg-accent-success rounded-full" />
+    },
+    { 
+      id: 'purple', 
+      name: 'Purple (보라색)', 
+      value: 'purple',
+      icon: <div className="w-4 h-4 bg-accent-purple rounded-full" />
+    },
+    { 
+      id: 'warning', 
+      name: 'Warning (노란색)', 
+      value: 'warning',
+      icon: <div className="w-4 h-4 bg-accent-warning rounded-full" />
+    },
+    { 
+      id: 'info', 
+      name: 'Info (하늘색)', 
+      value: 'info',
+      icon: <div className="w-4 h-4 bg-accent-info rounded-full" />
+    }
   ]
 
   useEffect(() => {
@@ -152,24 +179,24 @@ export default function SkillsManagementPage() {
         />
         <div className="flex items-center gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsPreviewMode(!isPreviewMode)}
-            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-2xl font-medium transition-all flex items-center gap-2 border shadow-sm ${
               isPreviewMode 
-                ? 'bg-accent-warning text-white' 
-                : 'bg-background-secondary text-foreground border border-border'
+                ? 'bg-accent-warning text-white border-accent-warning' 
+                : 'bg-background-secondary text-foreground border-border hover:bg-background-tertiary'
             }`}
           >
             {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
             {isPreviewMode ? '편집 모드' : '미리보기'}
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
+            className="bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 rounded-2xl font-medium transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
           >
             <Save size={16} />
             {isSaving ? '저장 중...' : '저장'}
@@ -185,27 +212,38 @@ export default function SkillsManagementPage() {
           className="space-y-6"
         >
           {skillsData.map((category) => (
-            <div key={category.id} className="card-primary p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-4 h-4 bg-${category.color} rounded-full`}></div>
-                <h3 className="text-xl font-semibold">{category.name}</h3>
+            <div key={category.id} className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-6 h-6 bg-${category.color} rounded-full`}></div>
+                <h3 className="text-xl font-medium">{category.name}</h3>
               </div>
-              <div className="grid gap-4">
-                {category.skills.map((skill) => (
-                  <div key={skill.id} className="flex items-center justify-between">
-                    <span className="font-medium">{skill.name}</span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-32 bg-background-secondary rounded-full h-2">
-                        <div 
-                          className={`h-2 bg-${skill.color} rounded-full transition-all duration-300`}
-                          style={{ width: `${skill.percentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-foreground-secondary w-8 text-right">
+              <div className="space-y-4">
+                {category.skills.map((skill, skillIndex) => (
+                  <motion.div
+                    key={skill.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + skillIndex * 0.1 }}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-medium">{skill.name}</span>
+                      <span className="text-sm text-foreground-secondary">
                         {skill.percentage}%
                       </span>
                     </div>
-                  </div>
+                    <div className="w-full bg-background-secondary rounded-full h-2">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${skill.percentage}%` }}
+                        transition={{ duration: 0.8, delay: 0.3 + skillIndex * 0.1, ease: "easeOut" }}
+                        className={`h-2 bg-${skill.color === 'success' ? 'accent-success' :
+                                   skill.color === 'purple' ? 'accent-purple' :
+                                   skill.color === 'warning' ? 'accent-warning' :
+                                   skill.color === 'info' ? 'accent-info' : 'primary'} rounded-full`}
+                      />
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -219,30 +257,28 @@ export default function SkillsManagementPage() {
           className="space-y-8"
         >
           {/* Add New Category */}
-          <div className="card-primary p-6">
-            <h3 className="text-xl font-semibold mb-4">새 기술 카테고리 추가</h3>
-            <div className="flex gap-3">
+          <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
+            <h3 className="text-xl font-semibold mb-6">새 기술 카테고리 추가</h3>
+            <div className="flex gap-3 p-4 bg-background-secondary rounded-lg">
               <input
                 type="text"
                 placeholder="카테고리 이름 (예: Frontend & Mobile)"
                 value={newCategory.name}
                 onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                className="flex-1 p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="flex-1 p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
               />
-              <select
+              <CustomSelect
                 value={newCategory.color}
-                onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
-                className="p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                {colorOptions.map(color => (
-                  <option key={color.value} value={color.value}>{color.label}</option>
-                ))}
-              </select>
+                onChange={(value) => setNewCategory({ ...newCategory, color: value })}
+                options={colorOptions}
+                placeholder="색상 선택"
+                className="min-w-[180px]"
+              />
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={addCategory}
-                className="bg-primary text-white px-6 py-3 rounded-lg flex items-center gap-2"
+                className="bg-accent-blend text-primary-foreground hover:opacity-90 px-4 py-3 rounded-2xl font-medium transition-all shadow-lg flex items-center gap-2"
               >
                 <Plus size={16} />
                 추가
@@ -259,7 +295,7 @@ export default function SkillsManagementPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="card-primary p-6"
+                className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8"
               >
                 {/* Category Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -276,15 +312,13 @@ export default function SkillsManagementPage() {
                           onKeyDown={(e) => e.key === 'Enter' && setEditingCategory(null)}
                           autoFocus
                         />
-                        <select
+                        <CustomSelect
                           value={category.color}
-                          onChange={(e) => updateCategory(category.id, 'color', e.target.value)}
-                          className="p-2 bg-background-secondary border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                        >
-                          {colorOptions.map(color => (
-                            <option key={color.value} value={color.value}>{color.label}</option>
-                          ))}
-                        </select>
+                          onChange={(value) => updateCategory(category.id, 'color', value)}
+                          options={colorOptions}
+                          placeholder="색상 선택"
+                          className="min-w-[140px]"
+                        />
                       </div>
                     ) : (
                       <h3 className="text-xl font-semibold">{category.name}</h3>
@@ -318,7 +352,7 @@ export default function SkillsManagementPage() {
                       placeholder="기술 이름"
                       value={newSkill.name}
                       onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                      className="p-2 bg-background border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="p-2 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                     />
                     <div className="flex items-center gap-2">
                       <input
@@ -331,20 +365,18 @@ export default function SkillsManagementPage() {
                       />
                       <span className="text-sm w-8 text-right">{newSkill.percentage}%</span>
                     </div>
-                    <select
+                    <CustomSelect
                       value={newSkill.color}
-                      onChange={(e) => setNewSkill({ ...newSkill, color: e.target.value })}
-                      className="p-2 bg-background border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      {colorOptions.map(color => (
-                        <option key={color.value} value={color.value}>{color.label}</option>
-                      ))}
-                    </select>
+                      onChange={(value) => setNewSkill({ ...newSkill, color: value })}
+                      options={colorOptions}
+                      placeholder="색상 선택"
+                      className="min-w-[140px]"
+                    />
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => addSkillToCategory(category.id)}
-                      className="bg-accent-success text-white p-2 rounded flex items-center justify-center gap-2"
+                      className="bg-accent-blend text-primary-foreground hover:opacity-90 p-2 rounded-2xl font-medium transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                       <Plus size={16} />
                       추가
@@ -381,15 +413,13 @@ export default function SkillsManagementPage() {
                             />
                             <span className="text-sm w-8 text-right">{skill.percentage}%</span>
                           </div>
-                          <select
+                          <CustomSelect
                             value={skill.color}
-                            onChange={(e) => updateSkill(category.id, skill.id, 'color', e.target.value)}
-                            className="p-2 bg-background border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                          >
-                            {colorOptions.map(color => (
-                              <option key={color.value} value={color.value}>{color.label}</option>
-                            ))}
-                          </select>
+                            onChange={(value) => updateSkill(category.id, skill.id, 'color', value)}
+                            options={colorOptions}
+                            placeholder="색상 선택"
+                            className="min-w-[120px]"
+                          />
                         </>
                       ) : (
                         <>

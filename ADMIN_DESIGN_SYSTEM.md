@@ -380,24 +380,73 @@
 
 ### 4. 선택 박스 (Select Box)
 
-#### CustomSelect 컴포넌트
+#### CustomSelect 컴포넌트 (표준)
+**위치**: `@components/ui/select.tsx`
+
 ```tsx
+import { CustomSelect, SelectOption } from '../../../components/ui/select'
+
+// 옵션 정의 (아이콘 포함)
+const statusOptions: SelectOption[] = [
+  { id: 'all', name: '전체', value: 'all', icon: <FileText size={16} /> },
+  { id: 'published', name: '게시됨', value: 'published', icon: <CheckCircle size={16} /> },
+  { id: 'draft', name: '초안', value: 'draft', icon: <FileEdit size={16} /> }
+]
+
+// 색상 옵션 (색상 프리뷰 포함)
+const colorOptions: SelectOption[] = [
+  { 
+    id: 'primary', 
+    name: 'Primary (파란색)', 
+    value: 'bg-primary', 
+    icon: <div className="w-4 h-4 bg-primary rounded-full" />
+  },
+  { 
+    id: 'success', 
+    name: 'Success (초록색)', 
+    value: 'bg-accent-success', 
+    icon: <div className="w-4 h-4 bg-accent-success rounded-full" />
+  }
+]
+
+// 사용법
 <CustomSelect
-  options={statusOptions}
-  value={statusFilter}
-  onChange={(value) => setStatusFilter(value)}
-  placeholder="상태 선택"
-  className="min-w-[140px] bg-background/80 backdrop-blur-sm border-border/50 rounded-2xl shadow-sm"
+  label="상태"                    // 선택적 라벨
+  options={statusOptions}         // SelectOption[] 배열
+  value={statusFilter}           // 현재 선택된 값
+  onChange={(value) => setStatusFilter(value)}  // 변경 핸들러
+  placeholder="상태 선택"         // 플레이스홀더
+  className="min-w-[140px]"      // 추가 스타일링
+  disabled={false}               // 비활성화 상태
 />
 ```
 
-#### 선택 박스 스타일
+#### SelectOption 인터페이스
+```tsx
+interface SelectOption {
+  id: string          // 고유 식별자
+  name: string        // 표시될 텍스트
+  value: string       // 실제 값
+  icon?: React.ReactNode  // 선택적 아이콘 (Lucide 아이콘 또는 커스텀 요소)
+}
+```
+
+#### 주요 기능
+- **Glass Effect**: 반투명 배경과 블러 효과
+- **애니메이션**: Framer Motion 기반 부드러운 전환
+- **아이콘 지원**: Lucide 아이콘 및 커스텀 컴포넌트
+- **키보드 내비게이션**: 화살표, Enter, Escape 키 지원
+- **접근성**: 포커스 관리, ARIA 속성, 스크린 리더 지원
+- **호버 효과**: 색상 변화와 백그라운드 하이라이트
+- **선택 표시**: 체크마크로 현재 선택된 항목 표시
+
+#### 스타일 시스템
 ```css
+/* 트리거 버튼 */
 .select-trigger {
   width: 100%;
   padding: 0.75rem;               /* 12px */
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
+  background: glass-effect;        /* 글래스 효과 */
   border: 1px solid rgb(229 231 235 / 0.5);
   border-radius: 1rem;            /* 16px */
   font-size: 0.875rem;            /* 14px */
@@ -409,6 +458,7 @@
 }
 
 .select-trigger:hover {
+  scale: 1.02;                    /* 약간의 확대 */
   border-color: rgb(90 169 255 / 0.5);
   box-shadow: 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
@@ -416,12 +466,11 @@
 .select-trigger:focus {
   outline: none;
   border-color: rgb(90 169 255 / 0.5);
-  box-shadow: 0 0 0 2px rgb(90 169 255 / 0.6);
+  box-shadow: 0 0 0 2px rgb(90 169 255 / 0.3);
+  ring: 2px rgb(90 169 255 / 0.3);
 }
-```
 
-#### 선택 박스 드롭다운
-```css
+/* 드롭다운 컨테이너 */
 .select-dropdown {
   position: absolute;
   top: 100%;
@@ -438,6 +487,7 @@
   overflow-y: auto;
 }
 
+/* 옵션 아이템 */
 .select-option {
   width: 100%;
   padding: 0.75rem;               /* 12px */
@@ -456,7 +506,55 @@
   background: rgb(90 169 255 / 0.1);
   color: rgb(90 169 255);
 }
+
+.select-option.selected {
+  background: rgb(90 169 255 / 0.2);
+  color: rgb(90 169 255);
+  font-weight: 500;
+}
 ```
+
+#### 사용 예시
+
+**기본 사용법**:
+```tsx
+<CustomSelect
+  options={statusOptions}
+  value={currentStatus}
+  onChange={setCurrentStatus}
+  placeholder="상태를 선택하세요"
+/>
+```
+
+**라벨 포함**:
+```tsx
+<CustomSelect
+  label="게시 상태"
+  options={statusOptions}
+  value={currentStatus}
+  onChange={setCurrentStatus}
+  placeholder="상태 선택"
+  className="min-w-[140px]"
+/>
+```
+
+**색상 선택기**:
+```tsx
+<CustomSelect
+  label="테마 색상"
+  options={colorOptions}
+  value={selectedColor}
+  onChange={setSelectedColor}
+  placeholder="색상 선택"
+/>
+```
+
+#### ⚠️ 중요 사항
+- **필수 컴포넌트**: 모든 admin 페이지에서 `CustomSelect` 사용 필수
+- **HTML select 금지**: 기본 `<select>` 요소 사용 금지 (디자인 시스템 위반)
+- **옵션 형식**: 반드시 `SelectOption[]` 인터페이스 준수
+- **아이콘 권장**: 사용자 경험 향상을 위해 아이콘 포함 권장
+- **접근성**: 키보드 내비게이션과 스크린 리더 지원 필수
 
 ### 5. 상태 배지 (Status Badges)
 

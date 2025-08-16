@@ -107,6 +107,23 @@
     -webkit-line-clamp: 3;
   }
   
+  /* Dropdown z-index fix with backdrop-filter isolation */
+  .dropdown-overlay {
+    z-index: 99999 !important;
+    position: absolute !important;
+    isolation: isolate;
+    will-change: contents;
+    /* Create a new stacking context to prevent backdrop-filter interference */
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Prevent backdrop-filter from affecting dropdown overlays */
+  .glass-effect:has(.dropdown-overlay) {
+    backdrop-filter: none !important;
+  }
+  
   /* Modern Design System Button Utilities */
   .btn-primary {
     @apply bg-accent-blend text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-all;

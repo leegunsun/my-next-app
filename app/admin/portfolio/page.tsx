@@ -1,13 +1,14 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Settings, FileText, Code, Github, User, Target, 
   ToggleLeft, ToggleRight, Plus, Eye, EyeOff, 
-  GripVertical, Save, X, Check, Edit3, Trash2
+  GripVertical, Save, X, Check, Edit3, Trash2, ChevronDown
 } from 'lucide-react'
 import AdminTitle from '../../../components/admin/AdminTitle'
+import { CustomSelect, SelectOption } from '../../../components/ui/select'
 import { PortfolioSection, PortfolioSectionSettings } from '../../../lib/types/portfolio'
 
 // Icon mapping for dynamic icons
@@ -19,6 +20,49 @@ const iconMap: { [key: string]: React.ComponentType<{ size?: number; className?:
   Github,
   FileText
 }
+
+// Options for CustomSelect components with proper formatting and color indicators
+const iconOptions: SelectOption[] = [
+  { id: 'filetext', name: 'FileText', value: 'FileText', icon: <FileText size={16} /> },
+  { id: 'user', name: 'User', value: 'User', icon: <User size={16} /> },
+  { id: 'target', name: 'Target', value: 'Target', icon: <Target size={16} /> },
+  { id: 'settings', name: 'Settings', value: 'Settings', icon: <Settings size={16} /> },
+  { id: 'code', name: 'Code', value: 'Code', icon: <Code size={16} /> },
+  { id: 'github', name: 'Github', value: 'Github', icon: <Github size={16} /> }
+]
+
+const colorOptions: SelectOption[] = [
+  { 
+    id: 'primary', 
+    name: 'Primary (파란색)', 
+    value: 'bg-primary', 
+    icon: <div className="w-4 h-4 bg-primary rounded-full" />
+  },
+  { 
+    id: 'success', 
+    name: 'Success (초록색)', 
+    value: 'bg-accent-success', 
+    icon: <div className="w-4 h-4 bg-accent-success rounded-full" />
+  },
+  { 
+    id: 'purple', 
+    name: 'Purple (보라색)', 
+    value: 'bg-accent-purple', 
+    icon: <div className="w-4 h-4 bg-accent-purple rounded-full" />
+  },
+  { 
+    id: 'warning', 
+    name: 'Warning (노란색)', 
+    value: 'bg-accent-warning', 
+    icon: <div className="w-4 h-4 bg-accent-warning rounded-full" />
+  },
+  { 
+    id: 'info', 
+    name: 'Info (하늘색)', 
+    value: 'bg-accent-info', 
+    icon: <div className="w-4 h-4 bg-accent-info rounded-full" />
+  }
+]
 
 export default function PortfolioManagementPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
@@ -393,7 +437,7 @@ export default function PortfolioManagementPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="card-primary p-6 border-l-4 border-accent-success overflow-hidden"
+            className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8 border-l-4 border-accent-success"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">새 섹션 추가</h3>
@@ -411,7 +455,7 @@ export default function PortfolioManagementPage() {
                   type="text"
                   value={newSection.title}
                   onChange={(e) => setNewSection(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                   placeholder="섹션 제목을 입력하세요"
                 />
               </div>
@@ -421,54 +465,49 @@ export default function PortfolioManagementPage() {
                   type="text"
                   value={newSection.description}
                   onChange={(e) => setNewSection(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"
                   placeholder="섹션 설명을 입력하세요"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">아이콘</label>
-                <select
+                <CustomSelect
+                  label="아이콘"
+                  options={iconOptions}
                   value={newSection.icon}
-                  onChange={(e) => setNewSection(prev => ({ ...prev, icon: e.target.value }))}
-                  className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="FileText">FileText</option>
-                  <option value="User">User</option>
-                  <option value="Target">Target</option>
-                  <option value="Settings">Settings</option>
-                  <option value="Code">Code</option>
-                  <option value="Github">Github</option>
-                </select>
+                  onChange={(value) => setNewSection(prev => ({ ...prev, icon: value }))}
+                  placeholder="아이콘 선택"
+                  className="w-full"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">색상</label>
-                <select
+                <CustomSelect
+                  label="색상"
+                  options={colorOptions}
                   value={newSection.color}
-                  onChange={(e) => setNewSection(prev => ({ ...prev, color: e.target.value }))}
-                  className="w-full p-3 bg-background-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="bg-primary">Primary (파란색)</option>
-                  <option value="bg-accent-success">Success (초록색)</option>
-                  <option value="bg-accent-purple">Purple (보라색)</option>
-                  <option value="bg-accent-warning">Warning (노란색)</option>
-                  <option value="bg-accent-info">Info (하늘색)</option>
-                </select>
+                  onChange={(value) => setNewSection(prev => ({ ...prev, color: value }))}
+                  placeholder="색상 선택"
+                  className="w-full"
+                />
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 text-foreground-secondary hover:bg-background-secondary rounded-lg transition-colors"
+                className="px-6 py-3 bg-background-secondary text-foreground hover:bg-background-tertiary rounded-2xl font-medium transition-all border border-border shadow-sm"
               >
                 취소
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleAddSection}
-                className="flex items-center gap-2 bg-accent-success text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all"
+                className="flex items-center gap-2 bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 rounded-2xl font-medium transition-all shadow-lg"
               >
                 <Plus size={16} />
                 추가하기
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
