@@ -102,20 +102,14 @@ export default function AdminPostsPage() {
       {/* Subtle Background Animation */}
       <div className="absolute inset-0 hero-gradient-bg opacity-20 pointer-events-none" />
       
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
-        <AdminHeader 
-          title="게시물 관리"
-          description="블로그 게시물을 작성하고 관리합니다"
-        />
-      </motion.div>
+      <AdminHeader 
+        title="게시물 관리"
+        description="블로그 게시물을 작성하고 관리합니다"
+      />
 
-      <main className="pt-8 relative z-10">
+      <main className="relative z-10">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col py-8 pt-12">
+          <div className="max-w-6xl mx-auto min-h-[calc(100vh-20rem)] flex flex-col">
             {/* Header Actions with Enhanced Styling */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
