@@ -1,7 +1,9 @@
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging'
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { getAdminFCMToken, updateAdminFCMToken } from './firestore'
 import { auth } from './config'
 import { isMasterUser } from './auth'
+import { db } from './config'
 import app from './config'
 
 // FCM custom endpoint URL
@@ -97,43 +99,94 @@ export function onMessageListener() {
   })
 }
 
-// Get admin FCM token with caching
+// Get admin FCM token directly from Firestore with optimized caching
+// DEPRECATED: Use getAdminFCMTokenDirectly() instead
 export async function getCachedAdminFCMToken(): Promise<string | null> {
+  console.warn('⚠️ DEPRECATED: getCachedAdminFCMToken() is deprecated. Use getAdminFCMTokenDirectly()')
+  return getAdminFCMTokenDirectly()
+}
+
+// Get admin FCM token directly from Firestore fcm/master document with optimized caching
+export async function getAdminFCMTokenDirectly(): Promise<string | null> {
   const now = Date.now()
   
-  // Check if cache is valid
+  // Check cache validity first
   if (tokenCache.token && (now - tokenCache.timestamp) < tokenCache.ttl) {
-    console.log('🎯 Using cached FCM token')
+    console.log('🎯 Using cached FCM token from fcm/master document')
     return tokenCache.token
   }
   
-  // For FCM notifications, we need to get the token regardless of authentication
-  // since this might be called from server-side contexts or background processes
-  console.log('🔍 Fetching admin FCM token (authentication check bypassed for FCM endpoint)')
-  
+  console.log('🔍 Fetching admin FCM token directly from Firestore: fcm/master document')
   
   try {
-    const { token, error } = await getAdminFCMToken()
+    // Direct Firestore access to fcm collection, master document
+    const docRef = doc(db, 'fcm', 'master')
+    const docSnap = await getDoc(docRef)
     
-    if (error) {
-      console.error('❌ Error fetching admin FCM token from Firestore:', error)
+    if (!docSnap.exists()) {
+      console.error('❌ FCM master document not found in Firestore at fcm/master')
+      console.log('💡 Please ensure FCM token is saved via admin panel: /admin/messages')
       return null
     }
     
-    if (token) {
-      // Update cache
-      tokenCache = {
-        token,
-        timestamp: now,
-        ttl: 5 * 60 * 1000 // 5 minutes
-      }
-      console.log('✅ FCM token cached successfully')
-      return token
+    const data = docSnap.data()
+    const token = data?.token
+    
+    if (!token || typeof token !== 'string') {
+      console.error('❌ Invalid or missing token field in fcm/master document:', { hasToken: !!token, tokenType: typeof token })
+      return null
     }
     
-    return null
+    // Validate FCM token format
+    if (token.length < 100 || !token.includes(':')) {
+      console.error('❌ Invalid FCM token format in fcm/master document:', {
+        tokenLength: token.length,
+        hasColon: token.includes(':'),
+        tokenStart: token.substring(0, 10) + '...'
+      })
+      console.log('💡 FCM tokens should be 140+ characters and contain colons')
+      return null
+    }
+    
+    // Update last used timestamp
+    try {
+      await updateDoc(docRef, {
+        lastUsed: serverTimestamp()
+      })
+    } catch (updateError) {
+      console.warn('⚠️ Could not update lastUsed timestamp:', updateError)
+      // Don't fail the token retrieval for this
+    }
+    
+    // Update cache with fresh token
+    tokenCache = {
+      token,
+      timestamp: now,
+      ttl: 5 * 60 * 1000 // 5 minutes cache
+    }
+    
+    console.log('✅ FCM token retrieved successfully from fcm/master document')
+    console.log('📍 Token validation:', {
+      tokenLength: token.length,
+      tokenPrefix: token.substring(0, 20) + '...',
+      isValidFormat: token.length > 100 && token.includes(':'),
+      firestoreDoc: 'fcm/master',
+      cached: true
+    })
+    
+    return token
+    
   } catch (error) {
-    console.error('❌ Exception while fetching admin FCM token from Firestore:', error)
+    console.error('❌ Exception while fetching FCM token from fcm/master document:', error)
+    
+    if (error instanceof Error) {
+      console.error('📋 Error details:', {
+        message: error.message,
+        code: (error as any).code,
+        name: error.name
+      })
+    }
+    
     return null
   }
 }
@@ -145,17 +198,21 @@ export function clearFCMTokenCache(): void {
     timestamp: 0,
     ttl: 5 * 60 * 1000
   }
-  console.log('🧹 FCM token cache cleared')
+  console.log('🧹 FCM token cache cleared - next request will fetch from fcm/master document')
 }
 
 // Send FCM notification using custom endpoint
 export async function sendFCMNotification(notification: FCMNotification): Promise<void> {
-  // Get admin token dynamically
-  const adminToken = await getCachedAdminFCMToken()
+  // Get admin token directly from Firestore fcm/master document
+  const adminToken = await getAdminFCMTokenDirectly()
   
   if (!adminToken) {
-    console.warn('❌ Admin FCM token not available')
-    return
+    console.error('❌ Admin FCM token not available from fcm/master document')
+    console.log('💡 Troubleshooting steps:')
+    console.log('   1. Check if FCM token exists in Firestore at fcm/master')
+    console.log('   2. Verify admin has set up FCM token via /admin/messages')
+    console.log('   3. Check Firestore permissions for fcm collection')
+    throw new Error('FCM token not available - check Firestore fcm/master document')
   }
 
   try {
@@ -233,7 +290,7 @@ export async function saveAdminFCMTokenToFirestore(token: string): Promise<{ suc
       return { success: false, error }
     }
     
-    // Clear cache to force refresh on next request
+    // Clear cache to force refresh on next request from fcm/master document
     clearFCMTokenCache()
     
     console.log('✅ Admin FCM token saved successfully to Firestore')
@@ -272,4 +329,86 @@ export async function requestNotificationPermissionForAdmin(saveAsAdmin: boolean
   }
   
   return token
+}
+
+/**
+ * Test FCM token availability and validity from Firestore fcm/master document
+ * 
+ * @returns {Promise<{available: boolean, valid: boolean, error: string | null}>} Token status
+ */
+export async function testFCMTokenAvailability(): Promise<{
+  available: boolean
+  valid: boolean
+  error: string | null
+  details: {
+    docExists: boolean
+    hasTokenField: boolean
+    tokenLength: number | null
+    tokenFormat: boolean
+  }
+}> {
+  try {
+    console.log('🔬 Testing FCM token availability in fcm/master document...')
+    
+    const docRef = doc(db, 'fcm', 'master')
+    const docSnap = await getDoc(docRef)
+    
+    const docExists = docSnap.exists()
+    
+    if (!docExists) {
+      return {
+        available: false,
+        valid: false,
+        error: 'FCM master document does not exist at fcm/master',
+        details: {
+          docExists: false,
+          hasTokenField: false,
+          tokenLength: null,
+          tokenFormat: false
+        }
+      }
+    }
+    
+    const data = docSnap.data()
+    const token = data?.token
+    const hasTokenField = !!token
+    const tokenLength = typeof token === 'string' ? token.length : null
+    const tokenFormat = typeof token === 'string' && token.length > 100 && token.includes(':')
+    
+    console.log('📊 FCM token test results:', {
+      docExists,
+      hasTokenField,
+      tokenLength,
+      tokenFormat,
+      valid: tokenFormat
+    })
+    
+    return {
+      available: hasTokenField,
+      valid: tokenFormat,
+      error: null,
+      details: {
+        docExists: true,
+        hasTokenField,
+        tokenLength,
+        tokenFormat
+      }
+    }
+    
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('❌ FCM token test failed:', errorMessage)
+    
+    return {
+      available: false,
+      valid: false,
+      error: errorMessage,
+      details: {
+        docExists: false,
+        hasTokenField: false,
+        tokenLength: null,
+        tokenFormat: false
+      }
+    }
+  }
 }

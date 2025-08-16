@@ -24,7 +24,7 @@
 
 ### FCM 및 유틸리티
 - `lib/firebase/fcm.ts` - FCM 서비스 함수들
-- `components/ui/badge.tsx` - 상태 배지 컴포넌트
+- `components/ui/badge.tsx` - 상태 배firebase-messaging-sw지 컴포넌트
 - `public/firebase-messaging-sw.js` - FCM 서비스 워커
 
 ### 설정 파일
