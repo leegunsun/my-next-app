@@ -762,9 +762,9 @@ class NotificationHandler : TextWebSocketHandler() {
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
+                onClick={async () => {
                   trackButtonClick('download_resume', 'hero_section')
-                  downloadResume()
+                  await downloadResume()
                 }}
                 className="bg-accent-blend text-primary-foreground hover:opacity-90 px-6 py-3 text-base rounded-md font-medium transition-all shadow-lg flex items-center gap-2"
               >

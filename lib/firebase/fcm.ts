@@ -1,9 +1,24 @@
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging'
+import { getAdminFCMToken, updateAdminFCMToken } from './firestore'
+import { auth } from './config'
+import { isMasterUser } from './auth'
 import app from './config'
 
-// FCM server key should be stored in environment variables
-const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY
-const ADMIN_FCM_TOKEN = process.env.ADMIN_FCM_TOKEN // Your device token
+// FCM custom endpoint URL
+const FCM_ENDPOINT_URL = 'https://sendpushnotification-tzvcof2hmq-uc.a.run.app'
+
+// Token cache to avoid frequent Firestore calls
+interface TokenCache {
+  token: string | null
+  timestamp: number
+  ttl: number // Time to live in milliseconds
+}
+
+let tokenCache: TokenCache = {
+  token: null,
+  timestamp: 0,
+  ttl: 5 * 60 * 1000 // 5 minutes cache
+}
 
 // Initialize FCM (client-side only)
 let messaging: Messaging | null = null
@@ -82,47 +97,179 @@ export function onMessageListener() {
   })
 }
 
-// Send FCM notification (server-side function)
+// Get admin FCM token with caching
+export async function getCachedAdminFCMToken(): Promise<string | null> {
+  const now = Date.now()
+  
+  // Check if cache is valid
+  if (tokenCache.token && (now - tokenCache.timestamp) < tokenCache.ttl) {
+    console.log('🎯 Using cached FCM token')
+    return tokenCache.token
+  }
+  
+  // For FCM notifications, we need to get the token regardless of authentication
+  // since this might be called from server-side contexts or background processes
+  console.log('🔍 Fetching admin FCM token (authentication check bypassed for FCM endpoint)')
+  
+  
+  try {
+    const { token, error } = await getAdminFCMToken()
+    
+    if (error) {
+      console.error('❌ Error fetching admin FCM token from Firestore:', error)
+      return null
+    }
+    
+    if (token) {
+      // Update cache
+      tokenCache = {
+        token,
+        timestamp: now,
+        ttl: 5 * 60 * 1000 // 5 minutes
+      }
+      console.log('✅ FCM token cached successfully')
+      return token
+    }
+    
+    return null
+  } catch (error) {
+    console.error('❌ Exception while fetching admin FCM token from Firestore:', error)
+    return null
+  }
+}
+
+// Clear token cache (useful for logout or token refresh)
+export function clearFCMTokenCache(): void {
+  tokenCache = {
+    token: null,
+    timestamp: 0,
+    ttl: 5 * 60 * 1000
+  }
+  console.log('🧹 FCM token cache cleared')
+}
+
+// Send FCM notification using custom endpoint
 export async function sendFCMNotification(notification: FCMNotification): Promise<void> {
-  if (!FCM_SERVER_KEY || !ADMIN_FCM_TOKEN) {
-    console.warn('FCM server key or admin token not configured')
+  // Get admin token dynamically
+  const adminToken = await getCachedAdminFCMToken()
+  
+  if (!adminToken) {
+    console.warn('❌ Admin FCM token not available')
     return
   }
 
   try {
-    const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+    console.log('📤 Sending FCM notification via custom endpoint:', {
+      title: notification.title,
+      body: notification.body,
+      hasToken: !!adminToken,
+      endpoint: FCM_ENDPOINT_URL
+    })
+    
+    const requestBody = {
+      token: adminToken,
+      title: notification.title,
+      body: notification.body
+    }
+    
+    console.log('📦 FCM request payload:', {
+      ...requestBody,
+      token: `${adminToken.substring(0, 20)}...` // Log partial token for debugging
+    })
+    
+    const response = await fetch(FCM_ENDPOINT_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `key=${FCM_SERVER_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        to: ADMIN_FCM_TOKEN,
-        notification: {
-          title: notification.title,
-          body: notification.body,
-          icon: notification.icon || '/favicon.ico',
-          click_action: notification.clickAction || '/'
-        },
-        data: notification.data || {}
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
-      throw new Error(`FCM API error: ${response.status}`)
+      const errorText = await response.text()
+      console.error('❌ Custom FCM endpoint error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText
+      })
+      throw new Error(`Custom FCM endpoint error: ${response.status} - ${errorText}`)
     }
 
-    const result = await response.json()
-    console.log('FCM notification sent successfully:', result)
+    const result = await response.text() // Custom endpoint might return text instead of JSON
+    console.log('✅ FCM notification sent successfully via custom endpoint:', result)
     
   } catch (error) {
-    console.error('Error sending FCM notification:', error)
+    console.error('❌ Error sending FCM notification via custom endpoint:', error)
+    
+    // Log detailed error information for debugging
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+    }
+    
     throw error
   }
 }
 
-// Get stored FCM token
+// Save admin FCM token to Firestore (only for master user)
+export async function saveAdminFCMTokenToFirestore(token: string): Promise<{ success: boolean; error: string | null }> {
+  const currentUser = auth.currentUser
+  
+  if (!currentUser || !isMasterUser(currentUser)) {
+    return {
+      success: false,
+      error: 'Only master user can save admin FCM token'
+    }
+  }
+  
+  try {
+    const { error } = await updateAdminFCMToken(token)
+    
+    if (error) {
+      console.error('❌ Error saving admin FCM token:', error)
+      return { success: false, error }
+    }
+    
+    // Clear cache to force refresh on next request
+    clearFCMTokenCache()
+    
+    console.log('✅ Admin FCM token saved successfully to Firestore')
+    return { success: true, error: null }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('❌ Exception while saving admin FCM token:', errorMessage)
+    return { success: false, error: errorMessage }
+  }
+}
+
+// Get stored FCM token from localStorage
 export function getStoredFCMToken(): string | null {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('fcm_token')
+}
+
+// Enhanced function to request permission and optionally save as admin token
+export async function requestNotificationPermissionForAdmin(saveAsAdmin: boolean = false): Promise<string | null> {
+  const token = await requestNotificationPermission()
+  
+  if (token && saveAsAdmin) {
+    const currentUser = auth.currentUser
+    if (currentUser && isMasterUser(currentUser)) {
+      console.log('🔑 Saving FCM token as admin token...')
+      const { success, error } = await saveAdminFCMTokenToFirestore(token)
+      
+      if (success) {
+        console.log('✅ FCM token saved as admin token')
+      } else {
+        console.error('❌ Failed to save FCM token as admin:', error)
+      }
+    } else {
+      console.warn('⚠️ Cannot save as admin token: user is not authenticated master user')
+    }
+  }
+  
+  return token
 }

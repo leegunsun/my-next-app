@@ -14,7 +14,8 @@ import {
   DocumentData,
   QueryDocumentSnapshot,
   Timestamp,
-  serverTimestamp
+  serverTimestamp,
+  setDoc
 } from 'firebase/firestore'
 import { db } from './config'
 
@@ -34,8 +35,9 @@ export interface BlogPost {
   readTime?: number
 }
 
-// Collection reference
+// Collection references
 const POSTS_COLLECTION = 'blog-posts'
+const FCM_COLLECTION = 'fcm'
 
 // Create a new blog post
 export const createBlogPost = async (postData: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -288,6 +290,52 @@ export const calculateReadTime = (content: string): number => {
   const wordsPerMinute = 200
   const words = content.trim().split(/\s+/).length
   return Math.ceil(words / wordsPerMinute)
+}
+
+// FCM Token interface
+export interface FCMTokenData {
+  token: string
+  updatedAt: Timestamp
+  lastUsed?: Timestamp
+}
+
+// Get admin FCM token from Firestore
+export const getAdminFCMToken = async (): Promise<{ token: string | null; error: string | null }> => {
+  try {
+    const docRef = doc(db, FCM_COLLECTION, 'master')
+    const docSnap = await getDoc(docRef)
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data() as FCMTokenData
+      
+      // Update last used timestamp
+      await updateDoc(docRef, {
+        lastUsed: serverTimestamp()
+      })
+      
+      return { token: data.token, error: null }
+    } else {
+      return { token: null, error: 'Master FCM token not found in database' }
+    }
+  } catch (error: unknown) {
+    return { token: null, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+// Update admin FCM token in Firestore
+export const updateAdminFCMToken = async (token: string): Promise<{ error: string | null }> => {
+  try {
+    const docRef = doc(db, FCM_COLLECTION, 'master')
+    await setDoc(docRef, {
+      token,
+      updatedAt: serverTimestamp(),
+      lastUsed: serverTimestamp()
+    }, { merge: true })
+    
+    return { error: null }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : String(error) }
+  }
 }
 
 // Debug function to check raw collection data

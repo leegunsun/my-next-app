@@ -23,9 +23,37 @@ export function formatDateKo(date: Date | string): string {
 }
 
 // PDF Download functionality
-export function downloadResume() {
+export async function downloadResume() {
   // Track download event
   trackDownload('Developer_Resume.pdf')
+  
+  // Send FCM notification to admin (fire and forget)
+  try {
+    const notificationData = {
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+      downloadPath: '/resume.pdf'
+    }
+
+    // Send FCM notification without blocking the download
+    fetch('/api/notifications/resume-download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(notificationData)
+    }).then(response => {
+      if (response.ok) {
+        console.log('✅ Resume download notification sent to admin')
+      } else {
+        console.warn('⚠️ Failed to send resume download notification')
+      }
+    }).catch(error => {
+      console.warn('⚠️ Resume download notification error:', error)
+    })
+  } catch (error) {
+    console.warn('⚠️ Failed to prepare resume download notification:', error)
+  }
   
   // In a real application, this would download an actual PDF file
   // For demo purposes, we'll create a placeholder action
@@ -34,7 +62,7 @@ export function downloadResume() {
   link.download = 'Developer_Resume.pdf'
   link.click()
   
-  // Show notification
+  // Show notification to user
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification('이력서 다운로드', {
       body: '이력서 다운로드가 시작되었습니다.',
