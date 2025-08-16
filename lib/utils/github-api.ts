@@ -56,6 +56,7 @@ export function mapGitHubAPIToRepository(apiRepo: GitHubAPIRepository, order: nu
     lastUpdated: apiRepo.updated_at.split('T')[0], // Convert to YYYY-MM-DD format
     url: apiRepo.html_url,
     isActive: !apiRepo.archived && !apiRepo.disabled, // Active if not archived or disabled
+    showOnHomepage: false, // Default to false, admin can enable later
     order: order,
     createdAt: apiRepo.created_at,
     updatedAt: new Date().toISOString()

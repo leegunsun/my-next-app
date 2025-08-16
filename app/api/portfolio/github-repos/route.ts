@@ -22,6 +22,7 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
     lastUpdated: '2024-01-15',
     url: 'https://github.com/developer/flutter-ecommerce-app',
     isActive: true,
+    showOnHomepage: true, // Featured repository
     order: 1,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -36,6 +37,7 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
     lastUpdated: '2024-01-10',
     url: 'https://github.com/developer/spring-boot-notification-api',
     isActive: true,
+    showOnHomepage: true, // Featured repository
     order: 2,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -50,6 +52,7 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
     lastUpdated: '2024-01-08',
     url: 'https://github.com/developer/kubernetes-deployment-configs',
     isActive: true,
+    showOnHomepage: true, // Featured repository
     order: 3,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -64,6 +67,7 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
     lastUpdated: '2024-01-05',
     url: 'https://github.com/developer/react-portfolio-website',
     isActive: true,
+    showOnHomepage: false, // Not featured on homepage
     order: 4,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -78,6 +82,7 @@ const getDefaultGitHubReposData = (): GitHubRepository[] => [
     lastUpdated: '2023-12-28',
     url: 'https://github.com/developer/microservices-spring-cloud',
     isActive: true,
+    showOnHomepage: false, // Not featured on homepage
     order: 5,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -89,6 +94,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const forceRefresh = searchParams.get('refresh') === 'true'
     const useReal = searchParams.get('real') !== 'false' // Default to true
+    const homepageOnly = searchParams.get('homepage') === 'true' // Filter for homepage display only
     
     const now = Date.now()
     const shouldFetchFromAPI = useReal && (
@@ -109,10 +115,17 @@ export async function GET(request: NextRequest) {
             githubReposDataStore = realRepos
             lastFetchTime = now
             
+            // Filter for homepage display if requested
+            let responseData = realRepos
+            if (homepageOnly) {
+              responseData = realRepos.filter(repo => repo.showOnHomepage && repo.isActive)
+                .sort((a, b) => a.order - b.order)
+            }
+            
             return NextResponse.json({
               success: true,
-              data: realRepos,
-              message: `GitHub repositories retrieved successfully from API (${realRepos.length} repos)`,
+              data: responseData,
+              message: `GitHub repositories retrieved successfully from API (${realRepos.length} repos)${homepageOnly ? ', filtered for homepage' : ''}`,
               source: 'github-api',
               lastUpdated: new Date().toISOString()
             })
@@ -128,12 +141,18 @@ export async function GET(request: NextRequest) {
     }
     
     // Return cached data or default data
-    const data = githubReposDataStore || getDefaultGitHubReposData()
+    let data = githubReposDataStore || getDefaultGitHubReposData()
+    
+    // Filter for homepage display if requested
+    if (homepageOnly) {
+      data = data.filter(repo => repo.showOnHomepage && repo.isActive)
+        .sort((a, b) => a.order - b.order) // Sort by order for homepage display
+    }
     
     return NextResponse.json({
       success: true,
       data,
-      message: `GitHub repositories retrieved from ${githubReposDataStore ? 'cache' : 'default data'}`,
+      message: `GitHub repositories retrieved from ${githubReposDataStore ? 'cache' : 'default data'}${homepageOnly ? ' (homepage only)' : ''}`,
       source: githubReposDataStore ? 'cache' : 'default',
       lastUpdated: lastFetchTime > 0 ? new Date(lastFetchTime).toISOString() : null
     })

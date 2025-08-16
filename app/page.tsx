@@ -25,6 +25,8 @@ export default function Home() {
     type: null,
     message: ""
   })
+  const [githubRepos, setGithubRepos] = useState<any[]>([])
+  const [isLoadingRepos, setIsLoadingRepos] = useState(true)
 
   // Analytics Hook 사용
   const { 
@@ -36,7 +38,30 @@ export default function Home() {
   useEffect(() => {
     // Request notification permission on component mount
     requestNotificationPermission()
+    
+    // Fetch GitHub repositories for homepage
+    fetchGitHubRepos()
   }, [])
+
+  const fetchGitHubRepos = async () => {
+    try {
+      setIsLoadingRepos(true)
+      const response = await fetch('/api/portfolio/github-repos?homepage=true')
+      const result = await response.json()
+      
+      if (result.success) {
+        setGithubRepos(result.data.length > 0 ? result.data : fallbackGithubRepos)
+      } else {
+        console.error('Failed to fetch GitHub repos:', result.message)
+        setGithubRepos(fallbackGithubRepos)
+      }
+    } catch (error) {
+      console.error('Error fetching GitHub repos:', error)
+      setGithubRepos(fallbackGithubRepos)
+    } finally {
+      setIsLoadingRepos(false)
+    }
+  }
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,8 +89,8 @@ export default function Home() {
     setContactForm(prev => ({ ...prev, [name]: value }))
   }
 
-  // Sample GitHub repositories
-  const githubRepos = [
+  // Fallback GitHub repositories (used when API fails)
+  const fallbackGithubRepos = [
     {
       name: "flutter-ecommerce-app",
       description: "Flutter로 구현한 크로스플랫폼 전자상거래 앱. Provider 패턴과 API 연동으로 상태 관리 최적화.",
@@ -775,15 +800,36 @@ class NotificationHandler : TextWebSocketHandler() {
                   <h3 className="text-2xl font-medium text-center">GitHub 저장소</h3>
                 </AnimatedSection>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {githubRepos.map((repo, index) => (
-                    <GitHubCard
-                      key={repo.name}
-                      repo={repo}
-                      delay={index * 0.1}
-                    />
-                  ))}
-                </div>
+                {isLoadingRepos ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                      <p className="text-foreground-secondary">GitHub 저장소를 불러오는 중...</p>
+                    </div>
+                  </div>
+                ) : githubRepos.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {githubRepos.map((repo, index) => (
+                      <GitHubCard
+                        key={repo.name || repo.id}
+                        repo={repo}
+                        delay={index * 0.1}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-16 h-16 bg-background-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Github size={24} className="text-foreground-secondary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">표시할 저장소가 없습니다</h3>
+                      <p className="text-foreground-secondary text-sm">
+                        관리자 페이지에서 홈페이지에 표시할 GitHub 저장소를 선택해주세요.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

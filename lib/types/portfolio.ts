@@ -77,6 +77,7 @@ export interface GitHubRepository {
   lastUpdated: string
   url: string
   isActive: boolean
+  showOnHomepage: boolean
   order: number
   createdAt: string
   updatedAt: string

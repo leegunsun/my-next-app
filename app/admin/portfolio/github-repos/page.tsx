@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff, Home, Monitor } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { GitHubRepository } from '../../../../lib/types/portfolio'
 
@@ -19,7 +19,8 @@ export default function GitHubReposManagementPage() {
     stars: 0,
     forks: 0,
     lastUpdated: '',
-    url: ''
+    url: '',
+    showOnHomepage: false
   })
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [dataSource, setDataSource] = useState<'github-api' | 'cache' | 'default'>('default')
@@ -148,6 +149,7 @@ export default function GitHubReposManagementPage() {
       lastUpdated: newRepo.lastUpdated || new Date().toISOString().split('T')[0],
       url: newRepo.url.trim(),
       isActive: true,
+      showOnHomepage: newRepo.showOnHomepage,
       order: repositories.length + 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -161,7 +163,8 @@ export default function GitHubReposManagementPage() {
       stars: 0,
       forks: 0,
       lastUpdated: '',
-      url: ''
+      url: '',
+      showOnHomepage: false
     })
   }
 
@@ -380,22 +383,39 @@ export default function GitHubReposManagementPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-3 h-3 rounded-full ${getLanguageColor(repo.language)}`}></div>
                     <span className="text-sm text-foreground-secondary">{repo.language}</span>
+                    {repo.showOnHomepage && (
+                      <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">
+                        <Home size={10} />
+                        <span>홈페이지 노출</span>
+                      </div>
+                    )}
                   </div>
                   <h3 className="font-semibold text-lg mb-2">{repo.name}</h3>
                   <p className="text-foreground-secondary text-sm leading-relaxed">
                     {repo.description}
                   </p>
                 </div>
-                <motion.a
-                  href={repo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 text-foreground-secondary hover:text-primary transition-colors"
-                >
-                  <ExternalLink size={16} />
-                </motion.a>
+                <div className="flex items-center gap-2">
+                  {repo.showOnHomepage && (
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="p-2 text-green-600 bg-green-50 rounded-lg"
+                      title="홈페이지에 표시됨"
+                    >
+                      <Monitor size={16} />
+                    </motion.div>
+                  )}
+                  <motion.a
+                    href={repo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-2 text-foreground-secondary hover:text-primary transition-colors"
+                  >
+                    <ExternalLink size={16} />
+                  </motion.a>
+                </div>
               </div>
               
               <div className="flex items-center justify-between text-sm text-foreground-secondary mb-3">
@@ -521,6 +541,36 @@ export default function GitHubReposManagementPage() {
                 </div>
               </div>
               
+              {/* Homepage Display Option */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Monitor size={16} className="text-foreground-secondary" />
+                    <span className="text-sm font-medium">홈페이지에 표시</span>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setNewRepo({ ...newRepo, showOnHomepage: !newRepo.showOnHomepage })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      newRepo.showOnHomepage 
+                        ? 'bg-green-600' 
+                        : 'bg-foreground-muted'
+                    }`}
+                  >
+                    <motion.span
+                      animate={{
+                        translateX: newRepo.showOnHomepage ? 20 : 4,
+                      }}
+                      className="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform"
+                    />
+                  </motion.button>
+                </div>
+                <p className="text-xs text-foreground-secondary mt-1">
+                  이 저장소를 홈페이지의 GitHub 섹션에 표시할지 선택하세요
+                </p>
+              </div>
+              
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -562,6 +612,12 @@ export default function GitHubReposManagementPage() {
                           </select>
                         ) : (
                           <span className="text-sm text-foreground-secondary">{repo.language}</span>
+                        )}
+                        {repo.showOnHomepage && (
+                          <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">
+                            <Home size={10} />
+                            <span>홈페이지 노출</span>
+                          </div>
                         )}
                       </div>
                       
@@ -634,7 +690,7 @@ export default function GitHubReposManagementPage() {
                   )}
 
                   {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="block text-xs text-foreground-secondary mb-1">스타</label>
                       {editingRepo === repo.id ? (
@@ -687,6 +743,36 @@ export default function GitHubReposManagementPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  {/* Homepage Display Toggle */}
+                  <div className="border-t border-border pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Monitor size={16} className="text-foreground-secondary" />
+                        <span className="text-sm font-medium">홈페이지 노출</span>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => updateRepository(repo.id, 'showOnHomepage', !repo.showOnHomepage)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          repo.showOnHomepage 
+                            ? 'bg-green-600' 
+                            : 'bg-foreground-muted'
+                        }`}
+                      >
+                        <motion.span
+                          animate={{
+                            translateX: repo.showOnHomepage ? 20 : 4,
+                          }}
+                          className="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform"
+                        />
+                      </motion.button>
+                    </div>
+                    <p className="text-xs text-foreground-secondary mt-1">
+                      이 저장소를 홈페이지의 GitHub 섹션에 표시합니다
+                    </p>
                   </div>
                 </motion.div>
               ))}
