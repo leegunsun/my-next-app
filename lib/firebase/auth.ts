@@ -13,8 +13,8 @@ import { auth } from './config'
 // Google provider setup
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  hd: undefined // Allow any domain
+  prompt: 'select_account'
+  // hd parameter removed to allow any domain
 })
 
 // Sign in with Google with improved error handling

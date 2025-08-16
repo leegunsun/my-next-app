@@ -6,7 +6,7 @@ import { validateCredentials, setAuthSession, checkAuthSession, logout as authLo
 interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
-  signIn: (id: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (id: string, password: string) => Promise<{ success: boolean; error?: string; mode?: 'firestore' | 'fallback' }>;
   logout: () => void;
   // Legacy compatibility
   user: null;
