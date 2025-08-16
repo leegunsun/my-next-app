@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { validateCredentials } from '../auth-service';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, AUTH_COLLECTION, AUTH_DOCUMENT_ID } from '../firestore-config';
+import { db, AUTH_COLLECTION } from '../firestore-config';
 
 export default function TestLoginPage() {
   const [testResults, setTestResults] = useState<string[]>([]);
@@ -34,6 +34,8 @@ export default function TestLoginPage() {
     try {
       // Test 1: Firestore 연결 테스트
       addResult('Test 1: Firestore 연결 테스트 시작', true);
+      // 하드코딩된 문서 ID 사용 (firestore-config에서 제거됨)
+      const AUTH_DOCUMENT_ID = 'R5nOcUf97xB7k3gt0idd';
       const docRef = doc(db, AUTH_COLLECTION, AUTH_DOCUMENT_ID);
       const docSnap = await getDoc(docRef);
       

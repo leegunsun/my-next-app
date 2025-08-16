@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import AnimatedSection from './AnimatedSection'
 
@@ -46,11 +46,7 @@ export default function CustomSection({ section, delay = 0, className = "" }: Cu
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchSectionContent()
-  }, [section.id])
-
-  const fetchSectionContent = async () => {
+  const fetchSectionContent = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -105,7 +101,11 @@ export default function CustomSection({ section, delay = 0, className = "" }: Cu
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [section.id, section.title, section.description])
+
+  useEffect(() => {
+    fetchSectionContent()
+  }, [section.id, fetchSectionContent])
 
   const renderContent = () => {
     if (!content) return null

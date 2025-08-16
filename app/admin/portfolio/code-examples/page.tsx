@@ -99,7 +99,7 @@ export default function CodeExamplesManagementPage() {
     setCodeExamples(codeExamples.filter(example => example.id !== id))
   }
 
-  const updateExample = (id: string, field: keyof CodeExample, value: any) => {
+  const updateExample = (id: string, field: keyof CodeExample, value: string | number | boolean) => {
     setCodeExamples(codeExamples.map(example => 
       example.id === id 
         ? { ...example, [field]: value, updatedAt: new Date().toISOString() }

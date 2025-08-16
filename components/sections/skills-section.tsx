@@ -157,8 +157,8 @@ export function SkillsSection({ currentLang }: SkillsSectionProps) {
     Mobile: { en: "Mobile Development", ko: "모바일 개발" },
     Backend: { en: "Backend Development", ko: "백엔드 개발" },
     Language: { en: "Programming Languages", ko: "프로그래밍 언어" },
-    Database: { en: "Database & Storage", ko: "데이터베이스" },
-    DevOps: { en: "DevOps & Infrastructure", ko: "데브옵스 및 인프라" }
+    Database: { en: "Database &amp; Storage", ko: "데이터베이스" },
+    DevOps: { en: "DevOps &amp; Infrastructure", ko: "데브옵스 및 인프라" }
   }
 
   return (
@@ -166,7 +166,7 @@ export function SkillsSection({ currentLang }: SkillsSectionProps) {
       <div className="container mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {isKorean ? "기술 스택" : "Skills & Technologies"}
+            {isKorean ? "기술 스택" : "Skills &amp; Technologies"}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {isKorean 

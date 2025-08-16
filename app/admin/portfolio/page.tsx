@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Settings, FileText, Code, Github, User, Target, 
   ToggleLeft, ToggleRight, Plus, Eye, EyeOff, 
-  GripVertical, Save, X, Check, Edit3, Trash2, ChevronDown
+  GripVertical, Save, X, Check, Edit3, Trash2
 } from 'lucide-react'
 import AdminTitle from '../../../components/admin/AdminTitle'
 import { CustomSelect, SelectOption } from '../../../components/ui/select'
@@ -124,12 +124,12 @@ export default function PortfolioManagementPage() {
   }
 
   // Drag and Drop handlers
-  const handleDragStart = (e: React.DragEvent, sectionId: string) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, sectionId: string) => {
     setDraggedItem(sectionId)
     e.dataTransfer.effectAllowed = 'move'
   }
 
-  const handleDragOver = (e: React.DragEvent, sectionId: string) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, sectionId: string) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
     setDragOverItem(sectionId)
@@ -139,7 +139,7 @@ export default function PortfolioManagementPage() {
     setDragOverItem(null)
   }
 
-  const handleDrop = (e: React.DragEvent, targetSectionId: string) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetSectionId: string) => {
     e.preventDefault()
     
     if (!draggedItem || draggedItem === targetSectionId) {
@@ -529,10 +529,10 @@ export default function PortfolioManagementPage() {
                 dragOverItem === section.id && isEditMode ? 'ring-2 ring-primary ring-opacity-50' : ''
               } ${draggedItem === section.id && isEditMode ? 'opacity-30' : ''}`}
               draggable={isEditMode}
-              onDragStart={isEditMode ? (e) => handleDragStart(e, section.id) : undefined}
-              onDragOver={isEditMode ? (e) => handleDragOver(e, section.id) : undefined}
+              onDragStart={isEditMode ? (e) => handleDragStart(e as unknown as React.DragEvent<HTMLDivElement>, section.id) : undefined}
+              onDragOver={isEditMode ? (e) => handleDragOver(e as unknown as React.DragEvent<HTMLDivElement>, section.id) : undefined}
               onDragLeave={isEditMode ? handleDragLeave : undefined}
-              onDrop={isEditMode ? (e) => handleDrop(e, section.id) : undefined}
+              onDrop={isEditMode ? (e) => handleDrop(e as unknown as React.DragEvent<HTMLDivElement>, section.id) : undefined}
               onDragEnd={isEditMode ? handleDragEnd : undefined}
             >
               {/* Edit Mode Controls */}
@@ -755,16 +755,16 @@ export default function PortfolioManagementPage() {
                 <li>• <strong>표시 설정</strong>: 눈 아이콘으로 네비게이션에 표시할지 선택할 수 있습니다.</li>
                 <li>• <strong>활성화/비활성화</strong>: 토글 버튼으로 섹션을 활성화하거나 비활성화할 수 있습니다.</li>
                 <li>• <strong>섹션 삭제</strong>: 휴지통 아이콘을 클릭하여 섹션을 삭제할 수 있습니다.</li>
-                <li>• <strong>편집 완료</strong>: 변경사항을 적용한 후 '편집 완료' 버튼을 눌러 일반 모드로 돌아가세요.</li>
-                <li>• <strong>변경사항 저장</strong>: 모든 설정을 변경한 후 반드시 '변경사항 저장' 버튼을 눌러주세요.</li>
+                <li>• <strong>편집 완료</strong>: 변경사항을 적용한 후 &apos;편집 완료&apos; 버튼을 눌러 일반 모드로 돌아가세요.</li>
+                <li>• <strong>변경사항 저장</strong>: 모든 설정을 변경한 후 반드시 &apos;변경사항 저장&apos; 버튼을 눌러주세요.</li>
               </ul>
             ) : (
               <ul className="space-y-2 text-sm text-foreground-secondary">
-                <li>• <strong>섹션 편집</strong>: '섹션 편집' 버튼을 클릭하면 드래그, 설정 변경, 삭제 기능을 사용할 수 있습니다.</li>
+                <li>• <strong>섹션 편집</strong>: &apos;섹션 편집&apos; 버튼을 클릭하면 드래그, 설정 변경, 삭제 기능을 사용할 수 있습니다.</li>
                 <li>• <strong>섹션 관리</strong>: 각 섹션 카드를 클릭하여 해당 섹션의 상세 설정을 관리할 수 있습니다.</li>
-                <li>• <strong>새 섹션 추가</strong>: '새 섹션 추가' 버튼으로 커스텀 섹션을 추가하여 포트폴리오를 확장할 수 있습니다.</li>
+                <li>• <strong>새 섹션 추가</strong>: &apos;새 섹션 추가&apos; 버튼으로 커스텀 섹션을 추가하여 포트폴리오를 확장할 수 있습니다.</li>
                 <li>• <strong>실시간 반영</strong>: 설정 변경사항은 홈페이지에 실시간으로 반영됩니다.</li>
-                <li>• <strong>변경사항 저장</strong>: 설정을 변경한 후 반드시 '변경사항 저장' 버튼을 눌러주세요.</li>
+                <li>• <strong>변경사항 저장</strong>: 설정을 변경한 후 반드시 &apos;변경사항 저장&apos; 버튼을 눌러주세요.</li>
               </ul>
             )}
           </div>

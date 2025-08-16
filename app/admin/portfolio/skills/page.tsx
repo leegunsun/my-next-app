@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, GripVertical, Palette } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { SkillCategory } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
@@ -115,7 +115,7 @@ export default function SkillsManagementPage() {
     setSkillsData(skillsData.filter(cat => cat.id !== categoryId))
   }
 
-  const updateCategory = (categoryId: string, field: keyof SkillCategory, value: any) => {
+  const updateCategory = (categoryId: string, field: keyof SkillCategory, value: string | number | boolean) => {
     setSkillsData(skillsData.map(cat => 
       cat.id === categoryId ? { ...cat, [field]: value } : cat
     ))
@@ -148,7 +148,7 @@ export default function SkillsManagementPage() {
     ))
   }
 
-  const updateSkill = (categoryId: string, skillId: string, field: string, value: any) => {
+  const updateSkill = (categoryId: string, skillId: string, field: string, value: string | number) => {
     setSkillsData(skillsData.map(cat => 
       cat.id === categoryId 
         ? {
@@ -279,7 +279,7 @@ export default function SkillsManagementPage() {
             <div className="flex gap-3 p-4 bg-background-secondary rounded-lg">
               <input
                 type="text"
-                placeholder="카테고리 이름 (예: Frontend & Mobile)"
+                placeholder="카테고리 이름 (예: Frontend &amp; Mobile)"
                 value={newCategory.name}
                 onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                 className="flex-1 p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm"

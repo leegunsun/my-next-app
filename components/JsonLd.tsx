@@ -3,8 +3,8 @@ export default function JsonLd() {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Developer",
-    "jobTitle": "Flutter & Spring Boot Developer",
-    "description": "사용자의 문제를 구조적으로 해결하는 Flutter & Spring Boot 개발자입니다.",
+    "jobTitle": "Flutter &amp; Spring Boot Developer",
+    "description": "사용자의 문제를 구조적으로 해결하는 Flutter &amp; Spring Boot 개발자입니다.",
     "url": "https://developer-portfolio.com",
     "image": "https://developer-portfolio.com/profile-image.jpg",
     "sameAs": [

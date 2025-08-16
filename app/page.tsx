@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Download, Mail, Github, Linkedin, ExternalLink, ChevronDown, CheckCircle } from "lucide-react"
 import AnimatedSection from "../components/AnimatedSection"
@@ -12,10 +12,10 @@ import GitHubCard from "../components/GitHubCard"
 import AdminNavigation from "../components/admin/AdminNavigation"
 import CustomSection from "../components/CustomSection"
 import { downloadResume, submitContactForm, requestNotificationPermission, processHtmlForGradientText, type ContactFormData } from "../lib/utils"
+import type { GitHubRepository, PortfolioProject, AboutMeData, SkillCategory, CodeExample, PortfolioSection, PortfolioSectionSettings } from "../lib/types/portfolio"
 import { useAnalytics } from "../lib/analytics"
 
 export default function Home() {
-  const [, ] = useState("hero")
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -26,14 +26,14 @@ export default function Home() {
     type: null,
     message: ""
   })
-  const [githubRepos, setGithubRepos] = useState<any[]>([])
+  const [githubRepos, setGithubRepos] = useState<GitHubRepository[]>([])
   const [isLoadingRepos, setIsLoadingRepos] = useState(true)
-  const [portfolioProjects, setPortfolioProjects] = useState<any[]>([])
+  const [portfolioProjects, setPortfolioProjects] = useState<PortfolioProject[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(true)
-  const [aboutData, setAboutData] = useState<any>(null)
-  const [skillsData, setSkillsData] = useState<any[]>([])
-  const [codeExamplesData, setCodeExamplesData] = useState<any[]>([])
-  const [sectionsData, setSectionsData] = useState<any>(null)
+  const [aboutData, setAboutData] = useState<AboutMeData | null>(null)
+  const [skillsData, setSkillsData] = useState<SkillCategory[]>([])
+  const [codeExamplesData, setCodeExamplesData] = useState<CodeExample[]>([])
+  const [sectionsData, setSectionsData] = useState<{sections: PortfolioSection[], settings: PortfolioSectionSettings} | null>(null)
   const [isLoadingAbout, setIsLoadingAbout] = useState(true)
   const [isLoadingSkills, setIsLoadingSkills] = useState(true)
   const [isLoadingCodeExamples, setIsLoadingCodeExamples] = useState(true)
@@ -46,44 +46,172 @@ export default function Home() {
     trackContactFormSubmit: trackContactFormSubmitAnalytics 
   } = useAnalytics()
 
-  useEffect(() => {
-    // Request notification permission on component mount
-    requestNotificationPermission()
-    
-    // Fetch all data for homepage
-    fetchAboutData()
-    fetchSkillsData()
-    fetchCodeExamplesData()
-    fetchSectionSettings()
-    fetchGitHubRepos()
-    fetchPortfolioProjects()
+  const fetchAboutData = useCallback(async () => {
+    try {
+      setIsLoadingAbout(true)
+      const response = await fetch('/api/portfolio/about')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        setAboutData(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching about data:', error)
+    } finally {
+      setIsLoadingAbout(false)
+    }
   }, [])
 
-  // Debug: Log section integration status
-  useEffect(() => {
-    if (sectionsData && !isLoadingSections) {
-      const customSections = sectionsData.sections?.filter((s: any) => s.id.startsWith('custom-')) || []
-      console.log('🔄 Section Integration Status:', {
-        sectionsLoaded: !!sectionsData,
-        totalSections: sectionsData.sections?.length || 0,
-        activeSections: sectionsData.sections?.filter((s: any) => s.isActive).length || 0,
-        navigationSections: sectionsData.sections?.filter((s: any) => s.showInNavigation && s.isActive).length || 0,
-        customSections: customSections.length,
-        activeCustomSections: customSections.filter((s: any) => s.isActive).length,
-        customSectionDetails: customSections.map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          isActive: s.isActive,
-          showInNavigation: s.showInNavigation,
-          homeSection: s.homeSection,
-          order: s.order
-        })),
-        settings: sectionsData.settings
-      })
+  const fetchSkillsData = useCallback(async () => {
+    try {
+      setIsLoadingSkills(true)
+      const response = await fetch('/api/portfolio/skills')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        setSkillsData(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching skills data:', error)
+    } finally {
+      setIsLoadingSkills(false)
     }
-  }, [sectionsData, isLoadingSections])
+  }, [])
 
-  const fetchGitHubRepos = async () => {
+  const fetchCodeExamplesData = useCallback(async () => {
+    try {
+      setIsLoadingCodeExamples(true)
+      const response = await fetch('/api/portfolio/code-examples')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        // Only show active code examples, sorted by order
+        const activeExamples = result.data
+          .filter((example: CodeExample) => example.isActive)
+          .sort((a: CodeExample, b: CodeExample) => (a.order || 99) - (b.order || 99))
+        setCodeExamplesData(activeExamples)
+      }
+    } catch (error) {
+      console.error('Error fetching code examples data:', error)
+    } finally {
+      setIsLoadingCodeExamples(false)
+    }
+  }, [])
+
+  const fetchSectionSettings = useCallback(async () => {
+    try {
+      setIsLoadingSections(true)
+      const response = await fetch('/api/portfolio/sections')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        // Store the complete data object with sections and settings
+        setSectionsData(result.data)
+        console.log('📋 Portfolio sections loaded:', result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching section settings:', error)
+    } finally {
+      setIsLoadingSections(false)
+    }
+  }, [])
+
+  // Fallback GitHub repositories (used when API fails)
+  const fallbackGithubRepos = useMemo(() => [
+    {
+      id: "fallback-1",
+      name: "flutter-ecommerce-app",
+      description: "Flutter로 구현한 크로스플랫폼 전자상거래 앱. Provider 패턴과 API 연동으로 상태 관리 최적화.",
+      language: "Dart",
+      stars: 42,
+      forks: 8,
+      lastUpdated: "2024-01-15",
+      url: "https://github.com/developer/flutter-ecommerce-app",
+      isActive: true,
+      showOnHomepage: true,
+      order: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "fallback-2",
+      name: "spring-boot-notification-api",
+      description: "Spring Boot와 WebSocket을 활용한 실시간 알림 시스템. Redis 캐싱과 JWT 인증 구현.",
+      language: "Kotlin",
+      stars: 35,
+      forks: 12,
+      lastUpdated: "2024-01-10",
+      url: "https://github.com/developer/spring-boot-notification-api",
+      isActive: true,
+      showOnHomepage: true,
+      order: 2,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "fallback-3",
+      name: "kubernetes-deployment-configs",
+      description: "Production 환경을 위한 Kubernetes 배포 설정 파일과 CI/CD 파이프라인 구성.",
+      language: "Docker",
+      stars: 28,
+      forks: 6,
+      lastUpdated: "2024-01-08",
+      url: "https://github.com/developer/kubernetes-deployment-configs",
+      isActive: true,
+      showOnHomepage: true,
+      order: 3,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ], [])
+
+  // Fallback portfolio projects (used when API fails)
+  const fallbackProjects = useMemo(() => [
+    {
+      id: 'project-1',
+      title: 'E-Commerce 모바일 앱',
+      description: 'Flutter로 개발한 크로스플랫폼 쇼핑 앱. Spring Boot API와 연동하여 실시간 결제 처리 및 주문 관리 시스템 구현.',
+      tags: ['Flutter', 'Dart', 'REST API'],
+      icon: 'Flutter',
+      iconBg: 'bg-primary',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'project-2',
+      title: '실시간 알림 시스템',
+      description: 'Spring Boot와 WebSocket을 활용한 실시간 푸시 알림 시스템. Redis 캐싱으로 성능 최적화 구현.',
+      tags: ['Spring Boot', 'Kotlin', 'WebSocket'],
+      icon: 'Spring',
+      iconBg: 'bg-accent-success',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 2,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'project-3',
+      title: '컨테이너 오케스트레이션',
+      description: 'Docker 컨테이너화 및 Kubernetes 클러스터 구성. CI/CD 파이프라인으로 자동 배포 구현.',
+      tags: ['Docker', 'Kubernetes', 'CI/CD'],
+      icon: 'K8s',
+      iconBg: 'bg-accent-purple',
+      liveUrl: '#',
+      githubUrl: '#',
+      isActive: true,
+      order: 3,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ], [])
+
+  const fetchGitHubRepos = useCallback(async () => {
     try {
       setIsLoadingRepos(true)
       const response = await fetch('/api/portfolio/github-repos?homepage=true')
@@ -101,22 +229,22 @@ export default function Home() {
     } finally {
       setIsLoadingRepos(false)
     }
-  }
+  }, [fallbackGithubRepos])
 
-  const fetchPortfolioProjects = async () => {
+  const fetchPortfolioProjects = useCallback(async () => {
     try {
       setIsLoadingProjects(true)
       const response = await fetch('/api/portfolio/projects')
       const result = await response.json()
       
       if (result.success && result.data.length > 0) {
-        // Filter active projects and sort by order
+        // Only show active projects, sorted by order
         const activeProjects = result.data
-          .filter((project: any) => project.isActive)
-          .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+          .filter((project: PortfolioProject) => project.isActive)
+          .sort((a: PortfolioProject, b: PortfolioProject) => (a.order || 99) - (b.order || 99))
         setPortfolioProjects(activeProjects)
       } else {
-        console.log('No projects found or API error, using default projects')
+        console.log('No portfolio projects found or API error, using fallback data')
         setPortfolioProjects(fallbackProjects)
       }
     } catch (error) {
@@ -125,77 +253,44 @@ export default function Home() {
     } finally {
       setIsLoadingProjects(false)
     }
-  }
+  }, [fallbackProjects])
 
-  const fetchAboutData = async () => {
-    try {
-      setIsLoadingAbout(true)
-      const response = await fetch('/api/portfolio/about')
-      const result = await response.json()
-      
-      if (result.success && result.data) {
-        setAboutData(result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching about data:', error)
-    } finally {
-      setIsLoadingAbout(false)
-    }
-  }
+  useEffect(() => {
+    // Request notification permission on component mount
+    requestNotificationPermission()
+    
+    // Fetch all data for homepage
+    fetchAboutData()
+    fetchSkillsData()
+    fetchCodeExamplesData()
+    fetchSectionSettings()
+    fetchGitHubRepos()
+    fetchPortfolioProjects()
+  }, [fetchAboutData, fetchSkillsData, fetchCodeExamplesData, fetchSectionSettings, fetchGitHubRepos, fetchPortfolioProjects])
 
-  const fetchSkillsData = async () => {
-    try {
-      setIsLoadingSkills(true)
-      const response = await fetch('/api/portfolio/skills')
-      const result = await response.json()
-      
-      if (result.success && result.data) {
-        setSkillsData(result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching skills data:', error)
-    } finally {
-      setIsLoadingSkills(false)
+  // Debug: Log section integration status
+  useEffect(() => {
+    if (sectionsData && !isLoadingSections) {
+      const customSections = sectionsData.sections?.filter((s) => s.id.startsWith('custom-')) || []
+      console.log('🔄 Section Integration Status:', {
+        sectionsLoaded: !!sectionsData,
+        totalSections: sectionsData.sections?.length || 0,
+        activeSections: sectionsData.sections?.filter((s) => s.isActive).length || 0,
+        navigationSections: sectionsData.sections?.filter((s) => s.showInNavigation && s.isActive).length || 0,
+        customSections: customSections.length,
+        activeCustomSections: customSections.filter((s) => s.isActive).length,
+        customSectionDetails: customSections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          isActive: s.isActive,
+          showInNavigation: s.showInNavigation,
+          homeSection: s.homeSection,
+          order: s.order
+        })),
+        settings: sectionsData.settings
+      })
     }
-  }
-
-  const fetchCodeExamplesData = async () => {
-    try {
-      setIsLoadingCodeExamples(true)
-      const response = await fetch('/api/portfolio/code-examples')
-      const result = await response.json()
-      
-      if (result.success && result.data) {
-        // Only show active code examples, sorted by order
-        const activeExamples = result.data
-          .filter((example: any) => example.isActive)
-          .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
-        setCodeExamplesData(activeExamples)
-      }
-    } catch (error) {
-      console.error('Error fetching code examples data:', error)
-    } finally {
-      setIsLoadingCodeExamples(false)
-    }
-  }
-
-  const fetchSectionSettings = async () => {
-    try {
-      setIsLoadingSections(true)
-      const response = await fetch('/api/portfolio/sections')
-      const result = await response.json()
-      
-      if (result.success && result.data) {
-        // Store the complete data object with sections and settings
-        setSectionsData(result.data)
-        console.log('📋 Portfolio sections loaded:', result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching section settings:', error)
-    } finally {
-      setIsLoadingSections(false)
-    }
-  }
+  }, [sectionsData, isLoadingSections])
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,93 +318,77 @@ export default function Home() {
     setContactForm(prev => ({ ...prev, [name]: value }))
   }
 
-  // Fallback portfolio projects (used when API fails)
-  const fallbackProjects = [
-    {
-      id: 'project-1',
-      title: 'E-Commerce 모바일 앱',
-      description: 'Flutter로 개발한 크로스플랫폼 쇼핑 앱. Spring Boot API와 연동하여 실시간 결제 처리 및 주문 관리 시스템 구현.',
-      tags: ['Flutter', 'Dart', 'REST API'],
-      icon: 'Flutter',
-      iconBg: 'bg-primary',
-      liveUrl: '#',
-      githubUrl: '#',
-      isActive: true,
-      order: 1
-    },
-    {
-      id: 'project-2',
-      title: '실시간 알림 시스템',
-      description: 'Spring Boot와 WebSocket을 활용한 실시간 푸시 알림 시스템. Redis 캐싱으로 성능 최적화 구현.',
-      tags: ['Spring Boot', 'Kotlin', 'WebSocket'],
-      icon: 'Spring',
-      iconBg: 'bg-accent-success',
-      liveUrl: '#',
-      githubUrl: '#',
-      isActive: true,
-      order: 2
-    },
-    {
-      id: 'project-3',
-      title: '컨테이너 오케스트레이션',
-      description: 'Docker 컨테이너화 및 Kubernetes 클러스터 구성. CI/CD 파이프라인으로 자동 배포 구현.',
-      tags: ['Docker', 'Kubernetes', 'CI/CD'],
-      icon: 'K8s',
-      iconBg: 'bg-accent-purple',
-      liveUrl: '#',
-      githubUrl: '#',
-      isActive: true,
-      order: 3
-    }
-  ]
-
-  // Fallback GitHub repositories (used when API fails)
-  const fallbackGithubRepos = [
-    {
-      name: "flutter-ecommerce-app",
-      description: "Flutter로 구현한 크로스플랫폼 전자상거래 앱. Provider 패턴과 API 연동으로 상태 관리 최적화.",
-      language: "Dart",
-      stars: 42,
-      forks: 8,
-      lastUpdated: "2024-01-15",
-      url: "https://github.com/developer/flutter-ecommerce-app"
-    },
-    {
-      name: "spring-boot-notification-api",
-      description: "Spring Boot와 WebSocket을 활용한 실시간 알림 시스템. Redis 캐싱과 JWT 인증 구현.",
-      language: "Kotlin",
-      stars: 35,
-      forks: 12,
-      lastUpdated: "2024-01-10",
-      url: "https://github.com/developer/spring-boot-notification-api"
-    },
-    {
-      name: "kubernetes-deployment-configs",
-      description: "Production 환경을 위한 Kubernetes 배포 설정 파일과 CI/CD 파이프라인 구성.",
-      language: "Docker",
-      stars: 28,
-      forks: 6,
-      lastUpdated: "2024-01-08",
-      url: "https://github.com/developer/kubernetes-deployment-configs"
-    }
-  ]
-
-  // Fallback code examples (used when API fails)
   // Get active sections for navigation
   const getActiveSections = () => {
     if (!sectionsData || !sectionsData.sections) {
       // Fallback navigation items when section settings are not loaded
       return [
-        { id: 'about', homeSection: 'about', title: 'About', showInNavigation: true, isActive: true },
-        { id: 'projects', homeSection: 'portfolio', title: 'Portfolio', showInNavigation: true, isActive: true },
-        { id: 'skills', homeSection: 'skills', title: 'Skills', showInNavigation: true, isActive: true },
-        { id: 'code-examples', homeSection: 'code-examples', title: 'Code', showInNavigation: true, isActive: true }
+        { 
+          id: 'about', 
+          homeSection: 'about', 
+          title: 'About', 
+          description: 'About section', 
+          icon: 'User', 
+          color: 'primary', 
+          href: '#about', 
+          showInNavigation: true, 
+          isActive: true, 
+          showInAdminGrid: true, 
+          order: 1, 
+          createdAt: new Date().toISOString(), 
+          updatedAt: new Date().toISOString() 
+        },
+        { 
+          id: 'projects', 
+          homeSection: 'portfolio', 
+          title: 'Portfolio', 
+          description: 'Portfolio section', 
+          icon: 'Briefcase', 
+          color: 'primary', 
+          href: '#portfolio', 
+          showInNavigation: true, 
+          isActive: true, 
+          showInAdminGrid: true, 
+          order: 2, 
+          createdAt: new Date().toISOString(), 
+          updatedAt: new Date().toISOString() 
+        },
+        { 
+          id: 'skills', 
+          homeSection: 'skills', 
+          title: 'Skills', 
+          description: 'Skills section', 
+          icon: 'Code', 
+          color: 'primary', 
+          href: '#skills', 
+          showInNavigation: true, 
+          isActive: true, 
+          showInAdminGrid: true, 
+          order: 3, 
+          createdAt: new Date().toISOString(), 
+          updatedAt: new Date().toISOString() 
+        },
+        { 
+          id: 'code-examples', 
+          homeSection: 'code-examples', 
+          title: 'Code', 
+          description: 'Code examples section', 
+          icon: 'Terminal', 
+          color: 'primary', 
+          href: '#code-examples', 
+          showInNavigation: true, 
+          isActive: true, 
+          showInAdminGrid: true, 
+          order: 4, 
+          createdAt: new Date().toISOString(), 
+          updatedAt: new Date().toISOString() 
+        }
       ]
     }
     
     return sectionsData.sections
-      .filter((section: any) => section.showInNavigation && section.isActive)
-      .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+      .filter((section: PortfolioSection) => section.showInNavigation && section.isActive)
+      .sort((a: PortfolioSection, b: PortfolioSection) => (a.order || 99) - (b.order || 99))
   }
 
   // Render navigation items dynamically
@@ -327,7 +406,7 @@ export default function Home() {
       )
     } else {
       // Add sections that are active and should show in navigation
-      activeSections.forEach((section: any) => {
+      activeSections.forEach((section: PortfolioSection) => {
         const navItem = getNavigationItem(section)
         if (navItem) {
           navigationItems.push(navItem)
@@ -361,7 +440,7 @@ export default function Home() {
   }
 
   // Get navigation item for a section
-  const getNavigationItem = (section: any) => {
+  const getNavigationItem = (section: PortfolioSection) => {
     const navConfig = {
       'about': { href: '#about', label: 'About', trackId: 'nav_about' },
       'portfolio': { href: '#portfolio', label: 'Portfolio', trackId: 'nav_portfolio' },
@@ -416,7 +495,7 @@ export default function Home() {
       return true // Show all sections by default if settings not loaded
     }
     
-    const section = sectionsData.sections.find((s: any) => s.homeSection === sectionId)
+    const section = sectionsData.sections.find((s: PortfolioSection) => s.homeSection === sectionId)
     const shouldRender = section ? section.isActive : true
     console.log(`📄 Section ${sectionId}:`, { found: !!section, isActive: section?.isActive, shouldRender })
     return shouldRender
@@ -429,11 +508,11 @@ export default function Home() {
     }
     
     const customSections = sectionsData.sections
-      .filter((section: any) => 
+      .filter((section: PortfolioSection) => 
         section.id.startsWith('custom-') && 
         section.isActive
       )
-      .sort((a: any, b: any) => (a.order || 99) - (b.order || 99))
+      .sort((a: PortfolioSection, b: PortfolioSection) => (a.order || 99) - (b.order || 99))
     
     console.log('🎨 Custom sections to render:', customSections.map(s => ({
       id: s.id,
@@ -453,7 +532,7 @@ export default function Home() {
       return null
     }
 
-    return customSections.map((section: any, index: number) => (
+    return customSections.map((section: PortfolioSection, index: number) => (
       <CustomSection
         key={section.id}
         section={section}
@@ -658,7 +737,7 @@ class NotificationHandler : TextWebSocketHandler() {
               ) : (
                 <>
                   사용자의 문제를 구조적으로 해결하는<br />
-                  <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span> 개발자
+                  <span className="text-gradient-flutter">Flutter</span> &amp; <span className="text-gradient-spring">Spring Boot</span> 개발자
                 </>
               )}
             </motion.h1>
@@ -774,7 +853,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <h3 className="text-xl font-medium mb-4">전문 분야</h3>
                   <div className="space-y-3">
                     {!isLoadingAbout && aboutData && aboutData.specialties ? (
-                      aboutData.specialties.map((specialty: any, index: number) => (
+                      aboutData.specialties.map((specialty: { id: string; name: string; color: string }, index: number) => (
                         <motion.div 
                           key={specialty.id}
                           initial={{ opacity: 0, x: -20 }}
@@ -1016,7 +1095,7 @@ class NotificationHandler : TextWebSocketHandler() {
             
             {!isLoadingSkills && skillsData.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {skillsData.map((category: any, categoryIndex: number) => (
+                {skillsData.map((category: SkillCategory, categoryIndex: number) => (
                   <AnimatedSection key={category.id} delay={0.1 * categoryIndex} className="card-primary">
                     <h3 className="text-xl font-medium mb-6 flex items-center gap-3">
                       <div className={`w-6 h-6 rounded-full ${
@@ -1029,7 +1108,7 @@ class NotificationHandler : TextWebSocketHandler() {
                       {category.name}
                     </h3>
                     <div className="space-y-4">
-                      {category.skills.map((skill: any, skillIndex: number) => (
+                      {category.skills.map((skill: { id: string; name: string; percentage: number; color: string }, skillIndex: number) => (
                         <SkillProgress 
                           key={skill.id}
                           name={skill.name} 
@@ -1413,7 +1492,7 @@ class NotificationHandler : TextWebSocketHandler() {
           <div className="max-w-4xl mx-auto text-center">
             <AnimatedSection>
               <p className="text-foreground-secondary mb-4">
-                © 2025 Developer Portfolio. <span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span>로 만드는 더 나은 세상.
+                © 2025 Developer Portfolio. <span className="text-gradient-flutter">Flutter</span> &amp; <span className="text-gradient-spring">Spring Boot</span>로 만드는 더 나은 세상.
               </p>
               <div className="flex items-center justify-center gap-6">
                 <motion.a 

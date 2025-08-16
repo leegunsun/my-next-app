@@ -3,6 +3,9 @@ import { db } from '../../../../lib/firebase/config'
 import { collection, doc, getDocs, setDoc, orderBy, query } from 'firebase/firestore'
 import { CodeExample } from '../../../../lib/types/portfolio'
 
+// In-memory data store for code examples
+let codeExamplesDataStore: CodeExample[] | null = null
+
 // Default code examples data
 const getDefaultCodeExamplesData = (): CodeExample[] => [
   {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Star, GitFork, ExternalLink, Calendar, RefreshCw, Github, Database, Wifi, WifiOff, Home, Monitor, CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
@@ -46,24 +46,7 @@ export default function GitHubReposManagementPage() {
     { value: 'Shell', label: 'Shell', color: 'bg-gray-600' }
   ]
 
-  useEffect(() => {
-    fetchRepositories()
-  }, [])
-
-  useEffect(() => {
-    if (notification.show) {
-      const timer = setTimeout(() => {
-        setNotification(prev => ({ ...prev, show: false }))
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [notification.show])
-
-  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
-    setNotification({ type, message, show: true })
-  }
-
-  const fetchRepositories = async (forceRefresh = false) => {
+  const fetchRepositories = useCallback(async (forceRefresh = false) => {
     try {
       setIsLoading(true)
       const url = forceRefresh 
@@ -102,6 +85,23 @@ export default function GitHubReposManagementPage() {
     } finally {
       setIsLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    fetchRepositories()
+  }, [fetchRepositories])
+
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification(prev => ({ ...prev, show: false }))
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification.show])
+
+  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+    setNotification({ type, message, show: true })
   }
 
   const refreshFromGitHub = async () => {
@@ -179,7 +179,7 @@ export default function GitHubReposManagementPage() {
     setRepositories(repositories.filter(repo => repo.id !== id))
   }
 
-  const updateRepository = (id: string, field: keyof GitHubRepository, value: any) => {
+  const updateRepository = (id: string, field: keyof GitHubRepository, value: string | number | boolean) => {
     setRepositories(repositories.map(repo => 
       repo.id === id 
         ? { ...repo, [field]: value, updatedAt: new Date().toISOString() }
@@ -387,7 +387,7 @@ export default function GitHubReposManagementPage() {
             </div>
             <p className="text-sm text-blue-700">
               아래는 실제 홈페이지에서 나타날 GitHub 저장소 섹션의 모습입니다. 
-              '홈페이지 노출'이 활성화된 저장소만 표시됩니다.
+              &apos;홈페이지 노출&apos;이 활성화된 저장소만 표시됩니다.
             </p>
           </div>
 
@@ -456,7 +456,7 @@ export default function GitHubReposManagementPage() {
                   현재 홈페이지에 표시되는 저장소: {repositories.filter(repo => repo.showOnHomepage && repo.isActive).length}개
                 </div>
                 <div className="text-xs text-gray-600">
-                  편집 모드에서 각 저장소의 "홈페이지 노출" 토글을 사용하여 표시 여부를 변경할 수 있습니다.
+                  편집 모드에서 각 저장소의 &quot;홈페이지 노출&quot; 토글을 사용하여 표시 여부를 변경할 수 있습니다.
                 </div>
               </div>
             </div>

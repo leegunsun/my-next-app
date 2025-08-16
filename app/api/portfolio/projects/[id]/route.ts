@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../../lib/firebase/config'
-import { doc, getDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { PortfolioProject } from '../../../../../lib/types/portfolio'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectDoc = doc(db, 'portfolio-projects', params.id)
+    const { id } = await params
+    const projectDoc = doc(db, 'portfolio-projects', id)
     const docSnap = await getDoc(projectDoc)
     
     if (!docSnap.exists()) {
@@ -35,10 +36,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const body = await request.json()
+    const { id } = await params
+    const body = await request.json() as Partial<PortfolioProject>
     const projectData = {
       title: body.title,
       description: body.description,
@@ -49,10 +51,10 @@ export async function PUT(
       githubUrl: body.githubUrl || '',
       isActive: body.isActive !== undefined ? body.isActive : true,
       order: body.order || 99,
-      updatedAt: Timestamp.now()
+      updatedAt: new Date().toISOString()
     }
 
-    const projectDoc = doc(db, 'portfolio-projects', params.id)
+    const projectDoc = doc(db, 'portfolio-projects', id)
     await updateDoc(projectDoc, projectData)
     
     const updatedDocSnap = await getDoc(projectDoc)
@@ -82,10 +84,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectDoc = doc(db, 'portfolio-projects', params.id)
+    const { id } = await params
+    const projectDoc = doc(db, 'portfolio-projects', id)
     await deleteDoc(projectDoc)
 
     return NextResponse.json({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../lib/firebase/config'
-import { collection, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { AboutMeData } from '../../../../lib/types/portfolio'
 
 // Default data

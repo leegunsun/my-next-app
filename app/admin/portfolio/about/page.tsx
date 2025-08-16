@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Plus, Trash2, Edit2, Eye, EyeOff, Palette } from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
 import { AboutMeData } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
@@ -404,7 +404,7 @@ export default function AboutManagementPage() {
                     <strong>💡 그라데이션 텍스트 팁:</strong> Flutter와 Spring Boot 텍스트에 색상을 입히려면 다음과 같이 입력하세요:
                   </p>
                   <code className="text-xs bg-background mt-2 p-2 rounded block font-mono">
-                    {`<span className="text-gradient-flutter">Flutter</span> & <span className="text-gradient-spring">Spring Boot</span>`}
+                    {`<span className="text-gradient-flutter">Flutter</span> &amp; <span className="text-gradient-spring">Spring Boot</span>`}
                   </code>
                 </div>
               </div>

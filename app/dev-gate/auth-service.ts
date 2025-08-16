@@ -1,4 +1,4 @@
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, AUTH_COLLECTION } from './firestore-config';
 
 export interface AuthCredentials {

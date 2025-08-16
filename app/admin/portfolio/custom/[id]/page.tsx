@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import { 
-  Save, Edit3, ArrowLeft, Settings, Plus, X, Check, 
-  FileText, AlertCircle, Loader2, Image, Link, Type,
-  AlignLeft, Hash, Star, Calendar
+  Save, Edit3, ArrowLeft, Settings, X, Check, 
+  FileText, AlertCircle, Loader2, Type,
+  AlignLeft, Hash, Star
 } from 'lucide-react'
 import AdminTitle from '../../../../../components/admin/AdminTitle'
 import { PortfolioSection } from '../../../../../lib/types/portfolio'
@@ -52,13 +52,7 @@ export default function CustomSectionPage() {
     priority: 1
   })
 
-  useEffect(() => {
-    if (sectionId) {
-      fetchSectionData()
-    }
-  }, [sectionId])
-
-  const fetchSectionData = async () => {
+  const fetchSectionData = useCallback(async () => {
     try {
       setIsLoading(true)
       
@@ -157,7 +151,13 @@ export default function CustomSectionPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [sectionId])
+
+  useEffect(() => {
+    if (sectionId) {
+      fetchSectionData()
+    }
+  }, [sectionId, fetchSectionData])
 
   const handleSave = async () => {
     try {
@@ -250,7 +250,7 @@ export default function CustomSectionPage() {
             <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">섹션을 찾을 수 없습니다</h3>
             <p className="text-foreground-secondary mb-6">
-              ID "{sectionId}"에 해당하는 커스텀 섹션이 존재하지 않습니다.
+              ID &quot;{sectionId}&quot;에 해당하는 커스텀 섹션이 존재하지 않습니다.
             </p>
             <motion.a
               whileHover={{ scale: 1.05 }}
@@ -388,7 +388,7 @@ export default function CustomSectionPage() {
                   </label>
                   <select
                     value={editForm.contentType}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, contentType: e.target.value as any }))}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, contentType: e.target.value as 'text' | 'markdown' | 'rich-text' }))}
                     className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
                   >
                     <option value="text">일반 텍스트</option>

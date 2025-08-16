@@ -3,6 +3,9 @@ import { db } from '../../../../lib/firebase/config'
 import { collection, doc, getDocs, setDoc, orderBy, query } from 'firebase/firestore'
 import { SkillCategory } from '../../../../lib/types/portfolio'
 
+// In-memory data store for skills
+let skillsDataStore: SkillCategory[] | null = null
+
 // Default skills data
 const getDefaultSkillsData = (): SkillCategory[] => [
   {
