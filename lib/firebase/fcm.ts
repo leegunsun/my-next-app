@@ -114,15 +114,7 @@ export async function getCachedAdminFCMToken(): Promise<string | null> {
 // Get admin FCM token directly from Firestore fcm/master document with optimized caching
 export async function getAdminFCMTokenDirectly(): Promise<string | null> {
   const now = Date.now()
-  
-  // Check cache validity first
-  if (tokenCache.token && (now - tokenCache.timestamp) < tokenCache.ttl) {
-    console.log('🎯 Using cached FCM token from fcm/master document')
-    return tokenCache.token
-  }
-  
-  console.log('🔍 Fetching admin FCM token directly from Firestore: fcm/master document')
-  
+
   try {
     // Direct Firestore access to fcm collection, master document
     const docRef = doc(db, 'fcm', 'master')
@@ -141,43 +133,6 @@ export async function getAdminFCMTokenDirectly(): Promise<string | null> {
       console.error('❌ Invalid or missing token field in fcm/master document:', { hasToken: !!token, tokenType: typeof token })
       return null
     }
-    
-    // Validate FCM token format
-    if (token.length < 100 || !token.includes(':')) {
-      console.error('❌ Invalid FCM token format in fcm/master document:', {
-        tokenLength: token.length,
-        hasColon: token.includes(':'),
-        tokenStart: token.substring(0, 10) + '...'
-      })
-      console.log('💡 FCM tokens should be 140+ characters and contain colons')
-      return null
-    }
-    
-    // Update last used timestamp
-    try {
-      await updateDoc(docRef, {
-        lastUsed: serverTimestamp()
-      })
-    } catch (updateError) {
-      console.warn('⚠️ Could not update lastUsed timestamp:', updateError)
-      // Don't fail the token retrieval for this
-    }
-    
-    // Update cache with fresh token
-    tokenCache = {
-      token,
-      timestamp: now,
-      ttl: 5 * 60 * 1000 // 5 minutes cache
-    }
-    
-    console.log('✅ FCM token retrieved successfully from fcm/master document')
-    console.log('📍 Token validation:', {
-      tokenLength: token.length,
-      tokenPrefix: token.substring(0, 20) + '...',
-      isValidFormat: token.length > 100 && token.includes(':'),
-      firestoreDoc: 'fcm/master',
-      cached: true
-    })
     
     return token
     
