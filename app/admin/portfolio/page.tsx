@@ -253,12 +253,19 @@ export default function PortfolioManagementPage() {
   }
 
   const toggleEditMode = () => {
-    setIsEditMode(prev => !prev)
-    // Clear any drag states when exiting edit mode
-    if (isEditMode) {
-      setDraggedItem(null)
-      setDragOverItem(null)
-    }
+    setIsEditMode(prev => {
+      const newEditMode = !prev
+      // When entering edit mode, close any open forms
+      if (newEditMode) {
+        setShowAddForm(false)
+      }
+      // Clear any drag states when exiting edit mode
+      if (prev) {
+        setDraggedItem(null)
+        setDragOverItem(null)
+      }
+      return newEditMode
+    })
   }
 
   // Filter and sort sections for display
@@ -292,42 +299,54 @@ export default function PortfolioManagementPage() {
           description="포트폴리오 페이지의 모든 콘텐츠를 관리하고 편집할 수 있습니다."
         />
         <div className="flex items-center gap-3">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleEditMode}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              isEditMode 
-                ? 'bg-accent-warning text-white hover:opacity-90' 
-                : 'bg-background-secondary text-foreground hover:bg-background-tertiary border border-border'
-            }`}
-          >
-            <Edit3 size={20} />
-            {isEditMode ? '편집 완료' : '섹션 편집'}
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-accent-success text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all"
-          >
-            <Plus size={20} />
-            새 섹션 추가
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50"
-          >
-            {isSaving ? (
-              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-            ) : (
-              <Save size={20} />
-            )}
-            {isSaving ? '저장 중...' : '변경사항 저장'}
-          </motion.button>
+          {isEditMode ? (
+            // Edit Mode: Only show "Edit Complete" button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleEditMode}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-accent-warning text-white hover:opacity-90"
+            >
+              <Edit3 size={20} />
+              편집 완료
+            </motion.button>
+          ) : (
+            // Normal Mode: Show all buttons
+            <>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleEditMode}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-background-secondary text-foreground hover:bg-background-tertiary border border-border"
+              >
+                <Edit3 size={20} />
+                섹션 편집
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-2 bg-accent-success text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all"
+              >
+                <Plus size={20} />
+                새 섹션 추가
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Save size={20} />
+                )}
+                {isSaving ? '저장 중...' : '변경사항 저장'}
+              </motion.button>
+            </>
+          )}
         </div>
       </div>
 
@@ -352,7 +371,7 @@ export default function PortfolioManagementPage() {
 
       {/* Add Section Form */}
       <AnimatePresence>
-        {showAddForm && (
+        {showAddForm && !isEditMode && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
