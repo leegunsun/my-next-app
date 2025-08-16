@@ -1,5 +1,5 @@
-import { doc, getDoc } from 'firebase/firestore';
-import { db, AUTH_COLLECTION, AUTH_DOCUMENT_ID } from './firestore-config';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { db, AUTH_COLLECTION } from './firestore-config';
 
 export interface AuthCredentials {
   id: string;
@@ -19,33 +19,37 @@ const FALLBACK_CREDENTIALS = {
 };
 
 /**
- * Firestore 문서에서 인증 정보를 검증합니다.
+ * Firestore testUser 컬렉션에서 인증 정보를 검증합니다.
+ * 컬렉션의 모든 사용자 중 일치하는 인증 정보를 찾습니다.
  * 권한 오류 시 fallback 모드로 전환
  */
 export async function validateCredentials(inputId: string, inputPass: string): Promise<AuthResult> {
   try {
-    // Firestore에서 인증 문서 가져오기
-    const docRef = doc(db, AUTH_COLLECTION, AUTH_DOCUMENT_ID);
-    const docSnap = await getDoc(docRef);
+    // testUser 컬렉션에서 입력된 ID와 일치하는 사용자 검색
+    const usersRef = collection(db, AUTH_COLLECTION);
+    const q = query(usersRef, where('id', '==', inputId));
+    const querySnapshot = await getDocs(q);
 
-    if (!docSnap.exists()) {
-      console.error('Auth document not found');
+    if (querySnapshot.empty) {
       return { 
         success: false, 
-        error: '인증 정보를 찾을 수 없습니다' 
+        error: '등록되지 않은 사용자입니다' 
       };
     }
 
-    const data = docSnap.data() as AuthCredentials;
-    
-    // ID와 비밀번호 검증
-    if (data.id === inputId && data.pass === inputPass) {
-      return { success: true, mode: 'firestore' };
+    // 일치하는 사용자 중에서 비밀번호 검증
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data() as AuthCredentials;
+      
+      if (data.pass === inputPass) {
+        console.log(`✅ 인증 성공: ${inputId} (문서 ID: ${docSnap.id})`);
+        return { success: true, mode: 'firestore' };
+      }
     }
 
     return { 
       success: false, 
-      error: '아이디 또는 비밀번호가 일치하지 않습니다' 
+      error: '비밀번호가 일치하지 않습니다' 
     };
   } catch (error: unknown) {
     console.error('Firestore authentication error:', error);

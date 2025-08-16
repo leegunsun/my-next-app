@@ -11,7 +11,9 @@ import {
   Settings,
   BarChart3,
   Home,
-  ChevronRight
+  ChevronRight,
+  User,
+  Target
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAdminStats } from '../../hooks/useAdminStats'
@@ -22,6 +24,12 @@ interface AdminNavigationProps {
 }
 
 const adminNavItems = [
+  {
+    href: '/admin/portfolio',
+    label: '포트폴리오 관리',
+    icon: User,
+    description: '포트폴리오 콘텐츠 전체 관리'
+  },
   {
     href: '/admin/posts',
     label: '게시물 관리',
@@ -37,7 +45,7 @@ const adminNavItems = [
   {
     href: '/admin/posts/new',
     label: '새 글 작성',
-    icon: FileText,
+    icon: Target,
     description: '새로운 블로그 게시물 작성'
   }
 ]
@@ -107,6 +115,7 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
               <>
                 <ChevronRight size={14} className="text-foreground/60" />
                 <span className="text-foreground/80 font-medium">
+                  {pathname?.includes('/portfolio') && '포트폴리오'}
                   {pathname?.includes('/messages') && '메시지'}
                   {pathname?.includes('/new') && '새 글 작성'}
                   {pathname?.includes('/edit') && '글 편집'}
