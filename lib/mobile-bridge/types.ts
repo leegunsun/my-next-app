@@ -21,6 +21,7 @@ export interface UserData {
 export type MobileBridgeData = 
   | UserData 
   | FCMTokenData 
+  | AuthCredentials
   | { fcmTokenStored: boolean; userDataSent: boolean; timestamp: number }
   | { type: string; message: string; timestamp: number; user?: { email: string; uid: string } }
   | Record<string, unknown>;
@@ -50,14 +51,51 @@ export interface BridgeResponse {
   } | Record<string, unknown>;
 }
 
+// Authentication related types
+export interface AuthCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthUserData {
+  uid: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  emailVerified: boolean;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  userData?: AuthUserData;
+  errorCode?: string;
+  errorMessage?: string;
+}
+
 // Window interface for mobile bridge functions
 declare global {
   interface Window {
+    // Flutter Authentication Bridge Functions (Web → Flutter)
+    startFlutterLogin?: (email: string, password: string) => void;
+    checkFlutterAuthStatus?: () => void;
+    flutterLogout?: () => void;
+    
+    // Flutter Authentication Callbacks (Flutter → Web)
+    onFlutterLoginSuccess?: (token: string, userData: string) => void;
+    onFlutterLoginError?: (errorCode: string, errorMessage: string) => void;
+    onFlutterAuthStatus?: (isAuthenticated: boolean) => void;
+    onFlutterLogout?: () => void;
+    
     // Android WebView Interface
     AndroidBridge?: {
       receiveFCMToken: (token: string) => void;
       receiveUserData: (userData: string) => void;
       receiveData: (action: string, data: string) => void;
+      // Authentication methods
+      startLogin?: (email: string, password: string) => void;
+      checkAuthStatus?: () => void;
+      logout?: () => void;
     };
     
     // iOS WebKit Interface
@@ -70,6 +108,10 @@ declare global {
           postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
         };
         generalHandler?: {
+          postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
+        };
+        // Authentication handlers
+        authHandler?: {
           postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
         };
       };

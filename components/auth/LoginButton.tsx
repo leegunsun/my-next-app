@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { LogIn, User, LogOut } from 'lucide-react'
-import { signOut } from '../../lib/firebase/auth'
+import { signOut, signInWithCustomToken } from '../../lib/firebase/auth'
 import { useAuth } from '../../contexts/AuthContext'
 import { AuthModal } from './AuthModal'
+import { useMobileBridge } from '../../lib/mobile-bridge'
 
 interface LoginButtonProps {
   variant?: 'default' | 'minimal'
@@ -19,6 +20,8 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
 }) => {
   const { user, loading, isMaster } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [mobileAuthLoading, setMobileAuthLoading] = useState(false)
+  const { isAuthAvailable, startMobileLogin, setupAuthCallbacks } = useMobileBridge()
 
   const handleSignOut = async () => {
     const { error } = await signOut()
@@ -27,7 +30,78 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
     }
   }
 
-  if (loading) {
+  // Setup mobile bridge authentication callbacks
+  useEffect(() => {
+    if (isAuthAvailable) {
+      setupAuthCallbacks(
+        // onLoginSuccess
+        async (token: string, userData) => {
+          console.log('🎉 Mobile login success!', { userData })
+          setMobileAuthLoading(false)
+          
+          try {
+            // Sign in with the custom token from Flutter
+            const { error } = await signInWithCustomToken(token)
+            if (error) {
+              console.error('❌ Failed to sign in with custom token:', error)
+            } else {
+              console.log('✅ Successfully signed in with mobile token')
+            }
+          } catch (err) {
+            console.error('❌ Error signing in with mobile token:', err)
+          }
+        },
+        // onLoginError
+        (errorCode: string, errorMessage: string) => {
+          console.error('❌ Mobile login error:', { errorCode, errorMessage })
+          setMobileAuthLoading(false)
+          alert(`로그인 실패: ${errorMessage}`)
+        },
+        // onAuthStatus
+        (isAuthenticated: boolean) => {
+          console.log('📊 Mobile auth status:', isAuthenticated)
+        },
+        // onLogout
+        () => {
+          console.log('🚪 Mobile logout completed')
+        }
+      )
+    }
+  }, [isAuthAvailable, setupAuthCallbacks])
+
+  const handleMobileAuth = async () => {
+    if (!isAuthAvailable) {
+      console.log('📱 Mobile bridge not available, falling back to web auth')
+      setShowAuthModal(true)
+      return
+    }
+
+    // For demo purposes, we'll use a simple prompt for email/password
+    // In a real app, you might want to show a custom modal or use the existing AuthModal
+    const email = prompt('이메일을 입력하세요:')
+    const password = prompt('비밀번호를 입력하세요:')
+    
+    if (!email || !password) {
+      return
+    }
+
+    setMobileAuthLoading(true)
+    
+    try {
+      const result = await startMobileLogin({ email, password })
+      if (!result.success) {
+        setMobileAuthLoading(false)
+        alert(`Mobile login failed: ${result.message}`)
+      }
+      // Success will be handled by the callback
+    } catch (error) {
+      setMobileAuthLoading(false)
+      console.error('Error starting mobile login:', error)
+      alert('로그인 시작 중 오류가 발생했습니다.')
+    }
+  }
+
+  if (loading || mobileAuthLoading) {
     return (
       <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-background-secondary">
         <motion.div
@@ -35,7 +109,9 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-4 h-4 border-2 border-foreground-secondary border-t-transparent rounded-full"
         />
-        <span className="text-sm text-foreground-secondary">Loading...</span>
+        <span className="text-sm text-foreground-secondary">
+          {mobileAuthLoading ? 'Mobile Login...' : 'Loading...'}
+        </span>
       </div>
     )
   }
@@ -105,7 +181,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setShowAuthModal(true)}
+        onClick={isAuthAvailable ? handleMobileAuth : () => setShowAuthModal(true)}
         className={`
           flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all
           ${variant === 'minimal' 
@@ -113,9 +189,10 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
             : 'bg-accent-blend text-primary-foreground hover:opacity-90'
           }
         `}
+        title={isAuthAvailable ? 'Mobile Bridge Login' : 'Web Login'}
       >
         <LogIn size={16} />
-        Sign In
+        {isAuthAvailable ? '📱 Sign In' : 'Sign In'}
       </motion.button>
       
       <AuthModal 

@@ -13,7 +13,9 @@ import {
   MobilePlatform, 
   BridgeConfig,
   MobileBridgeData,
-  LoggingData
+  LoggingData,
+  AuthCredentials,
+  AuthUserData
 } from './types';
 import { 
   getStoredFCMToken, 
@@ -336,6 +338,249 @@ export class MobileBridge {
       available: this.platform !== 'unknown',
       fcmToken: this.getFCMToken(),
       config: this.config
+    };
+  }
+
+  /**
+   * Authentication Methods
+   */
+
+  /**
+   * Check if mobile authentication bridge is available
+   */
+  public isAuthBridgeAvailable(): boolean {
+    return this.platform !== 'unknown' && (
+      typeof window.startFlutterLogin === 'function' ||
+      (window.AndroidBridge?.startLogin !== undefined) ||
+      (window.webkit?.messageHandlers?.authHandler !== undefined)
+    );
+  }
+
+  /**
+   * Start mobile authentication process
+   */
+  public async startMobileLogin(credentials: AuthCredentials): Promise<BridgeResponse> {
+    try {
+      this.log('🔐 Starting mobile authentication', { email: credentials.email });
+
+      if (!this.isAuthBridgeAvailable()) {
+        return {
+          success: false,
+          message: 'Mobile authentication bridge not available'
+        };
+      }
+
+      // Call appropriate platform method
+      switch (this.platform) {
+        case 'android':
+          if (window.AndroidBridge?.startLogin) {
+            window.AndroidBridge.startLogin(credentials.email, credentials.password);
+          } else if (window.startFlutterLogin) {
+            window.startFlutterLogin(credentials.email, credentials.password);
+          }
+          break;
+        case 'ios':
+          if (window.webkit?.messageHandlers?.authHandler) {
+            window.webkit.messageHandlers.authHandler.postMessage({
+              action: 'START_LOGIN',
+              data: credentials,
+              timestamp: Date.now()
+            });
+          } else if (window.startFlutterLogin) {
+            window.startFlutterLogin(credentials.email, credentials.password);
+          }
+          break;
+        case 'reactnative':
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              action: 'START_LOGIN',
+              data: credentials,
+              timestamp: Date.now()
+            }));
+          }
+          break;
+        default:
+          if (window.startFlutterLogin) {
+            window.startFlutterLogin(credentials.email, credentials.password);
+          }
+          break;
+      }
+
+      return {
+        success: true,
+        message: 'Mobile login initiated'
+      };
+    } catch (error) {
+      this.log('❌ Error starting mobile login', { error: error instanceof Error ? error.message : String(error) });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Check mobile authentication status
+   */
+  public async checkMobileAuthStatus(): Promise<BridgeResponse> {
+    try {
+      this.log('🔍 Checking mobile authentication status');
+
+      if (!this.isAuthBridgeAvailable()) {
+        return {
+          success: false,
+          message: 'Mobile authentication bridge not available'
+        };
+      }
+
+      // Call appropriate platform method
+      switch (this.platform) {
+        case 'android':
+          if (window.AndroidBridge?.checkAuthStatus) {
+            window.AndroidBridge.checkAuthStatus();
+          } else if (window.checkFlutterAuthStatus) {
+            window.checkFlutterAuthStatus();
+          }
+          break;
+        case 'ios':
+          if (window.webkit?.messageHandlers?.authHandler) {
+            window.webkit.messageHandlers.authHandler.postMessage({
+              action: 'CHECK_AUTH_STATUS',
+              data: {},
+              timestamp: Date.now()
+            });
+          } else if (window.checkFlutterAuthStatus) {
+            window.checkFlutterAuthStatus();
+          }
+          break;
+        case 'reactnative':
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              action: 'CHECK_AUTH_STATUS',
+              data: {},
+              timestamp: Date.now()
+            }));
+          }
+          break;
+        default:
+          if (window.checkFlutterAuthStatus) {
+            window.checkFlutterAuthStatus();
+          }
+          break;
+      }
+
+      return {
+        success: true,
+        message: 'Auth status check initiated'
+      };
+    } catch (error) {
+      this.log('❌ Error checking auth status', { error: error instanceof Error ? error.message : String(error) });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Start mobile logout process
+   */
+  public async startMobileLogout(): Promise<BridgeResponse> {
+    try {
+      this.log('🚪 Starting mobile logout');
+
+      if (!this.isAuthBridgeAvailable()) {
+        return {
+          success: false,
+          message: 'Mobile authentication bridge not available'
+        };
+      }
+
+      // Call appropriate platform method
+      switch (this.platform) {
+        case 'android':
+          if (window.AndroidBridge?.logout) {
+            window.AndroidBridge.logout();
+          } else if (window.flutterLogout) {
+            window.flutterLogout();
+          }
+          break;
+        case 'ios':
+          if (window.webkit?.messageHandlers?.authHandler) {
+            window.webkit.messageHandlers.authHandler.postMessage({
+              action: 'LOGOUT',
+              data: {},
+              timestamp: Date.now()
+            });
+          } else if (window.flutterLogout) {
+            window.flutterLogout();
+          }
+          break;
+        case 'reactnative':
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              action: 'LOGOUT',
+              data: {},
+              timestamp: Date.now()
+            }));
+          }
+          break;
+        default:
+          if (window.flutterLogout) {
+            window.flutterLogout();
+          }
+          break;
+      }
+
+      return {
+        success: true,
+        message: 'Mobile logout initiated'
+      };
+    } catch (error) {
+      this.log('❌ Error starting mobile logout', { error: error instanceof Error ? error.message : String(error) });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Set up Flutter authentication callbacks
+   */
+  public setupAuthCallbacks(
+    onLoginSuccess: (token: string, userData: AuthUserData) => void,
+    onLoginError: (errorCode: string, errorMessage: string) => void,
+    onAuthStatus: (isAuthenticated: boolean) => void,
+    onLogout: () => void
+  ): void {
+    this.log('🔗 Setting up Flutter authentication callbacks');
+
+    // Set up global callback functions that Flutter will call
+    window.onFlutterLoginSuccess = (token: string, userDataString: string) => {
+      try {
+        this.log('✅ Flutter login success received');
+        const userData: AuthUserData = JSON.parse(userDataString);
+        onLoginSuccess(token, userData);
+      } catch (error) {
+        this.log('❌ Error parsing Flutter login success data', { error: error instanceof Error ? error.message : String(error) });
+        onLoginError('PARSE_ERROR', 'Failed to parse user data');
+      }
+    };
+
+    window.onFlutterLoginError = (errorCode: string, errorMessage: string) => {
+      this.log('❌ Flutter login error received', { errorCode, errorMessage });
+      onLoginError(errorCode, errorMessage);
+    };
+
+    window.onFlutterAuthStatus = (isAuthenticated: boolean) => {
+      this.log('📊 Flutter auth status received', { isAuthenticated });
+      onAuthStatus(isAuthenticated);
+    };
+
+    window.onFlutterLogout = () => {
+      this.log('🚪 Flutter logout completed');
+      onLogout();
     };
   }
 

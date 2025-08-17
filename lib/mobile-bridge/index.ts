@@ -14,12 +14,15 @@ export type {
   MobilePlatform, 
   BridgeConfig,
   MobileBridgeData,
-  LoggingData
+  LoggingData,
+  AuthCredentials,
+  AuthUserData,
+  AuthResponse
 } from './types';
 
 // Convenience functions for direct use
 import { getMobileBridge } from './mobile-bridge';
-import type { UserData, BridgeResponse, MobileBridgeData } from './types';
+import type { UserData, BridgeResponse, MobileBridgeData, AuthCredentials, AuthUserData } from './types';
 
 /**
  * Initialize mobile bridge for master account
@@ -78,6 +81,55 @@ export function getMobileBridgeStatus() {
 export function clearMobileBridgeData(): void {
   const bridge = getMobileBridge();
   bridge.clearStoredData();
+}
+
+/**
+ * Authentication convenience functions
+ */
+
+/**
+ * Check if mobile authentication bridge is available
+ */
+export function isMobileAuthAvailable(): boolean {
+  const bridge = getMobileBridge();
+  return bridge.isAuthBridgeAvailable();
+}
+
+/**
+ * Start mobile authentication
+ */
+export async function startMobileAuth(credentials: AuthCredentials): Promise<BridgeResponse> {
+  const bridge = getMobileBridge();
+  return bridge.startMobileLogin(credentials);
+}
+
+/**
+ * Check mobile authentication status
+ */
+export async function checkMobileAuthStatus(): Promise<BridgeResponse> {
+  const bridge = getMobileBridge();
+  return bridge.checkMobileAuthStatus();
+}
+
+/**
+ * Start mobile logout
+ */
+export async function startMobileLogout(): Promise<BridgeResponse> {
+  const bridge = getMobileBridge();
+  return bridge.startMobileLogout();
+}
+
+/**
+ * Setup Flutter authentication callbacks
+ */
+export function setupMobileAuthCallbacks(
+  onLoginSuccess: (token: string, userData: AuthUserData) => void,
+  onLoginError: (errorCode: string, errorMessage: string) => void,
+  onAuthStatus: (isAuthenticated: boolean) => void,
+  onLogout: () => void
+): void {
+  const bridge = getMobileBridge();
+  bridge.setupAuthCallbacks(onLoginSuccess, onLoginError, onAuthStatus, onLogout);
 }
 
 // Default export

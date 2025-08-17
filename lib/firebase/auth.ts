@@ -6,6 +6,7 @@ import {
   signInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  signInWithCustomToken as firebaseSignInWithCustomToken,
   User
 } from 'firebase/auth'
 import { auth } from './config'
@@ -93,6 +94,16 @@ export const isMasterUser = (user: User | null): boolean => {
 export const signInAnonymous = async () => {
   try {
     const result = await signInAnonymously(auth)
+    return { user: result.user, error: null }
+  } catch (error: unknown) {
+    return { user: null, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+// Sign in with custom token (for mobile bridge authentication)
+export const signInWithCustomToken = async (token: string) => {
+  try {
+    const result = await firebaseSignInWithCustomToken(auth, token)
     return { user: result.user, error: null }
   } catch (error: unknown) {
     return { user: null, error: error instanceof Error ? error.message : String(error) }

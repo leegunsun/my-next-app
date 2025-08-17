@@ -27,7 +27,11 @@ export const MobileBridgeStatus: React.FC = () => {
     storeFCMToken,
     clearData,
     refreshStatus,
-    status
+    status,
+    isAuthAvailable,
+    startMobileLogin,
+    checkMobileAuthStatus,
+    startMobileLogout
   } = useMobileBridge()
 
   // Only show for master accounts
@@ -64,6 +68,52 @@ export const MobileBridgeStatus: React.FC = () => {
       setTestResult(result.success ? '✅ FCM token stored' : `❌ FCM failed: ${result.message}`)
     } catch (error) {
       setTestResult(`❌ FCM error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
+  const handleTestAuth = async () => {
+    setTestLoading(true)
+    setTestResult(null)
+    
+    try {
+      // For testing, use hardcoded credentials or prompt
+      const email = prompt('Enter test email:') || 'test@example.com'
+      const password = prompt('Enter test password:') || 'password123'
+      
+      const result = await startMobileLogin({ email, password })
+      setTestResult(result.success ? '🔐 Auth test initiated' : `❌ Auth failed: ${result.message}`)
+    } catch (error) {
+      setTestResult(`❌ Auth error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
+  const handleCheckAuthStatus = async () => {
+    setTestLoading(true)
+    setTestResult(null)
+    
+    try {
+      const result = await checkMobileAuthStatus()
+      setTestResult(result.success ? '📊 Status check initiated' : `❌ Status failed: ${result.message}`)
+    } catch (error) {
+      setTestResult(`❌ Status error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
+  const handleTestLogout = async () => {
+    setTestLoading(true)
+    setTestResult(null)
+    
+    try {
+      const result = await startMobileLogout()
+      setTestResult(result.success ? '🚪 Logout test initiated' : `❌ Logout failed: ${result.message}`)
+    } catch (error) {
+      setTestResult(`❌ Logout error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setTestLoading(false)
     }
@@ -150,6 +200,18 @@ export const MobileBridgeStatus: React.FC = () => {
                   {isAvailable ? 'Yes' : 'No'}
                 </div>
               </div>
+              <div>
+                <span className="text-foreground-secondary">Auth Bridge:</span>
+                <div className={isAuthAvailable ? 'text-green-500' : 'text-red-500'}>
+                  {isAuthAvailable ? '🔐 Ready' : '❌ N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-foreground-secondary">User Auth:</span>
+                <div className={user ? 'text-green-500' : 'text-gray-500'}>
+                  {user ? '✅ Signed In' : '➖ Guest'}
+                </div>
+              </div>
               <div className="col-span-2">
                 <span className="text-foreground-secondary">FCM Token:</span>
                 <div className="font-mono text-xs break-all">
@@ -166,26 +228,69 @@ export const MobileBridgeStatus: React.FC = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleTestBridge}
-                disabled={testLoading}
-                className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
-              >
-                {testLoading ? 'Testing...' : 'Test Bridge'}
-              </motion.button>
+            <div className="space-y-2">
+              {/* Bridge Test Buttons */}
+              <div className="flex gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleTestBridge}
+                  disabled={testLoading}
+                  className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                >
+                  {testLoading ? 'Testing...' : 'Test Bridge'}
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleRequestFCM}
+                  disabled={testLoading}
+                  className="flex-1 px-3 py-2 bg-accent-blend text-primary-foreground rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                >
+                  {testLoading ? 'Requesting...' : 'Get FCM'}
+                </motion.button>
+              </div>
               
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleRequestFCM}
-                disabled={testLoading}
-                className="flex-1 px-3 py-2 bg-accent-blend text-primary-foreground rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
-              >
-                {testLoading ? 'Requesting...' : 'Get FCM'}
-              </motion.button>
+              {/* Authentication Test Buttons */}
+              {isAuthAvailable && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <div className="text-xs text-foreground-secondary font-medium">🔐 Authentication Tests</div>
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleTestAuth}
+                      disabled={testLoading}
+                      className="flex-1 px-3 py-2 bg-blue-500 text-white rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      Test Login
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleCheckAuthStatus}
+                      disabled={testLoading}
+                      className="flex-1 px-3 py-2 bg-purple-500 text-white rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      Check Status
+                    </motion.button>
+                  </div>
+                  
+                  {user && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleTestLogout}
+                      disabled={testLoading}
+                      className="w-full px-3 py-2 bg-orange-500 text-white rounded text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      Test Logout
+                    </motion.button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Debug Info */}
