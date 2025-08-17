@@ -6,7 +6,6 @@ import Link from "next/link"
 import { ThemeToggle } from "./theme-toggle"
 import { LanguageToggle } from "./language-toggle"
 import { navigationItems } from "@/lib/data/content"
-import { Button } from "@/components/ui/button"
 
 interface HeaderProps {
   currentLang: string
@@ -15,7 +14,6 @@ interface HeaderProps {
 
 export function Header({ currentLang, onLanguageChange }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,17 +36,19 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
             Portfolio
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 flex-shrink-0">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Navigation - Horizontal Scroll on Mobile, Flex on Desktop */}
+          <div className="flex-1 min-w-0 mx-2 sm:mx-4 overflow-x-auto scrollbar-hide scroll-smooth">
+            <div className="flex items-center space-x-4 sm:space-x-6 lg:space-x-8 md:justify-center px-2" style={{ minWidth: 'max-content' }}>
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Right side controls */}
@@ -58,48 +58,9 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               onLanguageChange={onLanguageChange} 
             />
             <ThemeToggle />
-            
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-                />
-              </svg>
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t overflow-hidden">
-            <div className="flex flex-col space-y-2 pt-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm font-medium hover:text-primary transition-colors py-2 block truncate"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </nav>
     </header>
   )

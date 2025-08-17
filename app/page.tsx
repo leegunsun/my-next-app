@@ -621,9 +621,11 @@ class NotificationHandler : TextWebSocketHandler() {
           >
             Portfolio
           </motion.div>
-          <div className="flex items-center gap-6">
-            {/* Dynamic Navigation Based on Section Settings */}
-            {renderNavigationItems()}
+          <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide scroll-smooth">
+            <div className="flex items-center gap-6 px-2" style={{ minWidth: 'max-content' }}>
+              {/* Dynamic Navigation Based on Section Settings */}
+              {renderNavigationItems()}
+            </div>
           </div>
         </div>
       </motion.nav>

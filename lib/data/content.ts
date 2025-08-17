@@ -65,6 +65,7 @@ export const navigationItems = {
     { name: "Experience", href: "#experience" },
     { name: "Projects", href: "#projects" },
     { name: "Skills", href: "#skills" },
+    { name: "Blog", href: "/blog" },
     { name: "Contact", href: "#contact" }
   ],
   ko: [
@@ -73,6 +74,7 @@ export const navigationItems = {
     { name: "경력", href: "#experience" },
     { name: "프로젝트", href: "#projects" },
     { name: "기술", href: "#skills" },
+    { name: "블로그", href: "/blog" },
     { name: "연락처", href: "#contact" }
   ]
 }
