@@ -614,15 +614,18 @@ class NotificationHandler : TextWebSocketHandler() {
         role="navigation"
         aria-label="메인 내비게이션"
       >
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between gap-6 sm:gap-8 lg:gap-12">
+          {/* Left section - Logo */}
           <motion.div 
             whileHover={{ scale: 1.05 }}
-            className="text-lg font-medium bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent"
+            className="text-lg font-medium bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent flex-shrink-0"
           >
             Portfolio
           </motion.div>
+          
+          {/* Right section - Navigation */}
           <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide scroll-smooth">
-            <div className="flex items-center gap-6 px-2" style={{ minWidth: 'max-content' }}>
+            <div className="flex items-center justify-end gap-6 px-2" style={{ minWidth: 'max-content' }}>
               {/* Dynamic Navigation Based on Section Settings */}
               {renderNavigationItems()}
             </div>
