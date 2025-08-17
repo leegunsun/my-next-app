@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User } from 'firebase/auth'
 import { onAuthStateChange, isMasterUser } from '../lib/firebase/auth'
+import { initializeMobileBridgeForMaster } from '../lib/mobile-bridge'
+import type { UserData } from '../lib/mobile-bridge'
 
 interface AuthContextType {
   user: User | null
@@ -33,9 +35,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange((user) => {
+    const unsubscribe = onAuthStateChange(async (user) => {
       setUser(user)
       setLoading(false)
+      
+      // Initialize mobile bridge for master account
+      if (user && isMasterUser(user)) {
+        try {
+          console.log('🔑 Master account detected, initializing mobile bridge...')
+          
+          const userData: UserData = {
+            uid: user.uid,
+            email: user.email!,
+            displayName: user.displayName || undefined,
+            photoURL: user.photoURL || undefined,
+            isMaster: true,
+            timestamp: Date.now()
+          }
+          
+          const result = await initializeMobileBridgeForMaster(userData)
+          
+          if (result.success) {
+            console.log('✅ Mobile bridge initialized successfully for master account')
+          } else {
+            console.warn('⚠️ Mobile bridge initialization failed:', result.message)
+          }
+        } catch (error) {
+          console.error('❌ Error initializing mobile bridge:', error)
+        }
+      }
     })
 
     return () => unsubscribe()

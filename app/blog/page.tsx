@@ -9,6 +9,7 @@ import AnimatedSection from '../../components/AnimatedSection'
 import BlogPostCard from '../../components/blog/BlogPostCard'
 import BlogHeader from '../../components/blog/BlogHeader'
 import { LoginButton } from '../../components/auth/LoginButton'
+import MobileBridgeStatus from '../../components/mobile-bridge/MobileBridgeStatus'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 import Link from 'next/link'
 
@@ -299,6 +300,9 @@ export default function BlogPage() {
           </div>
         </section>
       </main>
+      
+      {/* Mobile Bridge Status (Master only) */}
+      <MobileBridgeStatus />
     </div>
   )
 }
