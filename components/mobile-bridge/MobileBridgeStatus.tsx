@@ -23,7 +23,6 @@ export const MobileBridgeStatus: React.FC = () => {
     isAvailable,
     platform,
     fcmToken,
-    isInitialized,
     sendToMobile,
     storeFCMToken,
     clearData,

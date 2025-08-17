@@ -4,6 +4,9 @@
  * Type definitions for mobile webview communication and FCM token management
  */
 
+// Type for logging data - allows objects with string keys and primitive values
+export type LoggingData = Record<string, string | number | boolean | null | undefined> | string | number | boolean | null | undefined;
+
 export interface UserData {
   uid: string;
   email: string;
@@ -14,9 +17,17 @@ export interface UserData {
   timestamp: number;
 }
 
+// Mobile bridge data types for type-safe communication
+export type MobileBridgeData = 
+  | UserData 
+  | FCMTokenData 
+  | { fcmTokenStored: boolean; userDataSent: boolean; timestamp: number }
+  | { type: string; message: string; timestamp: number; user?: { email: string; uid: string } }
+  | Record<string, unknown>;
+
 export interface MobileBridgeAction {
   action: string;
-  data: any;
+  data: MobileBridgeData;
   timestamp: number;
 }
 
@@ -33,7 +44,10 @@ export interface FCMTokenData {
 export interface BridgeResponse {
   success: boolean;
   message?: string;
-  data?: any;
+  data?: {
+    fcmToken?: boolean;
+    userData?: boolean;
+  } | Record<string, unknown>;
 }
 
 // Window interface for mobile bridge functions
@@ -50,13 +64,13 @@ declare global {
     webkit?: {
       messageHandlers?: {
         fcmTokenHandler?: {
-          postMessage: (message: any) => void;
+          postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
         };
         userDataHandler?: {
-          postMessage: (message: any) => void;
+          postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
         };
         generalHandler?: {
-          postMessage: (message: any) => void;
+          postMessage: (message: { action: string; data: MobileBridgeData; timestamp: number }) => void;
         };
       };
     };

@@ -4,7 +4,7 @@ import {
   onMessage,
   Messaging,
 } from "firebase/messaging";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { updateAdminFCMToken } from "./firestore";
 import { auth } from "./config";
 import { isMasterUser } from "./auth";
@@ -20,17 +20,18 @@ interface FirebaseError extends Error {
 const FCM_ENDPOINT_URL =
   "https://8wy19h7y1a.execute-api.us-east-1.amazonaws.com/default/testLamda";
 
-// Token cache to avoid frequent Firestore calls
+// Token cache interface for future use
 interface TokenCache {
   token: string | null;
   timestamp: number;
   ttl: number; // Time to live in milliseconds
 }
 
+// Token cache instance
 let tokenCache: TokenCache = {
   token: null,
   timestamp: 0,
-  ttl: 5 * 60 * 1000, // 5 minutes cache
+  ttl: 5 * 60 * 1000, // 5 minutes
 };
 
 // Initialize FCM (client-side only)
@@ -121,9 +122,14 @@ export async function getCachedAdminFCMToken(): Promise<string | null> {
 
 // Get admin FCM token directly from Firestore fcm/master document with optimized caching
 export async function getAdminFCMTokenDirectly(): Promise<string | null> {
-  const now = Date.now();
-
   try {
+    // Check cache first
+    const now = Date.now();
+    if (tokenCache.token && (now - tokenCache.timestamp) < tokenCache.ttl) {
+      console.log("🔄 Using cached FCM token");
+      return tokenCache.token;
+    }
+
     // Direct Firestore access to fcm collection, master document
     const docRef = doc(db, "fcm", "master");
     const docSnap = await getDoc(docRef);
@@ -148,6 +154,10 @@ export async function getAdminFCMTokenDirectly(): Promise<string | null> {
       );
       return null;
     }
+
+    // Update cache
+    tokenCache.token = token;
+    tokenCache.timestamp = now;
 
     return token;
   } catch (error) {

@@ -11,7 +11,9 @@ import {
   FCMTokenData, 
   BridgeResponse, 
   MobilePlatform, 
-  BridgeConfig 
+  BridgeConfig,
+  MobileBridgeData,
+  LoggingData
 } from './types';
 import { 
   getStoredFCMToken, 
@@ -62,7 +64,7 @@ export class MobileBridge {
   /**
    * Conditional logging based on config
    */
-  private log(message: string, data?: any): void {
+  private log(message: string, data?: LoggingData): void {
     if (this.config.enableLogging) {
       console.log(`[MobileBridge] ${message}`, data || '');
     }
@@ -115,7 +117,7 @@ export class MobileBridge {
       
       return result;
     } catch (error) {
-      this.log('❌ Error storing FCM token', error);
+      this.log('❌ Error storing FCM token', { error: error instanceof Error ? error.message : String(error) });
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -171,7 +173,7 @@ export class MobileBridge {
       this.log('✅ User data sent to mobile app');
       return result;
     } catch (error) {
-      this.log('❌ Error sending user data', error);
+      this.log('❌ Error sending user data', { error: error instanceof Error ? error.message : String(error) });
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -182,7 +184,7 @@ export class MobileBridge {
   /**
    * Send general data to mobile app
    */
-  public async sendToMobile(action: string, data: any): Promise<BridgeResponse> {
+  public async sendToMobile(action: string, data: MobileBridgeData): Promise<BridgeResponse> {
     return new Promise((resolve) => {
       try {
         const message: MobileBridgeAction = {
@@ -213,7 +215,7 @@ export class MobileBridge {
 
         resolve({ success: true, message: `Data sent via ${this.platform} bridge` });
       } catch (error) {
-        this.log('❌ Error sending to mobile', error);
+        this.log('❌ Error sending to mobile', { error: error instanceof Error ? error.message : String(error) });
         resolve({ 
           success: false, 
           message: error instanceof Error ? error.message : 'Unknown error' 
@@ -225,13 +227,13 @@ export class MobileBridge {
   /**
    * Send data to Android WebView
    */
-  private sendToAndroid(action: string, data: any): void {
+  private sendToAndroid(action: string, data: MobileBridgeData): void {
     if (window.AndroidBridge) {
       const dataString = JSON.stringify(data);
       
       switch (action) {
         case 'FCM_TOKEN_STORE':
-          if (window.AndroidBridge.receiveFCMToken) {
+          if (window.AndroidBridge.receiveFCMToken && 'token' in data && typeof data.token === 'string') {
             window.AndroidBridge.receiveFCMToken(data.token);
           }
           break;
@@ -252,7 +254,7 @@ export class MobileBridge {
   /**
    * Send data to iOS WebKit
    */
-  private sendToIOS(action: string, data: any): void {
+  private sendToIOS(action: string, data: MobileBridgeData): void {
     const webkit = window.webkit;
     if (webkit?.messageHandlers) {
       const message = { action, data, timestamp: Date.now() };
@@ -312,7 +314,7 @@ export class MobileBridge {
         }
       };
     } catch (error) {
-      this.log('❌ Error initializing for master account', error);
+      this.log('❌ Error initializing for master account', { error: error instanceof Error ? error.message : String(error) });
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Initialization failed'

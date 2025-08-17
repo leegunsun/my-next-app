@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getMobileBridge } from './mobile-bridge';
-import type { BridgeResponse, MobilePlatform } from './types';
+import type { BridgeResponse, MobilePlatform, MobileBridgeData, BridgeConfig } from './types';
 
 interface MobileBridgeHookReturn {
   // Status
@@ -16,7 +16,7 @@ interface MobileBridgeHookReturn {
   isInitialized: boolean;
   
   // Actions
-  sendToMobile: (action: string, data: any) => Promise<BridgeResponse>;
+  sendToMobile: (action: string, data: MobileBridgeData) => Promise<BridgeResponse>;
   storeFCMToken: (token?: string) => Promise<BridgeResponse>;
   clearData: () => void;
   refreshStatus: () => void;
@@ -26,7 +26,7 @@ interface MobileBridgeHookReturn {
     platform: MobilePlatform;
     available: boolean;
     fcmToken: string | null;
-    config: any;
+    config: BridgeConfig;
   };
 }
 
@@ -51,7 +51,7 @@ export function useMobileBridge(): MobileBridgeHookReturn {
     refreshStatus();
   }, [refreshStatus]);
 
-  const sendToMobile = useCallback(async (action: string, data: any): Promise<BridgeResponse> => {
+  const sendToMobile = useCallback(async (action: string, data: MobileBridgeData): Promise<BridgeResponse> => {
     return bridge.sendToMobile(action, data);
   }, [bridge]);
 

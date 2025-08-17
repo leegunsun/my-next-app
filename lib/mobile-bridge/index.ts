@@ -12,12 +12,14 @@ export type {
   FCMTokenData, 
   BridgeResponse, 
   MobilePlatform, 
-  BridgeConfig 
+  BridgeConfig,
+  MobileBridgeData,
+  LoggingData
 } from './types';
 
 // Convenience functions for direct use
 import { getMobileBridge } from './mobile-bridge';
-import type { UserData, BridgeResponse } from './types';
+import type { UserData, BridgeResponse, MobileBridgeData } from './types';
 
 /**
  * Initialize mobile bridge for master account
@@ -49,7 +51,7 @@ export async function sendUserDataToMobile(userData: UserData): Promise<BridgeRe
 /**
  * Send general data to mobile app
  */
-export async function sendDataToMobile(action: string, data: any): Promise<BridgeResponse> {
+export async function sendDataToMobile(action: string, data: MobileBridgeData): Promise<BridgeResponse> {
   const bridge = getMobileBridge();
   return bridge.sendToMobile(action, data);
 }
