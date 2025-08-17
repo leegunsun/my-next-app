@@ -211,7 +211,7 @@ export async function sendFCMNotification(
   try {
     console.log("📤 Sending FCM notification via custom endpoint:", {
       title: notification.title,
-      body: notification.body,
+      desc: notification.body,
       hasToken: !!adminToken,
       endpoint: FCM_ENDPOINT_URL,
     });
@@ -219,7 +219,7 @@ export async function sendFCMNotification(
     const requestBody = {
       token: adminToken,
       title: notification.title,
-      body: notification.body,
+      desc: notification.body,
     };
 
     console.log("📦 FCM request payload:", {
