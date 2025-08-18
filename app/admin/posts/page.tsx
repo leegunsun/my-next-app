@@ -201,51 +201,77 @@ export default function AdminPostsPage() {
                 </Link>
                 
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleDebug}
-                  className="flex items-center gap-2 px-4 py-3 bg-yellow-500 text-white rounded-2xl font-medium hover:opacity-90 transition-opacity shadow-sm"
+                  className="flex items-center gap-2 px-4 py-3 glass-effect backdrop-blur-sm border border-accent-warning/30 text-accent-warning rounded-2xl font-medium hover:bg-accent-warning/10 transition-all shadow-sm hover:shadow-md"
+                  title="데이터베이스 상태 확인"
                 >
                   <Bug size={18} />
-                  디버그
+                  시스템 진단
                 </motion.button>
                 
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePublishAll}
                   disabled={publishingAll}
-                  className="flex items-center gap-2 px-4 py-3 bg-green-500 text-white rounded-2xl font-medium hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-3 glass-effect backdrop-blur-sm border border-accent-success/30 text-accent-success rounded-2xl font-medium hover:bg-accent-success/10 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+                  title="모든 초안을 게시 상태로 변경"
                 >
                   <RefreshCw size={18} className={publishingAll ? 'animate-spin' : ''} />
-                  모든 초안 게시
+                  일괄 게시
                 </motion.button>
               </div>
             </motion.div>
 
-            {/* Debug Info */}
+            {/* System Diagnostics */}
             {showDebug && debugInfo && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl"
+                transition={{ duration: 0.3 }}
+                className="mb-8 glass-effect backdrop-blur-md border border-accent-warning/20 rounded-3xl p-6 shadow-lg"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">디버그 정보</h3>
-                    <p className="text-yellow-700 dark:text-yellow-300">전체 게시물: {debugInfo.totalDocs}개</p>
-                    <p className="text-yellow-700 dark:text-yellow-300">Published 게시물: {debugInfo.publishedDocs}개</p>
-                    <p className="text-yellow-700 dark:text-yellow-300">Draft 게시물: {debugInfo.totalDocs - debugInfo.publishedDocs}개</p>
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
-                      콘솔에서 상세 정보를 확인하세요.
-                    </p>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Bug size={20} className="text-accent-warning" />
+                      <h3 className="text-lg font-medium text-foreground">시스템 진단</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="glass-effect rounded-2xl p-4 border border-border/30">
+                        <p className="text-xs text-foreground-secondary mb-1">총 게시물</p>
+                        <p className="text-3xl font-semibold text-foreground">{debugInfo.totalDocs}</p>
+                      </div>
+                      <div className="glass-effect rounded-2xl p-4 border border-border/30">
+                        <p className="text-xs text-foreground-secondary mb-1">게시된 글</p>
+                        <p className="text-3xl font-semibold text-accent-success">{debugInfo.publishedDocs}</p>
+                      </div>
+                      <div className="glass-effect rounded-2xl p-4 border border-border/30">
+                        <p className="text-xs text-foreground-secondary mb-1">초안</p>
+                        <p className="text-3xl font-semibold text-accent-warning">{debugInfo.totalDocs - debugInfo.publishedDocs}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm text-foreground-secondary">
+                      <span className="inline-block w-2 h-2 bg-accent-warning rounded-full animate-pulse"></span>
+                      콘솔에서 대화형 디버깅 로그 확인 가능
+                    </div>
                   </div>
-                  <button
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setShowDebug(false)}
-                    className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200"
+                    className="p-2 text-foreground-secondary hover:text-foreground hover:bg-background-secondary/50 rounded-xl transition-all"
+                    title="닫기"
                   >
-                    닫기
-                  </button>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </motion.button>
                 </div>
               </motion.div>
             )}
@@ -313,10 +339,10 @@ export default function AdminPostsPage() {
                             onClick={() => handleToggleStatus(post.id!, post.status)}
                             className={`p-3 rounded-xl transition-all shadow-sm hover:shadow-md ${
                               post.status === 'published' 
-                                ? 'text-green-600 hover:text-green-700 hover:bg-green-50' 
-                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                                ? 'text-accent-success hover:text-accent-success/80 hover:bg-accent-success/10 border border-accent-success/20' 
+                                : 'text-foreground-secondary hover:text-accent-warning hover:bg-accent-warning/10 border border-border/30'
                             }`}
-                            title={post.status === 'published' ? '초안으로 변경' : '게시로 변경'}
+                            title={post.status === 'published' ? '초안으로 전환' : '게시로 전환'}
                           >
                             {post.status === 'published' ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                           </motion.button>
@@ -425,8 +451,8 @@ export default function AdminPostsPage() {
                   className="text-foreground-secondary mb-8 text-lg"
                 >
                   {searchTerm || statusFilter !== 'all' 
-                    ? '검색 조건에 맞는 게시물이 없습니다.' 
-                    : '첫 번째 게시물을 작성해보세요.'
+                    ? '검색 조건에 맞는 콘텐츠가 없습니다' 
+                    : '콘텐츠를 작성하여 공유해보세요'
                   }
                 </motion.p>
                 <Link href="/admin/posts/new">
@@ -439,7 +465,7 @@ export default function AdminPostsPage() {
                     className="bg-accent-blend text-primary-foreground hover:opacity-90 px-8 py-4 text-lg rounded-2xl font-medium transition-all shadow-lg flex items-center gap-3"
                   >
                     <Plus size={20} />
-                    새 글 작성
+                    콘텐츠 작성
                   </motion.button>
                 </Link>
               </motion.div>
