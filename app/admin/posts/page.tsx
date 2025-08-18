@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, FileText, CheckCircle, FileEdit } from 'lucide-react'
-import { getAllPosts, deleteBlogPost, BlogPost } from '../../../lib/firebase/firestore'
+import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, FileText, CheckCircle, FileEdit, ToggleLeft, ToggleRight, Bug, RefreshCw } from 'lucide-react'
+import { getAllPosts, deleteBlogPost, updateBlogPost, BlogPost, debugCollection } from '../../../lib/firebase/firestore'
 import { useAuth } from '../../../contexts/AuthContext'
 // Using native JavaScript Date formatting instead of date-fns
 import Link from 'next/link'
@@ -22,6 +22,9 @@ export default function AdminPostsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<{ totalDocs: number; publishedDocs: number } | null>(null)
+  const [showDebug, setShowDebug] = useState(false)
+  const [publishingAll, setPublishingAll] = useState(false)
 
   const statusOptions: SelectOption[] = [
     { id: 'all', name: '전체', value: 'all', icon: <FileText size={16} /> },
@@ -66,6 +69,47 @@ export default function AdminPostsPage() {
       setPosts(prev => prev.filter(post => post.id !== postId))
     }
     setDeleting(null)
+  }
+
+  const handleToggleStatus = async (postId: string, currentStatus: 'draft' | 'published') => {
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published'
+    const { error } = await updateBlogPost(postId, { status: newStatus })
+    
+    if (error) {
+      console.error('Status update error:', error)
+      alert('상태 변경 중 오류가 발생했습니다.')
+    } else {
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? { ...post, status: newStatus } : post
+      ))
+      console.log(`🔄 Post ${postId} status changed to: ${newStatus}`)
+    }
+  }
+
+  const handleDebug = async () => {
+    console.log('🔍 Starting debug...')
+    const info = await debugCollection()
+    setDebugInfo(info)
+    setShowDebug(true)
+    console.log('📊 Debug results:', info)
+  }
+
+  const handlePublishAll = async () => {
+    if (!confirm('모든 초안을 게시 상태로 변경하시겠습니까?')) return
+    
+    setPublishingAll(true)
+    const draftPosts = posts.filter(post => post.status === 'draft')
+    
+    for (const post of draftPosts) {
+      if (post.id) {
+        await updateBlogPost(post.id, { status: 'published' })
+        console.log(`📢 Published: ${post.title}`)
+      }
+    }
+    
+    await loadPosts()
+    setPublishingAll(false)
+    alert(`${draftPosts.length}개의 게시물이 게시되었습니다.`)
   }
 
   const formatDate = (timestamp: { toDate?: () => Date } | Date | string) => {
@@ -144,7 +188,67 @@ export default function AdminPostsPage() {
                 </div>
               </div>
 
+              <div className="flex gap-2">
+                <Link href="/admin/posts/new">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 px-4 py-3 bg-accent-blend text-primary-foreground rounded-2xl font-medium hover:opacity-90 transition-opacity shadow-sm"
+                  >
+                    <Plus size={18} />
+                    새 글 작성
+                  </motion.button>
+                </Link>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDebug}
+                  className="flex items-center gap-2 px-4 py-3 bg-yellow-500 text-white rounded-2xl font-medium hover:opacity-90 transition-opacity shadow-sm"
+                >
+                  <Bug size={18} />
+                  디버그
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePublishAll}
+                  disabled={publishingAll}
+                  className="flex items-center gap-2 px-4 py-3 bg-green-500 text-white rounded-2xl font-medium hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+                >
+                  <RefreshCw size={18} className={publishingAll ? 'animate-spin' : ''} />
+                  모든 초안 게시
+                </motion.button>
+              </div>
             </motion.div>
+
+            {/* Debug Info */}
+            {showDebug && debugInfo && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">디버그 정보</h3>
+                    <p className="text-yellow-700 dark:text-yellow-300">전체 게시물: {debugInfo.totalDocs}개</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">Published 게시물: {debugInfo.publishedDocs}개</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">Draft 게시물: {debugInfo.totalDocs - debugInfo.publishedDocs}개</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+                      콘솔에서 상세 정보를 확인하세요.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDebug(false)}
+                    className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Enhanced Posts List */}
             {loading ? (
@@ -203,6 +307,20 @@ export default function AdminPostsPage() {
 
                         {/* Actions */}
                         <div className="flex items-center gap-2 flex-shrink-0">
+                          <motion.button
+                            whileHover={{ scale: 1.1, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleToggleStatus(post.id!, post.status)}
+                            className={`p-3 rounded-xl transition-all shadow-sm hover:shadow-md ${
+                              post.status === 'published' 
+                                ? 'text-green-600 hover:text-green-700 hover:bg-green-50' 
+                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                            }`}
+                            title={post.status === 'published' ? '초안으로 변경' : '게시로 변경'}
+                          >
+                            {post.status === 'published' ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                          </motion.button>
+                          
                           {post.status === 'published' && (
                             <Link href={`/blog/${post.id}`} target="_blank">
                               <motion.button

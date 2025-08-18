@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus } from 'lucide-react'
-import { getPublishedPosts, searchPosts, getPostsByCategory, BlogPost } from '../../lib/firebase/firestore'
+import { Search, Plus, Bug } from 'lucide-react'
+import { getPublishedPosts, searchPosts, getPostsByCategory, BlogPost, debugCollection } from '../../lib/firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
 import AnimatedSection from '../../components/AnimatedSection'
 import BlogPostCard from '../../components/blog/BlogPostCard'
@@ -24,6 +24,8 @@ export default function BlogPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [cachedPosts, setCachedPosts] = useState<{[key: string]: BlogPost[]}>({})
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<{ totalDocs: number; publishedDocs: number } | null>(null)
+  const [showDebug, setShowDebug] = useState(false)
   // const [isTransitioning, setIsTransitioning] = useState(false) // Reserved for future use
 
   // Categories for filtering
@@ -150,6 +152,14 @@ export default function BlogPage() {
     handleSearch(searchTerm)
   }
 
+  const handleDebug = async () => {
+    console.log('🔍 Starting debug...')
+    const info = await debugCollection()
+    setDebugInfo(info)
+    setShowDebug(true)
+    console.log('📊 Debug results:', info)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
@@ -160,16 +170,27 @@ export default function BlogPage() {
           </Link>
           <div className="flex items-center gap-4">
             {isMaster && (
-              <Link href="/admin/posts">
+              <>
+                <Link href="/admin/posts">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 px-4 py-2 bg-accent-blend text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity"
+                  >
+                    <Plus size={16} />
+                    게시물 관리
+                  </motion.button>
+                </Link>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent-blend text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity"
+                  onClick={handleDebug}
+                  className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md font-medium hover:opacity-90 transition-opacity"
                 >
-                  <Plus size={16} />
-                  게시물 관리
+                  <Bug size={16} />
+                  디버그
                 </motion.button>
-              </Link>
+              </>
             )}
             <LoginButton variant="minimal" />
           </div>
@@ -179,6 +200,32 @@ export default function BlogPage() {
       <main className="pt-16">
         {/* Blog Header */}
         <BlogHeader />
+
+        {/* Debug Info */}
+        {showDebug && debugInfo && (
+          <section className="py-4 bg-yellow-50 dark:bg-yellow-900/20 border-y border-yellow-200 dark:border-yellow-800">
+            <div className="container mx-auto px-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">디버그 정보</h3>
+                    <p className="text-yellow-700 dark:text-yellow-300">전체 게시물: {debugInfo.totalDocs}개</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">Published 게시물: {debugInfo.publishedDocs}개</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+                      콘솔에서 상세 정보를 확인하세요.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDebug(false)}
+                    className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Search and Filters */}
         <section className="py-8 bg-background-secondary">
