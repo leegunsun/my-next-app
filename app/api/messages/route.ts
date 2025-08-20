@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase/config'
-import { collection, addDoc, getDocs, orderBy, query, Timestamp } from 'firebase/firestore'
+import { collection, addDoc, getDocs, orderBy, query, Timestamp, limit, startAfter, where, getCountFromServer, doc, getDoc } from 'firebase/firestore'
 import { sendFCMNotification } from '@/lib/firebase/fcm'
 
 export interface Message {
@@ -67,14 +67,52 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - Get all messages (admin only)
-export async function GET() {
+// GET - Get paginated messages (admin only)
+export async function GET(request: NextRequest) {
   try {
-    const messagesQuery = query(
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('limit') || '10')
+    const statusFilter = searchParams.get('status') || 'all'
+    const lastDocId = searchParams.get('lastDocId')
+    
+    // Validate pagination parameters
+    if (page < 1 || pageSize < 1 || pageSize > 100) {
+      return NextResponse.json(
+        { error: 'Invalid pagination parameters' },
+        { status: 400 }
+      )
+    }
+
+    let messagesQuery = query(
       collection(db, 'messages'),
       orderBy('createdAt', 'desc')
     )
-    
+
+    // Add status filter if specified
+    if (statusFilter !== 'all') {
+      messagesQuery = query(
+        collection(db, 'messages'),
+        where('status', '==', statusFilter),
+        orderBy('createdAt', 'desc')
+      )
+    }
+
+    // Add pagination
+    if (lastDocId && page > 1) {
+      // Get the last document for cursor-based pagination
+      const lastDocRef = doc(db, 'messages', lastDocId)
+      const lastDocSnap = await getDoc(lastDocRef)
+      if (lastDocSnap.exists()) {
+        messagesQuery = query(messagesQuery, startAfter(lastDocSnap), limit(pageSize))
+      } else {
+        messagesQuery = query(messagesQuery, limit(pageSize))
+      }
+    } else {
+      messagesQuery = query(messagesQuery, limit(pageSize))
+    }
+
+    // Get messages
     const querySnapshot = await getDocs(messagesQuery)
     const messages: Message[] = []
     
@@ -85,7 +123,44 @@ export async function GET() {
       } as Message)
     })
 
-    return NextResponse.json({ messages })
+    // Get total count for pagination metadata
+    let countQuery = query(collection(db, 'messages'))
+    if (statusFilter !== 'all') {
+      countQuery = query(
+        collection(db, 'messages'),
+        where('status', '==', statusFilter)
+      )
+    }
+    
+    const countSnapshot = await getCountFromServer(countQuery)
+    const totalCount = countSnapshot.data().count
+    const totalPages = Math.ceil(totalCount / pageSize)
+    
+    // Get unread count for notification badge
+    const unreadQuery = query(
+      collection(db, 'messages'),
+      where('status', '==', 'unread')
+    )
+    const unreadCountSnapshot = await getCountFromServer(unreadQuery)
+    const unreadCount = unreadCountSnapshot.data().count
+
+    const hasNext = messages.length === pageSize && page < totalPages
+    const hasPrevious = page > 1
+    const lastDocInPage = messages.length > 0 ? messages[messages.length - 1].id : null
+
+    return NextResponse.json({
+      messages,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        pageSize,
+        hasNext,
+        hasPrevious,
+        lastDocId: lastDocInPage,
+        unreadCount
+      }
+    })
 
   } catch (error) {
     console.error('Error fetching messages:', error)

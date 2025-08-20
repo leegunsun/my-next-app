@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,10 +12,13 @@ import {
   Trash2, 
   Eye, 
   Reply,
-  MessageSquare
+  MessageSquare,
+  RefreshCw
 } from 'lucide-react'
 import FCMSetup from '@/components/admin/FCMSetup'
 import AdminHeader from '@/components/admin/AdminHeader'
+import PaginationComponent from '@/components/ui/pagination'
+import MessageFilters from '@/components/admin/MessageFilters'
 // Removed date-fns dependency
 
 interface Message {
@@ -28,28 +31,97 @@ interface Message {
   adminNotes?: string
 }
 
+interface PaginationData {
+  currentPage: number
+  totalPages: number
+  totalCount: number
+  pageSize: number
+  hasNext: boolean
+  hasPrevious: boolean
+  lastDocId: string | null
+  unreadCount: number
+}
+
+interface StatusCounts {
+  all: number
+  unread: number
+  read: number
+  replied: number
+}
+
 export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [adminNotes, setAdminNotes] = useState('')
   const [updating, setUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Pagination state
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    pageSize: 10,
+    hasNext: false,
+    hasPrevious: false,
+    lastDocId: null,
+    unreadCount: 0
+  })
+  
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusCounts, setStatusCounts] = useState<StatusCounts>({
+    all: 0,
+    unread: 0,
+    read: 0,
+    replied: 0
+  })
 
-  // Fetch messages
-  const fetchMessages = async () => {
+  // Fetch messages with pagination
+  const fetchMessages = useCallback(async (page: number = 1, pageSize: number = 10, status: string = 'all', lastDocId?: string) => {
     try {
-      const response = await fetch('/api/messages')
+      setError(null)
+      if (page === 1) {
+        setLoading(true)
+      }
+      
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+        status: status
+      })
+      
+      if (lastDocId && page > 1) {
+        params.append('lastDocId', lastDocId)
+      }
+      
+      const response = await fetch(`/api/messages?${params}`)
       const data = await response.json()
       
-      if (data.messages) {
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch messages')
+      }
+      
+      if (data.messages && data.pagination) {
         setMessages(data.messages)
+        setPagination(data.pagination)
+        
+        // Update status counts
+        setStatusCounts(prev => ({
+          ...prev,
+          all: data.pagination.totalCount,
+          unread: data.pagination.unreadCount
+        }))
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch messages')
+      setMessages([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // Update message status
   const updateMessageStatus = async (messageId: string, status: string) => {
@@ -129,9 +201,29 @@ export default function AdminMessagesPage() {
     }
   }
 
+  // Pagination handlers
+  const handlePageChange = useCallback((newPage: number) => {
+    const lastDocId = newPage > pagination.currentPage ? pagination.lastDocId : undefined
+    fetchMessages(newPage, pagination.pageSize, statusFilter, lastDocId || undefined)
+  }, [fetchMessages, pagination.currentPage, pagination.lastDocId, pagination.pageSize, statusFilter])
+  
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    fetchMessages(1, newPageSize, statusFilter) // Reset to page 1 when changing page size
+  }, [fetchMessages, statusFilter])
+  
+  const handleStatusChange = useCallback((newStatus: string) => {
+    setStatusFilter(newStatus)
+    fetchMessages(1, pagination.pageSize, newStatus) // Reset to page 1 when changing filter
+  }, [fetchMessages, pagination.pageSize])
+  
+  // Refresh handler
+  const handleRefresh = useCallback(() => {
+    fetchMessages(pagination.currentPage, pagination.pageSize, statusFilter, pagination.lastDocId || undefined)
+  }, [fetchMessages, pagination.currentPage, pagination.pageSize, statusFilter, pagination.lastDocId])
+  
   useEffect(() => {
     fetchMessages()
-  }, [])
+  }, [fetchMessages])
 
   useEffect(() => {
     if (selectedMessage) {
@@ -166,7 +258,7 @@ export default function AdminMessagesPage() {
     })
   }
 
-  const unreadCount = messages.filter(msg => msg.status === 'unread').length
+  const unreadCount = pagination.unreadCount
 
   if (loading) {
     return (
@@ -229,10 +321,40 @@ export default function AdminMessagesPage() {
           <FCMSetup />
         </motion.div>
 
+        {/* Error State */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700"
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              <span>오류: {error}</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
+          className="mb-6"
+        >
+          <MessageFilters
+            selectedStatus={statusFilter}
+            onStatusChange={handleStatusChange}
+            loading={loading}
+            counts={statusCounts}
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
           className="grid lg:grid-cols-2 gap-8"
         >
           <div className="space-y-6">
@@ -245,13 +367,17 @@ export default function AdminMessagesPage() {
               <h2 className="text-2xl font-medium">메시지 목록</h2>
               <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                 <Button 
-                  onClick={fetchMessages} 
+                  onClick={handleRefresh} 
                   variant="outline" 
                   size="sm"
                   disabled={loading}
                   className="bg-background/80 backdrop-blur-sm border-border/50 rounded-2xl hover:border-primary/50 hover:shadow-lg hover:bg-primary/5 transition-all duration-200"
                 >
-                  새로 고침
+                  {loading ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    '새로 고침'
+                  )}
                 </Button>
               </motion.div>
             </motion.div>
@@ -336,6 +462,7 @@ export default function AdminMessagesPage() {
                 ))}
               </div>
             )}
+            
           </div>
 
           <motion.div
@@ -516,6 +643,28 @@ export default function AdminMessagesPage() {
             )}
           </motion.div>
         </motion.div>
+
+        {/* Pagination - Full Width */}
+        {messages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.7 }}
+            className="mt-8"
+          >
+            <PaginationComponent
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalCount={pagination.totalCount}
+              pageSize={pagination.pageSize}
+              hasNext={pagination.hasNext}
+              hasPrevious={pagination.hasPrevious}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              loading={loading}
+            />
+          </motion.div>
+        )}
       </div>
     </div>
   )
