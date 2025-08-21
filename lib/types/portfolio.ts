@@ -134,3 +134,76 @@ export interface PaginatedResponse<T> {
   }
   message: string
 }
+
+// Resume Management Types
+export interface PersonalInfo {
+  name: string
+  email: string
+  phone: string
+  address: string
+  linkedin?: string
+  github?: string
+  website?: string
+  summary: string
+}
+
+export interface WorkExperience {
+  id: string
+  company: string
+  position: string
+  startDate: string // YYYY-MM format
+  endDate: string | null // null for current job
+  description: string
+  achievements: string[]
+  technologies: string[]
+  isActive: boolean
+  order: number
+}
+
+export interface Education {
+  id: string
+  institution: string
+  degree: string
+  field: string
+  startDate: string // YYYY-MM format
+  endDate: string // YYYY-MM format
+  gpa?: string
+  description?: string
+  isActive: boolean
+  order: number
+}
+
+export interface Certification {
+  id: string
+  name: string
+  issuer: string
+  issueDate: string // YYYY-MM format
+  expiryDate?: string // YYYY-MM format
+  credentialId?: string
+  credentialUrl?: string
+  description?: string
+  isActive: boolean
+  order: number
+}
+
+export interface Language {
+  id: string
+  name: string
+  proficiency: 'native' | 'fluent' | 'advanced' | 'intermediate' | 'basic'
+  description?: string
+  isActive: boolean
+  order: number
+}
+
+export interface ResumeData {
+  id: string
+  personalInfo: PersonalInfo
+  workExperiences: WorkExperience[]
+  education: Education[]
+  certifications: Certification[]
+  languages: Language[]
+  templateStyle: 'modern' | 'classic' | 'minimal'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}

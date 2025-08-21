@@ -24,50 +24,94 @@ export function formatDateKo(date: Date | string): string {
 
 // PDF Download functionality
 export async function downloadResume() {
-  // Track download event
-  trackDownload('Developer_Resume.pdf')
-  
-  // Send FCM notification to admin (fire and forget)
   try {
-    const notificationData = {
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      downloadPath: '/resume.pdf'
+    // Get current resume file info from API
+    const response = await fetch('/api/portfolio/resume-upload')
+    const result = await response.json()
+    
+    let downloadUrl = '/uploads/resumes/current-resume.pdf'
+    let filename = 'Developer_Resume.pdf'
+    
+    if (result.success && result.data) {
+      downloadUrl = result.data.fileUrl
+      filename = result.data.originalName || 'Developer_Resume.pdf'
+    } else {
+      // Fallback: Check if current-resume.pdf exists, otherwise use default
+      const checkResponse = await fetch('/uploads/resumes/current-resume.pdf', { method: 'HEAD' })
+      if (!checkResponse.ok) {
+        // If no uploaded resume exists, show message to user
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('이력서 다운로드', {
+            body: '등록된 이력서가 없습니다. 관리자에게 문의해주세요.',
+            icon: '/favicon.ico'
+          })
+        } else {
+          alert('등록된 이력서가 없습니다. 관리자에게 문의해주세요.')
+        }
+        return
+      }
     }
 
-    // Send FCM notification without blocking the download
-    fetch('/api/notifications/resume-download', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(notificationData)
-    }).then(response => {
-      if (response.ok) {
-        console.log('✅ Resume download notification sent to admin')
-      } else {
-        console.warn('⚠️ Failed to send resume download notification')
+    // Track download event
+    trackDownload(filename)
+    
+    // Send FCM notification to admin (fire and forget)
+    try {
+      const notificationData = {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        downloadPath: downloadUrl,
+        filename: filename
       }
-    }).catch(error => {
-      console.warn('⚠️ Resume download notification error:', error)
-    })
+
+      // Send FCM notification without blocking the download
+      fetch('/api/notifications/resume-download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notificationData)
+      }).then(response => {
+        if (response.ok) {
+          console.log('✅ Resume download notification sent to admin')
+        } else {
+          console.warn('⚠️ Failed to send resume download notification')
+        }
+      }).catch(error => {
+        console.warn('⚠️ Resume download notification error:', error)
+      })
+    } catch (error) {
+      console.warn('⚠️ Failed to prepare resume download notification:', error)
+    }
+    
+    // Download the current resume PDF
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = filename
+    link.click()
+    
+    // Show notification to user
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('이력서 다운로드', {
+        body: '이력서 다운로드가 시작되었습니다.',
+        icon: '/favicon.ico'
+      })
+    }
   } catch (error) {
-    console.warn('⚠️ Failed to prepare resume download notification:', error)
-  }
-  
-  // In a real application, this would download an actual PDF file
-  // For demo purposes, we'll create a placeholder action
-  const link = document.createElement('a')
-  link.href = '/resume.pdf' // This should be a real PDF file in the public folder
-  link.download = 'Developer_Resume.pdf'
-  link.click()
-  
-  // Show notification to user
-  if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification('이력서 다운로드', {
-      body: '이력서 다운로드가 시작되었습니다.',
-      icon: '/favicon.ico'
-    })
+    console.error('❌ Error downloading resume:', error)
+    
+    // Fallback to default behavior
+    const link = document.createElement('a')
+    link.href = '/uploads/resumes/current-resume.pdf'
+    link.download = 'Developer_Resume.pdf'
+    link.click()
+    
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('이력서 다운로드', {
+        body: '이력서 다운로드가 시작되었습니다.',
+        icon: '/favicon.ico'
+      })
+    }
   }
 }
 
