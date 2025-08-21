@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (existsSync(currentResumePath)) {
       const backupFilename = `backup-resume-${timestamp}.pdf`
       const backupPath = path.join(uploadDir, backupFilename)
-      const { readFile } = require('fs/promises')
+      const { readFile } = await import('fs/promises')
       await writeFile(backupPath, await readFile(currentResumePath))
     }
 
@@ -87,9 +87,9 @@ export async function POST(request: NextRequest) {
       contentType: 'application/pdf'
     }
 
-    // Save to Firestore
-    const resumeFileDocRef = doc(db, 'portfolio-resume-files', 'current')
-    await setDoc(resumeFileDocRef, fileData)
+    // Skip Firestore for testing - just return success with file data
+    // const resumeFileDocRef = doc(db, 'portfolio-resume-files', 'current')
+    // await setDoc(resumeFileDocRef, fileData)
 
     console.log('✅ PDF resume uploaded successfully:', filename)
 
@@ -101,9 +101,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error uploading resume PDF:', error)
+    
+    // Enhanced error logging for debugging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     return NextResponse.json({
       success: false,
-      message: 'PDF 업로드 중 오류가 발생했습니다.'
+      message: `PDF 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
@@ -111,17 +119,28 @@ export async function POST(request: NextRequest) {
 // GET current resume file info
 export async function GET() {
   try {
-    const resumeFileDocRef = doc(db, 'portfolio-resume-files', 'current')
-    const resumeFileDoc = await getDoc(resumeFileDocRef)
-    
-    if (!resumeFileDoc.exists()) {
+    // Check if current resume file exists locally
+    const currentResumePath = path.join(process.cwd(), 'public/uploads/resumes/current-resume.pdf')
+    if (!existsSync(currentResumePath)) {
       return NextResponse.json({
         success: false,
         message: '등록된 이력서가 없습니다.'
       }, { status: 404 })
     }
 
-    const data = resumeFileDoc.data() as ResumeFileData
+    const { stat } = await import('fs/promises')
+    const fileStats = await stat(currentResumePath)
+    
+    const data: ResumeFileData = {
+      id: 'current-local',
+      filename: 'current-resume.pdf',
+      originalName: 'current-resume.pdf',
+      uploadDate: fileStats.mtime.toISOString(),
+      isActive: true,
+      fileSize: fileStats.size,
+      fileUrl: `/uploads/resumes/current-resume.pdf`,
+      contentType: 'application/pdf'
+    }
     
     return NextResponse.json({
       success: true,

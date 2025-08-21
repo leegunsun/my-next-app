@@ -22,33 +22,43 @@ export function formatDateKo(date: Date | string): string {
   })
 }
 
-// PDF Download functionality
+// PDF Download functionality  
 export async function downloadResume() {
   try {
-    // Get current resume file info from API
-    const response = await fetch('/api/portfolio/resume-upload')
-    const result = await response.json()
+    // Try Firebase Storage first, fallback to local storage
+    let response = await fetch('/api/portfolio/resume-upload-firebase')
+    let result = await response.json()
     
     let downloadUrl = '/uploads/resumes/current-resume.pdf'
     let filename = 'Developer_Resume.pdf'
     
+    // If Firebase Storage has the file, use it
     if (result.success && result.data) {
       downloadUrl = result.data.fileUrl
       filename = result.data.originalName || 'Developer_Resume.pdf'
     } else {
-      // Fallback: Check if current-resume.pdf exists, otherwise use default
-      const checkResponse = await fetch('/uploads/resumes/current-resume.pdf', { method: 'HEAD' })
-      if (!checkResponse.ok) {
-        // If no uploaded resume exists, show message to user
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('이력서 다운로드', {
-            body: '등록된 이력서가 없습니다. 관리자에게 문의해주세요.',
-            icon: '/favicon.ico'
-          })
-        } else {
-          alert('등록된 이력서가 없습니다. 관리자에게 문의해주세요.')
+      // Fallback to local storage API
+      response = await fetch('/api/portfolio/resume-upload')
+      result = await response.json()
+      
+      if (result.success && result.data) {
+        downloadUrl = result.data.fileUrl
+        filename = result.data.originalName || 'Developer_Resume.pdf'
+      } else {
+        // Final fallback: Check if current-resume.pdf exists locally
+        const checkResponse = await fetch('/uploads/resumes/current-resume.pdf', { method: 'HEAD' })
+        if (!checkResponse.ok) {
+          // If no resume exists anywhere, show message to user
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('이력서 다운로드', {
+              body: '등록된 이력서가 없습니다. 관리자에게 문의해주세요.',
+              icon: '/favicon.ico'
+            })
+          } else {
+            alert('등록된 이력서가 없습니다. 관리자에게 문의해주세요.')
+          }
+          return
         }
-        return
       }
     }
 

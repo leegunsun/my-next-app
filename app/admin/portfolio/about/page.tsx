@@ -155,8 +155,10 @@ export default function AboutManagementPage() {
   const fetchResumePdfInfo = async () => {
     try {
       setIsLoadingPdf(true)
+      // Use local storage for testing since Firebase credentials not configured
       const response = await fetch('/api/portfolio/resume-upload')
       const result = await response.json()
+      
       if (result.success) {
         setResumePdfInfo(result.data)
       } else {
