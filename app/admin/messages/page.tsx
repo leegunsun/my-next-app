@@ -462,36 +462,48 @@ export default function AdminMessagesPage() {
                     ))}
                   </div>
                 ) : (
-                  // Desktop table view
-                  <div className="max-h-[600px] overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="bg-background/50 border-b border-border/30 sticky top-0 backdrop-blur-md">
-                        <tr>
-                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">보낸이</th>
-                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">메시지</th>
-                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">날짜</th>
-                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">상태</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  // Desktop table view with separated header
+                  <div className="space-y-0">
+                    {/* Table Header - Fixed outside scroll area */}
+                    <div className="bg-background/80 border-b border-border/30 rounded-t-2xl px-3 py-2 glass-effect">
+                      <div className="grid grid-cols-12 gap-3 items-center">
+                        <div className="col-span-3">
+                          <span className="text-sm font-medium text-foreground-secondary">보낸이</span>
+                        </div>
+                        <div className="col-span-5">
+                          <span className="text-sm font-medium text-foreground-secondary">메시지</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-sm font-medium text-foreground-secondary">날짜</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-sm font-medium text-foreground-secondary">상태</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Table Body - Scrollable content */}
+                    <div className="max-h-[600px] overflow-y-auto bg-background/30 rounded-b-2xl">
+                      <div className="space-y-0">
                         {messages.map((message, index) => (
-                          <motion.tr
+                          <motion.div
                             key={message.id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: 0.1 * index }}
                             onClick={() => setSelectedMessage(message)}
-                            className={`cursor-pointer transition-all hover:bg-primary/5 border-b border-border/20 last:border-b-0 ${
+                            className={`grid grid-cols-12 gap-3 items-center p-3 cursor-pointer transition-all hover:bg-primary/5 border-b border-border/20 last:border-b-0 ${
                               selectedMessage?.id === message.id ? 'bg-primary/10 border-primary/30' : ''
                             } ${message.status === 'unread' ? 'bg-accent-warning/5' : ''}`}
                           >
-                            <td className="p-3">
+                            {/* Sender Column */}
+                            <div className="col-span-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 glass-effect rounded-full flex items-center justify-center border border-border/30">
+                                <div className="w-8 h-8 glass-effect rounded-full flex items-center justify-center border border-border/30 flex-shrink-0">
                                   <User className="h-4 w-4 text-foreground-secondary" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-foreground truncate">{message.name}</div>
+                                  <div className="font-medium text-foreground truncate text-sm">{message.name}</div>
                                   <div className="text-xs text-foreground-secondary truncate">{message.email}</div>
                                 </div>
                                 {message.status === 'unread' && (
@@ -499,30 +511,36 @@ export default function AdminMessagesPage() {
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
-                                    className="w-2 h-2 bg-accent-warning rounded-full"
+                                    className="w-2 h-2 bg-accent-warning rounded-full flex-shrink-0"
                                   />
                                 )}
                               </div>
-                            </td>
-                            <td className="p-3">
-                              <div className="text-sm text-foreground line-clamp-2 max-w-xs">
+                            </div>
+                            
+                            {/* Message Column */}
+                            <div className="col-span-5">
+                              <div className="text-sm text-foreground line-clamp-2">
                                 {message.message}
                               </div>
-                            </td>
-                            <td className="p-3">
+                            </div>
+                            
+                            {/* Date Column */}
+                            <div className="col-span-2">
                               <div className="text-xs text-foreground-secondary">
                                 {formatDate(message.createdAt)}
                               </div>
-                            </td>
-                            <td className="p-3">
+                            </div>
+                            
+                            {/* Status Column */}
+                            <div className="col-span-2">
                               <div className="flex items-center">
                                 {getStatusBadge(message.status)}
                               </div>
-                            </td>
-                          </motion.tr>
+                            </div>
+                          </motion.div>
                         ))}
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
                 )}
               </motion.div>
