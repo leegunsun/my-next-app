@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -56,6 +57,10 @@ export default function AdminMessagesPage() {
   const [adminNotes, setAdminNotes] = useState('')
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Responsive design
+  const isLargeScreen = useMediaQuery('(min-width: 1024px)')
+  const isMobile = useMediaQuery('(max-width: 768px)')
   
   // Pagination state
   const [pagination, setPagination] = useState<PaginationData>({
@@ -355,9 +360,9 @@ export default function AdminMessagesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid lg:grid-cols-2 gap-8"
+          className={`grid gap-8 ${isLargeScreen ? 'lg:grid-cols-3' : 'grid-cols-1'}`}
         >
-          <div className="space-y-6">
+          <div className={`space-y-6 ${isLargeScreen ? 'lg:col-span-2' : 'col-span-1'}`}>
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -405,71 +410,131 @@ export default function AdminMessagesPage() {
                 </Card>
               </motion.div>
             ) : (
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 + index * 0.05 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Card 
-                      className={`cursor-pointer transition-all card-interactive glass-effect border-border/30 shadow-sm hover:shadow-lg backdrop-blur-md ${
-                        selectedMessage?.id === message.id ? 'ring-2 ring-primary/50 shadow-lg' : ''
-                      } ${message.status === 'unread' ? 'border-accent-warning/30 bg-accent-warning/5' : ''}`}
-                      onClick={() => setSelectedMessage(message)}
-                    >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold truncate">{message.name}</span>
-                            {getStatusBadge(message.status)}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+                className="glass-effect border border-border/30 shadow-lg backdrop-blur-md rounded-2xl overflow-hidden"
+              >
+                {isMobile ? (
+                  // Mobile compact list view
+                  <div className="max-h-[600px] overflow-y-auto p-2 space-y-2">
+                    {messages.map((message, index) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.05 * index }}
+                        onClick={() => setSelectedMessage(message)}
+                        className={`p-3 rounded-xl cursor-pointer transition-all hover:bg-primary/5 border border-border/20 ${
+                          selectedMessage?.id === message.id ? 'bg-primary/10 border-primary/30' : ''
+                        } ${message.status === 'unread' ? 'bg-accent-warning/5' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 glass-effect rounded-full flex items-center justify-center border border-border/30 flex-shrink-0">
+                            <User className="h-4 w-4 text-foreground-secondary" />
                           </div>
-                          
-                          <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                            <Mail className="h-4 w-4" />
-                            <span className="truncate">{message.email}</span>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {message.message}
-                          </p>
-                          
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span>{formatDate(message.createdAt)}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-foreground truncate flex-1">{message.name}</span>
+                              {message.status === 'unread' && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
+                                  className="w-2 h-2 bg-accent-warning rounded-full flex-shrink-0"
+                                />
+                              )}
+                            </div>
+                            <div className="text-xs text-foreground-secondary truncate mb-1">{message.email}</div>
+                            <div className="text-sm text-foreground line-clamp-2 mb-2">
+                              {message.message}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs text-foreground-secondary">
+                                {formatDate(message.createdAt)}
+                              </div>
+                              {getStatusBadge(message.status)}
+                            </div>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-1 ml-2">
-                          {message.status === 'unread' && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.7 + index * 0.05 }}
-                              className="w-3 h-3 bg-accent-warning rounded-full shadow-sm"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  </motion.div>
-                ))}
-              </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  // Desktop table view
+                  <div className="max-h-[600px] overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-background/50 border-b border-border/30 sticky top-0 backdrop-blur-md">
+                        <tr>
+                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">보낸이</th>
+                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">메시지</th>
+                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">날짜</th>
+                          <th className="text-left p-3 font-medium text-foreground-secondary text-sm">상태</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {messages.map((message, index) => (
+                          <motion.tr
+                            key={message.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 * index }}
+                            onClick={() => setSelectedMessage(message)}
+                            className={`cursor-pointer transition-all hover:bg-primary/5 border-b border-border/20 last:border-b-0 ${
+                              selectedMessage?.id === message.id ? 'bg-primary/10 border-primary/30' : ''
+                            } ${message.status === 'unread' ? 'bg-accent-warning/5' : ''}`}
+                          >
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 glass-effect rounded-full flex items-center justify-center border border-border/30">
+                                  <User className="h-4 w-4 text-foreground-secondary" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium text-foreground truncate">{message.name}</div>
+                                  <div className="text-xs text-foreground-secondary truncate">{message.email}</div>
+                                </div>
+                                {message.status === 'unread' && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
+                                    className="w-2 h-2 bg-accent-warning rounded-full"
+                                  />
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="text-sm text-foreground line-clamp-2 max-w-xs">
+                                {message.message}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="text-xs text-foreground-secondary">
+                                {formatDate(message.createdAt)}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center">
+                                {getStatusBadge(message.status)}
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </motion.div>
             )}
-            
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
+          <div className={`${isLargeScreen ? 'lg:col-span-1' : 'col-span-1'}`}>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
             {selectedMessage ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -641,7 +706,8 @@ export default function AdminMessagesPage() {
                 </Card>
               </motion.div>
             )}
-          </motion.div>
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* Pagination - Full Width */}
