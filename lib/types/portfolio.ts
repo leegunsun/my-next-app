@@ -5,7 +5,6 @@ export interface AboutMeData {
   title: string
   heroTitle: string
   heroSubtitle: string
-  description: string
   philosophy: string
   specialties: Array<{
     id: string

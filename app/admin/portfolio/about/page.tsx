@@ -645,13 +645,6 @@ export default function AboutManagementPage() {
                 </div>
               </div>
 
-              {/* Description Card (from basic info) */}
-              <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
-                <h3 className="text-xl font-medium mb-4">상세 설명</h3>
-                <p className="text-foreground-secondary leading-relaxed">
-                  {aboutData.description}
-                </p>
-              </div>
 
               {/* Philosophy Card */}
               <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
@@ -802,15 +795,6 @@ export default function AboutManagementPage() {
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium mb-2">상세 설명</label>
-                <textarea
-                  rows={4}
-                  value={aboutData.description}
-                  onChange={(e) => setAboutData({ ...aboutData, description: e.target.value })}
-                  className="w-full p-3 bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all shadow-sm resize-none"
-                />
-              </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">개발 철학</label>

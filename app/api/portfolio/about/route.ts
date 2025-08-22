@@ -9,7 +9,6 @@ const getDefaultAboutData = (): AboutMeData => ({
   title: 'About Me',
   heroTitle: '사용자의 문제를 구조적으로 해결하는 Flutter & Spring Boot 개발자',
   heroSubtitle: '모바일과 백엔드 개발의 경계를 넘나들며, 사용자 중심의 기술 솔루션을 설계하고 구현합니다.',
-  description: '단순히 기능을 구현하는 것을 넘어, 사용자의 실제 문제를 이해하고 그 본질적 해결책을 찾는 것이 진정한 개발이라고 믿습니다.',
   philosophy: '기술은 도구이며, 목적은 사용자의 삶을 더 편리하고 가치있게 만드는 것입니다.',
   specialties: [
     { id: '1', name: 'Flutter 모바일 앱 개발', color: 'primary' },
