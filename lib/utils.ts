@@ -25,27 +25,31 @@ export function formatDateKo(date: Date | string): string {
 // PDF Download functionality  
 export async function downloadResume() {
   try {
-    // Try Firebase Storage first, fallback to local storage
-    let response = await fetch('/api/portfolio/resume-upload-firebase')
-    let result = await response.json()
+    // Import Firebase modules dynamically for client-side access
+    const { doc, getDoc } = await import('firebase/firestore')
+    const { ref, getDownloadURL } = await import('firebase/storage')
+    const { db, storage } = await import('./firebase/config')
     
     let downloadUrl = '/uploads/resumes/current-resume.pdf'
     let filename = 'Developer_Resume.pdf'
     
-    // If Firebase Storage has the file, use it
-    if (result.success && result.data) {
-      downloadUrl = result.data.fileUrl
-      filename = result.data.originalName || 'Developer_Resume.pdf'
-    } else {
-      // Fallback to local storage API
-      response = await fetch('/api/portfolio/resume-upload')
-      result = await response.json()
+    try {
+      // Get resume info directly from Firestore
+      const currentResumeDocRef = doc(db, 'portfolio-resume-files', 'current')
+      const currentResumeDoc = await getDoc(currentResumeDocRef)
       
-      if (result.success && result.data) {
-        downloadUrl = result.data.fileUrl
-        filename = result.data.originalName || 'Developer_Resume.pdf'
+      if (currentResumeDoc.exists()) {
+        const resumeData = currentResumeDoc.data()
+        
+        // Get download URL from Firebase Storage using storagePath
+        if (resumeData.storagePath) {
+          const storageRef = ref(storage, resumeData.storagePath)
+          downloadUrl = await getDownloadURL(storageRef)
+          filename = resumeData.originalName || 'Developer_Resume.pdf'
+          console.log('✅ Firebase Storage resume found:', filename)
+        }
       } else {
-        // Final fallback: Check if current-resume.pdf exists locally
+        // No Firebase Storage resume, check local fallback
         const checkResponse = await fetch('/uploads/resumes/current-resume.pdf', { method: 'HEAD' })
         if (!checkResponse.ok) {
           // If no resume exists anywhere, show message to user
@@ -59,6 +63,22 @@ export async function downloadResume() {
           }
           return
         }
+      }
+    } catch (firebaseError) {
+      console.warn('⚠️ Firebase Storage access failed, using local fallback:', firebaseError)
+      // Fallback to local storage - check if current-resume.pdf exists locally
+      const checkResponse = await fetch('/uploads/resumes/current-resume.pdf', { method: 'HEAD' })
+      if (!checkResponse.ok) {
+        // If no resume exists anywhere, show message to user
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('이력서 다운로드', {
+            body: '등록된 이력서가 없습니다. 관리자에게 문의해주세요.',
+            icon: '/favicon.ico'
+          })
+        } else {
+          alert('등록된 이력서가 없습니다. 관리자에게 문의해주세요.')
+        }
+        return
       }
     }
 
@@ -94,31 +114,25 @@ export async function downloadResume() {
       console.warn('⚠️ Failed to prepare resume download notification:', error)
     }
     
-    // Download the current resume PDF
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = filename
-    link.click()
+    // Open resume PDF in new tab/window for better UX
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer')
     
     // Show notification to user
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('이력서 다운로드', {
-        body: '이력서 다운로드가 시작되었습니다.',
+        body: '새창에서 이력서가 열렸습니다.',
         icon: '/favicon.ico'
       })
     }
   } catch (error) {
     console.error('❌ Error downloading resume:', error)
     
-    // Fallback to default behavior
-    const link = document.createElement('a')
-    link.href = '/uploads/resumes/current-resume.pdf'
-    link.download = 'Developer_Resume.pdf'
-    link.click()
+    // Fallback to default behavior - open in new tab
+    window.open('/uploads/resumes/current-resume.pdf', '_blank', 'noopener,noreferrer')
     
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('이력서 다운로드', {
-        body: '이력서 다운로드가 시작되었습니다.',
+        body: '새창에서 이력서가 열렸습니다.',
         icon: '/favicon.ico'
       })
     }
