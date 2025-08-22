@@ -90,9 +90,14 @@ export default function Home() {
           .filter((example: CodeExample) => example.isActive)
           .sort((a: CodeExample, b: CodeExample) => (a.order || 99) - (b.order || 99))
         setCodeExamplesData(activeExamples)
+      } else {
+        // Set empty array if no data is available
+        setCodeExamplesData([])
       }
     } catch (error) {
       console.error('Error fetching code examples data:', error)
+      // Set empty array on error
+      setCodeExamplesData([])
     } finally {
       setIsLoadingCodeExamples(false)
     }
@@ -324,7 +329,7 @@ export default function Home() {
       // Fallback navigation items when section settings are not loaded
       return [
         { 
-          id: 'about', 
+          id: 'fallback-about', 
           homeSection: 'about', 
           title: 'About', 
           description: 'About section', 
@@ -339,7 +344,7 @@ export default function Home() {
           updatedAt: new Date().toISOString() 
         },
         { 
-          id: 'projects', 
+          id: 'fallback-projects', 
           homeSection: 'portfolio', 
           title: 'Portfolio', 
           description: 'Portfolio section', 
@@ -354,7 +359,7 @@ export default function Home() {
           updatedAt: new Date().toISOString() 
         },
         { 
-          id: 'skills', 
+          id: 'fallback-skills', 
           homeSection: 'skills', 
           title: 'Skills', 
           description: 'Skills section', 
@@ -369,7 +374,7 @@ export default function Home() {
           updatedAt: new Date().toISOString() 
         },
         { 
-          id: 'code-examples', 
+          id: 'fallback-code-examples', 
           homeSection: 'code-examples', 
           title: 'Code', 
           description: 'Code examples section', 
@@ -399,7 +404,7 @@ export default function Home() {
     // Show loading indicator if sections are still loading
     if (isLoadingSections) {
       navigationItems.push(
-        <div key="loading" className="flex items-center gap-2 px-3 py-2">
+        <div key="nav-loading-indicator" className="flex items-center gap-2 px-3 py-2">
           <div className="animate-spin w-4 h-4 border-2 border-foreground-secondary border-t-transparent rounded-full"></div>
           <span className="text-sm text-foreground-secondary">Loading...</span>
         </div>
@@ -417,7 +422,7 @@ export default function Home() {
     // Always add Blog and Contact (not managed by section system)
     navigationItems.push(
       <motion.a 
-        key="blog"
+        key="static-nav-blog"
         whileHover={{ scale: 1.05 }}
         href="/blog"
         onClick={() => trackButtonClick('nav_blog', 'navigation')}
@@ -426,7 +431,7 @@ export default function Home() {
         Blog
       </motion.a>,
       <motion.a 
-        key="contact"
+        key="static-nav-contact"
         whileHover={{ scale: 1.05 }}
         href="#contact"
         onClick={() => trackButtonClick('nav_contact', 'navigation')}
@@ -448,14 +453,19 @@ export default function Home() {
       'code-examples': { href: '#code-examples', label: 'Code', trackId: 'nav_code' }
     }
 
+    // Determine source type for unique keys
+    const isCustom = section.id.startsWith('custom-')
+    const isFallback = section.id.startsWith('fallback-')
+    const keyPrefix = isCustom ? 'custom' : isFallback ? 'fallback' : 'api'
+
     // Handle custom sections
-    if (section.id.startsWith('custom-')) {
+    if (isCustom) {
       const displayLabel = section.title.replace(' 관리', '')
       const sectionAnchor = section.homeSection || section.id
       
       return (
         <motion.a 
-          key={section.id}
+          key={`${keyPrefix}-nav-${section.id}`}
           whileHover={{ scale: 1.05 }}
           href={`#${sectionAnchor}`}
           onClick={() => trackButtonClick(`nav_${section.id}`, 'navigation')}
@@ -477,7 +487,7 @@ export default function Home() {
 
     return (
       <motion.a 
-        key={section.homeSection}
+        key={`${keyPrefix}-nav-${section.homeSection}-${section.id}`}
         whileHover={{ scale: 1.05 }}
         href={config.href}
         onClick={() => trackButtonClick(config.trackId, 'navigation')}
@@ -1231,11 +1241,18 @@ class NotificationHandler : TextWebSocketHandler() {
                   <h3 className="text-2xl font-medium text-center">코드 스니펫</h3>
                 </AnimatedSection>
                 
-                {!isLoadingCodeExamples && codeExamplesData.length > 0 ? (
+{isLoadingCodeExamples ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                      <p className="text-foreground-secondary">코드 예제를 불러오는 중...</p>
+                    </div>
+                  </div>
+                ) : codeExamplesData.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {codeExamplesData.map((example) => (
+                    {codeExamplesData.map((example, index) => (
                       <CodeSnippet
-                        key={`admin-${example.id}`}
+                        key={`admin-code-${example.id}-${index}`}
                         title={example.title}
                         language={example.language}
                         code={example.code}
@@ -1248,7 +1265,7 @@ class NotificationHandler : TextWebSocketHandler() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {fallbackCodeExamples.map((example, index) => (
                       <CodeSnippet
-                        key={`fallback-${index}`}
+                        key={`fallback-code-${index}`}
                         title={example.title}
                         language={example.language}
                         code={example.code}
