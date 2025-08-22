@@ -9,8 +9,8 @@ import { db } from './config'
 import { GitHubRepository } from '../types/portfolio'
 
 // Firestore collection and document configuration
-const PORTFOLIO_COLLECTION = 'portfolio'
-const GITHUB_REPOS_DOC = 'github-repos'
+const PORTFOLIO_COLLECTION = 'github-repos'
+const GITHUB_REPOS_DOC = 'repositories'
 
 // GitHub repositories Firestore interface
 export interface GitHubReposDocument {
@@ -97,8 +97,8 @@ export const loadGitHubRepositories = async () => {
  */
 export const checkFirestoreAvailability = async (): Promise<boolean> => {
   try {
-    // Try to read a simple document to test connectivity
-    const testDocRef = doc(db, 'test', 'connectivity')
+    // Try to read from github-repos collection to test connectivity
+    const testDocRef = doc(db, 'github-repos', '_availability_check')
     await getDoc(testDocRef)
     return true
   } catch (error) {
