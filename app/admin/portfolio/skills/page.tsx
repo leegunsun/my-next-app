@@ -161,6 +161,38 @@ export default function SkillsManagementPage() {
     ))
   }
 
+  // Color mapping function to convert skill colors to proper Tailwind classes
+  const getSkillColorClass = (color: string) => {
+    switch (color) {
+      case "success":
+        return "bg-accent-success"
+      case "warning":
+        return "bg-accent-warning"
+      case "purple":
+        return "bg-accent-purple"
+      case "info":
+        return "bg-accent-info"
+      default:
+        return "bg-primary"
+    }
+  }
+
+  // Color mapping function for category indicators
+  const getCategoryColorClass = (color: string) => {
+    switch (color) {
+      case "success":
+        return "bg-accent-success"
+      case "warning":
+        return "bg-accent-warning"
+      case "purple":
+        return "bg-accent-purple"
+      case "info":
+        return "bg-accent-info"
+      default:
+        return "bg-primary"
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
@@ -317,7 +349,7 @@ export default function SkillsManagementPage() {
                 {/* Category Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 bg-${category.color} rounded-full`}></div>
+                    <div className={`w-4 h-4 ${getCategoryColorClass(category.color)} rounded-full`}></div>
                     {editingCategory === category.id ? (
                       <div className="flex items-center gap-3">
                         <input
@@ -409,7 +441,7 @@ export default function SkillsManagementPage() {
                       layout
                       className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg"
                     >
-                      <div className={`w-3 h-3 bg-${skill.color} rounded-full`}></div>
+                      <div className={`w-3 h-3 ${getSkillColorClass(skill.color)} rounded-full`}></div>
                       
                       {editingSkill === `${category.id}-${skill.id}` ? (
                         <>
@@ -444,7 +476,7 @@ export default function SkillsManagementPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-20 bg-background rounded-full h-2">
                               <div 
-                                className={`h-2 bg-${skill.color} rounded-full transition-all duration-300`}
+                                className={`h-2 ${getSkillColorClass(skill.color)} rounded-full transition-all duration-300`}
                                 style={{ width: `${skill.percentage}%` }}
                               ></div>
                             </div>
