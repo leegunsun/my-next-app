@@ -26,6 +26,7 @@ export default function AboutManagementPage() {
   const [isLoadingPdf, setIsLoadingPdf] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
   
   // Resume Form State  
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
@@ -155,12 +156,18 @@ export default function AboutManagementPage() {
   const fetchResumePdfInfo = async () => {
     try {
       setIsLoadingPdf(true)
-      // Use local storage for testing since Firebase credentials not configured
-      const response = await fetch('/api/portfolio/resume-upload')
-      const result = await response.json()
       
-      if (result.success) {
-        setResumePdfInfo(result.data)
+      // Import Firebase modules dynamically for client-side access
+      const { doc, getDoc } = await import('firebase/firestore')
+      const { db } = await import('../../../../lib/firebase/config')
+      
+      // Get resume info directly from Firestore
+      const currentResumeDocRef = doc(db, 'portfolio-resume-files', 'current')
+      const currentResumeDoc = await getDoc(currentResumeDocRef)
+      
+      if (currentResumeDoc.exists()) {
+        const data = currentResumeDoc.data()
+        setResumePdfInfo(data)
       } else {
         setResumePdfInfo(null)
       }
@@ -174,27 +181,90 @@ export default function AboutManagementPage() {
 
   const handlePdfUpload = async (file: File) => {
     setIsUploading(true)
+    setUploadProgress(0)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      // Import Firebase modules dynamically for client-side upload
+      const { storage } = await import('../../../../lib/firebase/config')
+      const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage')
+      const { doc, setDoc } = await import('firebase/firestore')
+      const { db } = await import('../../../../lib/firebase/config')
 
-      const response = await fetch('/api/portfolio/resume-upload', {
-        method: 'POST',
-        body: formData
+      // Generate filename with timestamp for Firebase Storage
+      const timestamp = Date.now()
+      const filename = `resume-${timestamp}.pdf`
+      const storagePath = `resumes/${filename}`
+      
+      // Create Firebase Storage reference
+      const storageRef = ref(storage, storagePath)
+      
+      // Convert file to buffer for upload
+      const bytes = await file.arrayBuffer()
+      const buffer = new Uint8Array(bytes)
+
+      // Upload to Firebase Storage with metadata - CLIENT SIDE WITH AUTH
+      const uploadTask = uploadBytesResumable(storageRef, buffer, {
+        contentType: 'application/pdf',
+        customMetadata: {
+          originalName: file.name,
+          uploadedAt: new Date().toISOString()
+        }
       })
 
-      const result = await response.json()
-      if (result.success) {
-        setResumePdfInfo(result.data)
-        alert('이력서 PDF가 성공적으로 업로드되었습니다.')
-      } else {
-        alert(result.message || 'PDF 업로드에 실패했습니다.')
+      // Monitor upload progress
+      await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            setUploadProgress(Math.round(progress))
+            console.log(`Upload progress: ${progress}%`)
+          },
+          (error) => {
+            console.error('Upload error:', error)
+            reject(error)
+          },
+          () => {
+            console.log('Upload completed successfully')
+            resolve(null)
+          }
+        )
+      })
+
+      // Get download URL
+      const downloadUrl = await getDownloadURL(storageRef)
+
+      // Save file info to Firestore
+      const fileData = {
+        id: `resume-${timestamp}`,
+        filename: filename,
+        originalName: file.name,
+        uploadDate: new Date().toISOString(),
+        isActive: true,
+        fileSize: file.size,
+        downloadUrl: downloadUrl,
+        storagePath: storagePath,
+        contentType: 'application/pdf'
       }
+
+      // Save to Firestore
+      const currentResumeDocRef = doc(db, 'portfolio-resume-files', 'current')
+      await setDoc(currentResumeDocRef, fileData)
+
+      setUploadProgress(100)
+      alert('이력서 PDF가 Firebase Storage에 성공적으로 업로드되었습니다.')
+      
+      // Refresh the PDF info
+      await fetchResumePdfInfo()
+      
     } catch (error) {
       console.error('Error uploading PDF:', error)
-      alert('PDF 업로드 중 오류가 발생했습니다.')
+      if (error instanceof Error && error.message.includes('insufficient permissions')) {
+        alert('권한 오류: Firebase Storage 업로드 권한이 없습니다. 로그인 상태를 확인해주세요.')
+      } else {
+        alert('PDF 업로드 중 오류가 발생했습니다.')
+      }
     } finally {
       setIsUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -866,7 +936,7 @@ export default function AboutManagementPage() {
         >
           {/* Current Resume PDF Info */}
           <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
-            <h3 className="text-xl font-semibold mb-6">현재 이력서 PDF</h3>
+            <h3 className="text-xl font-semibold mb-6">현재 이력서 PDF (Firebase Storage)</h3>
             {resumePdfInfo ? (
               <div className="bg-background-secondary rounded-2xl p-6 border border-border">
                 <div className="flex items-center justify-between mb-4">
@@ -878,11 +948,14 @@ export default function AboutManagementPage() {
                     <p className="text-sm text-foreground-secondary">
                       파일 크기: {(resumePdfInfo.fileSize / 1024 / 1024).toFixed(2)} MB
                     </p>
+                    <p className="text-sm text-accent-success">
+                      ☁️ Firebase Storage에 저장됨
+                    </p>
                   </div>
                   <motion.a
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    href={resumePdfInfo.fileUrl}
+                    href={resumePdfInfo.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-primary text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg flex items-center gap-2"
@@ -890,14 +963,14 @@ export default function AboutManagementPage() {
                     📄 미리보기
                   </motion.a>
                 </div>
-                <div className="text-sm text-accent-success">✅ 현재 활성화된 이력서입니다.</div>
+                <div className="text-sm text-accent-success">✅ 현재 활성화된 이력서입니다 (전 세계 접근 가능).</div>
               </div>
             ) : (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📄</div>
                 <h4 className="text-lg font-medium mb-2">등록된 이력서가 없습니다</h4>
                 <p className="text-foreground-secondary text-sm">
-                  아래에서 PDF 파일을 업로드해주세요.
+                  아래에서 PDF 파일을 Firebase Storage에 업로드해주세요.
                 </p>
               </div>
             )}
@@ -905,7 +978,23 @@ export default function AboutManagementPage() {
 
           {/* PDF Upload Section */}
           <div className="glass-effect rounded-3xl border border-border/30 shadow-lg backdrop-blur-md p-8">
-            <h3 className="text-xl font-semibold mb-6">새 이력서 PDF 업로드</h3>
+            <h3 className="text-xl font-semibold mb-6">새 이력서 PDF 업로드 (Firebase Storage)</h3>
+            
+            {/* Progress Bar */}
+            {isUploading && (
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>업로드 진행률</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-background-secondary rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
             
             {/* Drag & Drop Area */}
             <div
@@ -921,17 +1010,17 @@ export default function AboutManagementPage() {
               {isUploading ? (
                 <div className="space-y-4">
                   <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-foreground-secondary">PDF를 업로드하는 중...</p>
+                  <p className="text-foreground-secondary">Firebase Storage에 PDF를 업로드하는 중...</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="text-6xl">📁</div>
+                  <div className="text-6xl">☁️</div>
                   <div>
                     <h4 className="text-lg font-medium mb-2">
                       PDF 파일을 여기에 드래그하거나 클릭하여 선택하세요
                     </h4>
                     <p className="text-foreground-secondary text-sm mb-4">
-                      최대 10MB까지 업로드 가능합니다.
+                      최대 10MB까지 Firebase Storage에 업로드 가능합니다.
                     </p>
                     <motion.button
                       whileHover={{ scale: 1.05, y: -2 }}
@@ -957,11 +1046,12 @@ export default function AboutManagementPage() {
 
             {/* Upload Instructions */}
             <div className="mt-6 p-4 bg-accent-info/10 border border-accent-info/20 rounded-2xl">
-              <h5 className="font-medium text-accent-info mb-2">📋 업로드 안내</h5>
+              <h5 className="font-medium text-accent-info mb-2">☁️ Firebase Storage 업로드 안내</h5>
               <ul className="text-sm text-foreground-secondary space-y-1">
                 <li>• PDF 파일만 업로드 가능합니다.</li>
                 <li>• 파일 크기는 10MB 이하로 제한됩니다.</li>
-                <li>• 새 파일을 업로드하면 기존 이력서가 자동으로 백업됩니다.</li>
+                <li>• Firebase Storage에 안전하게 저장되어 전 세계에서 접근 가능합니다.</li>
+                <li>• 새 파일을 업로드하면 기존 이력서가 자동으로 교체됩니다.</li>
                 <li>• 업로드된 PDF는 즉시 홈페이지에 반영됩니다.</li>
               </ul>
             </div>

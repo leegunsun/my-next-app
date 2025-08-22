@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { storage } from '../../../../lib/firebase/config'
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db } from '../../../../lib/firebase/config'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 
@@ -14,7 +13,8 @@ interface ResumeFileData {
   uploadDate: string
   isActive: boolean
   fileSize: number
-  fileUrl: string
+  downloadUrl: string
+  storagePath: string
   contentType: string
 }
 
@@ -47,57 +47,101 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public/uploads/resumes')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
+    try {
+      // Check for existing resume and delete it from Firebase Storage
+      const currentResumeDocRef = doc(db, 'portfolio-resume-files', 'current')
+      const currentResumeDoc = await getDoc(currentResumeDocRef)
+      
+      if (currentResumeDoc.exists()) {
+        const currentData = currentResumeDoc.data() as ResumeFileData
+        if (currentData.storagePath) {
+          try {
+            const oldFileRef = ref(storage, currentData.storagePath)
+            await deleteObject(oldFileRef)
+            console.log('✅ Old resume file deleted from Firebase Storage')
+          } catch (deleteError) {
+            console.warn('⚠️ Could not delete old file from storage (might not exist):', deleteError)
+          }
+        }
+      }
+
+      // Generate filename with timestamp for Firebase Storage
+      const timestamp = Date.now()
+      const filename = `resume-${timestamp}.pdf`
+      const storagePath = `resumes/${filename}`
+      
+      // Create Firebase Storage reference
+      const storageRef = ref(storage, storagePath)
+      
+      // Convert file to buffer for upload
+      const bytes = await file.arrayBuffer()
+      const buffer = new Uint8Array(bytes)
+
+      // Upload to Firebase Storage with metadata
+      const uploadTask = uploadBytesResumable(storageRef, buffer, {
+        contentType: 'application/pdf',
+        customMetadata: {
+          originalName: file.name,
+          uploadedAt: new Date().toISOString()
+        }
+      })
+
+      // Wait for upload completion
+      await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            // Progress monitoring could be added here
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            console.log(`Upload progress: ${progress}%`)
+          },
+          (error) => {
+            console.error('Upload error:', error)
+            reject(error)
+          },
+          () => {
+            console.log('Upload completed successfully')
+            resolve(null)
+          }
+        )
+      })
+
+      // Get download URL
+      const downloadUrl = await getDownloadURL(storageRef)
+
+      // Save file info to Firestore
+      const fileData: ResumeFileData = {
+        id: `resume-${timestamp}`,
+        filename: filename,
+        originalName: file.name,
+        uploadDate: new Date().toISOString(),
+        isActive: true,
+        fileSize: file.size,
+        downloadUrl: downloadUrl,
+        storagePath: storagePath,
+        contentType: 'application/pdf'
+      }
+
+      // Save to Firestore
+      await setDoc(currentResumeDocRef, fileData)
+
+      console.log('✅ PDF resume uploaded successfully to Firebase Storage:', filename)
+      console.log('📄 Download URL:', downloadUrl)
+
+      return NextResponse.json({
+        success: true,
+        data: fileData,
+        message: '이력서 PDF가 Firebase Storage에 성공적으로 업로드되었습니다.'
+      })
+
+    } catch (firebaseError) {
+      console.error('❌ Firebase operation failed:', firebaseError)
+      
+      return NextResponse.json({
+        success: false,
+        message: `Firebase Storage 업로드 중 오류가 발생했습니다: ${firebaseError instanceof Error ? firebaseError.message : 'Unknown Firebase error'}`,
+        error: firebaseError instanceof Error ? firebaseError.message : 'Unknown Firebase error'
+      }, { status: 500 })
     }
-
-    // Generate filename with timestamp
-    const timestamp = Date.now()
-    const filename = `resume-${timestamp}.pdf`
-    const filepath = path.join(uploadDir, filename)
-
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
-
-    // Backup current resume if exists (rename to backup)
-    const currentResumePath = path.join(uploadDir, 'current-resume.pdf')
-    if (existsSync(currentResumePath)) {
-      const backupFilename = `backup-resume-${timestamp}.pdf`
-      const backupPath = path.join(uploadDir, backupFilename)
-      const { readFile } = await import('fs/promises')
-      await writeFile(backupPath, await readFile(currentResumePath))
-    }
-
-    // Copy uploaded file as current resume
-    await writeFile(currentResumePath, buffer)
-
-    // Save file info to Firebase
-    const fileData: ResumeFileData = {
-      id: `resume-${timestamp}`,
-      filename: filename,
-      originalName: file.name,
-      uploadDate: new Date().toISOString(),
-      isActive: true,
-      fileSize: file.size,
-      fileUrl: `/uploads/resumes/current-resume.pdf`,
-      contentType: 'application/pdf'
-    }
-
-    // Skip Firestore for testing - just return success with file data
-    // const resumeFileDocRef = doc(db, 'portfolio-resume-files', 'current')
-    // await setDoc(resumeFileDocRef, fileData)
-
-    console.log('✅ PDF resume uploaded successfully:', filename)
-
-    return NextResponse.json({
-      success: true,
-      data: fileData,
-      message: '이력서 PDF가 성공적으로 업로드되었습니다.'
-    })
 
   } catch (error) {
     console.error('❌ Error uploading resume PDF:', error)
@@ -116,30 +160,34 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET current resume file info
+// GET current resume file info from Firestore
 export async function GET() {
   try {
-    // Check if current resume file exists locally
-    const currentResumePath = path.join(process.cwd(), 'public/uploads/resumes/current-resume.pdf')
-    if (!existsSync(currentResumePath)) {
+    const currentResumeDocRef = doc(db, 'portfolio-resume-files', 'current')
+    const currentResumeDoc = await getDoc(currentResumeDocRef)
+    
+    if (!currentResumeDoc.exists()) {
       return NextResponse.json({
         success: false,
         message: '등록된 이력서가 없습니다.'
       }, { status: 404 })
     }
 
-    const { stat } = await import('fs/promises')
-    const fileStats = await stat(currentResumePath)
+    const data = currentResumeDoc.data() as ResumeFileData
     
-    const data: ResumeFileData = {
-      id: 'current-local',
-      filename: 'current-resume.pdf',
-      originalName: 'current-resume.pdf',
-      uploadDate: fileStats.mtime.toISOString(),
-      isActive: true,
-      fileSize: fileStats.size,
-      fileUrl: `/uploads/resumes/current-resume.pdf`,
-      contentType: 'application/pdf'
+    // Verify the file still exists in Firebase Storage
+    try {
+      const storageRef = ref(storage, data.storagePath)
+      // Test if we can still get the download URL (this will fail if file doesn't exist)
+      await getDownloadURL(storageRef)
+    } catch (storageError) {
+      console.warn('⚠️ File exists in Firestore but not in Storage, cleaning up...')
+      // Clean up Firestore record if file doesn't exist in storage
+      await currentResumeDocRef.delete()
+      return NextResponse.json({
+        success: false,
+        message: '등록된 이력서가 없습니다.'
+      }, { status: 404 })
     }
     
     return NextResponse.json({
