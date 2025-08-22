@@ -286,20 +286,36 @@ export default function ProjectsManagementPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ delay: index * 0.1 }}
-                className="card-primary p-6 group hover:shadow-lg transition-all duration-300"
+                className="card-interactive glass-effect border border-border/30 shadow-sm hover:shadow-lg backdrop-blur-md group p-4"
               >
-                {/* Project Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 ${project.iconBg} rounded-lg flex items-center justify-center text-white font-medium shadow-md`}>
-                    {project.icon}
+                {/* Compact Header Row */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 ${project.iconBg} rounded-lg flex items-center justify-center text-white font-medium shadow-sm text-sm shrink-0 p-2`}>
+                    <span className="leading-none">{project.icon}</span>
                   </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="card-title mb-1 line-clamp-1">{project.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className={`badge-base text-xs ${
+                        project.isActive 
+                          ? 'badge-success' 
+                          : 'bg-foreground-muted/20 text-foreground-muted'
+                      }`}>
+                        {project.isActive ? '활성' : '비활성'}
+                      </span>
+                      <span className="meta-text">#${project.order}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => startEdit(project)}
-                      className="p-2 text-foreground-secondary hover:text-primary hover:bg-background-secondary rounded"
+                      className="p-1.5 text-foreground-secondary hover:text-primary hover:bg-background-secondary rounded transition-colors"
+                      title="편집"
                     >
                       <Edit2 size={14} />
                     </motion.button>
@@ -307,75 +323,84 @@ export default function ProjectsManagementPage() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleDelete(project.id)}
-                      className="p-2 text-foreground-secondary hover:text-accent-error hover:bg-background-secondary rounded"
+                      className="p-1.5 text-foreground-secondary hover:text-accent-error hover:bg-background-secondary rounded transition-colors"
+                      title="삭제"
                     >
                       <Trash2 size={14} />
                     </motion.button>
                   </div>
                 </div>
 
-                {/* Project Content */}
-                <h3 className="text-lg font-semibold mb-2 line-clamp-2">{project.title}</h3>
-                <p className="text-sm text-foreground-secondary mb-4 line-clamp-3 leading-relaxed">
+                {/* Compact Description */}
+                <p className="description-text mb-3 line-clamp-2 leading-snug">
                   {project.description}
                 </p>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.slice(0, 3).map((tag) => (
+                {/* Tags Row */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {project.tags.slice(0, 4).map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border"
+                      className="px-2 py-0.5 bg-background-secondary/60 text-xs rounded-full border border-border/20 backdrop-blur-sm font-medium"
                     >
                       {tag}
                     </span>
                   ))}
-                  {project.tags.length > 3 && (
-                    <span className="px-2 py-1 bg-background-secondary text-xs rounded-full border border-border">
-                      +{project.tags.length - 3}
+                  {project.tags.length > 4 && (
+                    <span className="px-2 py-0.5 bg-background-secondary/60 text-xs rounded-full border border-border/20 backdrop-blur-sm font-medium text-foreground-secondary">
+                      +{project.tags.length - 4}
                     </span>
                   )}
                 </div>
 
-                {/* Links */}
-                <div className="flex items-center gap-3">
-                  {project.liveUrl && (
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm"
-                    >
-                      <ExternalLink size={14} />
-                      Live
-                    </a>
-                  )}
-                  {project.githubUrl && (
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-foreground-secondary hover:text-foreground text-sm"
-                    >
-                      <Github size={14} />
-                      GitHub
-                    </a>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="mt-4 pt-4 border-t border-border">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={`px-2 py-1 rounded-full ${
-                      project.isActive 
-                        ? 'bg-accent-success/10 text-accent-success' 
-                        : 'bg-foreground-muted/10 text-foreground-muted'
-                    }`}>
-                      {project.isActive ? '활성화' : '비활성화'}
-                    </span>
-                    <span className="text-foreground-secondary">
-                      순서: {project.order}
-                    </span>
+                {/* Bottom Row - Links & Stats */}
+                <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                  <div className="flex items-center gap-3">
+                    {project.liveUrl && (
+                      <motion.a
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs font-medium transition-colors"
+                        title="라이브 사이트 보기"
+                      >
+                        <ExternalLink size={12} />
+                        <span className="hidden sm:inline">Live</span>
+                      </motion.a>
+                    )}
+                    {project.githubUrl && (
+                      <motion.a
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-foreground-secondary hover:text-foreground text-xs font-medium transition-colors"
+                        title="GitHub 저장소 보기"
+                      >
+                        <Github size={12} />
+                        <span className="hidden sm:inline">Code</span>
+                      </motion.a>
+                    )}
+                  </div>
+                  
+                  {/* Project Stats */}
+                  <div className="flex items-center gap-3 text-xs text-foreground-secondary">
+                    <div className="flex items-center gap-1" title="태그 수">
+                      <span className="w-2 h-2 bg-accent-info rounded-full"></span>
+                      <span>{project.tags.length}</span>
+                    </div>
+                    <div className="flex items-center gap-1" title="완성도">
+                      <div className="w-8 h-1.5 bg-background-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-accent-success rounded-full transition-all"
+                          style={{ width: project.isActive ? '100%' : '80%' }}
+                        ></div>
+                      </div>
+                      <span className="text-xs">{project.isActive ? '100%' : '80%'}</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
