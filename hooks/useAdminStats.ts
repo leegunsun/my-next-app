@@ -3,7 +3,7 @@ import { getAllPosts } from '../lib/firebase/firestore'
 
 interface AdminStats {
   totalPosts: number
-  totalMessages: number
+  unreadMessages: number
   loading: boolean
   error: string | null
 }
@@ -11,7 +11,7 @@ interface AdminStats {
 export const useAdminStats = () => {
   const [stats, setStats] = useState<AdminStats>({
     totalPosts: 0,
-    totalMessages: 0,
+    unreadMessages: 0,
     loading: true,
     error: null
   })
@@ -23,15 +23,17 @@ export const useAdminStats = () => {
       // Fetch posts count
       const { posts: allPosts, error: postsError } = await getAllPosts(1000) // Get a large number to count all
       
-      // Fetch messages count (with error resilience)
-      let messagesCount = 0
+      // Fetch unread messages count using independent query (with error resilience)
+      let unreadMessagesCount = 0
       let fetchError = null
 
       try {
-        const messagesResponse = await fetch('/api/messages')
+        // Use independent query with minimal pagination to get accurate unread count
+        const messagesResponse = await fetch('/api/messages?page=1&limit=1&status=all')
         if (messagesResponse.ok) {
           const messagesData = await messagesResponse.json()
-          messagesCount = messagesData.messages?.length || 0
+          // Get unread count from pagination metadata (not from paginated results)
+          unreadMessagesCount = messagesData.pagination?.unreadCount || 0
         } else {
           console.warn('Messages API failed, using fallback count of 0')
         }
@@ -45,7 +47,7 @@ export const useAdminStats = () => {
 
       setStats({
         totalPosts: allPosts.length,
-        totalMessages: messagesCount,
+        unreadMessages: unreadMessagesCount,
         loading: false,
         error: fetchError
       })

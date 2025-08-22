@@ -217,7 +217,7 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
           transition={{ delay: 0.4 }}
           className="mt-8 p-4 bg-background-secondary rounded-lg"
         >
-          <h3 className="font-medium mb-3 flex items-center gap-2">
+          <h3 className="font-medium mb-3 flex items-center justify-center gap-2">
             <BarChart3 size={16} />
             빠른 통계
           </h3>
@@ -249,10 +249,10 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({
                 ) : stats.error ? (
                   '-'
                 ) : (
-                  stats.totalMessages
+                  stats.unreadMessages
                 )}
               </div>
-              <div className="text-foreground-muted">메시지</div>
+              <div className="text-foreground-muted">읽지 않은 메시지</div>
             </div>
           </div>
           {stats.error && (
