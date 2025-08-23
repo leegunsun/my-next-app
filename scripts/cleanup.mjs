@@ -1,0 +1,1 @@
+// Cleanup script placeholder - moved from root

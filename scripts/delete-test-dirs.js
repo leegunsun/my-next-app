@@ -1,0 +1,1 @@
+// Delete test directories script - moved from root

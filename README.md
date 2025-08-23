@@ -1,61 +1,128 @@
-# Developer Portfolio Website
+# 🚀 Developer Portfolio Website
 
-A modern, responsive portfolio website built with Next.js 15, React 19, and Tailwind CSS. Features dark/light theme support, internationalization (English/Korean), and interactive sections showcasing developer skills and projects.
+> **Professional Next.js Portfolio** - A comprehensive developer portfolio with admin dashboard, blog system, and modern architecture built with Next.js 15, React 19, and TypeScript.
 
-## 🚀 Features
+## ✨ Key Features
 
-- **Modern Tech Stack**: Next.js 15 with App Router, React 19, TypeScript
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Theme Support**: Dark/light mode toggle with system preference detection
-- **Internationalization**: English and Korean language support
-- **Interactive Sections**:
-  - Hero section with animated profile
-  - Interactive timeline for work experience
-  - Project showcase with filtering
-  - Skills visualization with radar chart
-  - Contact form with validation
+### 🎨 **Modern Design & UX**
+- Clean, responsive interface with dark/light mode
+- Mobile-first design with optimized breakpoints
+- Smooth animations and transitions
+- Accessibility-compliant (WCAG 2.1)
 
-## 🛠️ Tech Stack
+### 🔐 **Admin Dashboard**
+- Complete CMS for portfolio content management
+- Blog post creation and editing with rich text editor
+- Message management system with notifications
+- Portfolio project and skills management
+- Role-based access control with development gate
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS v4
-- **Icons**: Lucide React (when installed)
-- **Animations**: CSS transitions and keyframes
-- **Development**: Turbopack for fast development
+### 📝 **Dynamic Blog System**
+- Category-based blog posts with filtering
+- Rich text editor with markdown support
+- SEO-optimized blog pages with meta tags
+- Blog post status management (draft/published)
 
-## 📁 Project Structure
+### 📧 **Contact & Communication**
+- Contact form with Firebase integration
+- Push notifications for new messages (FCM)
+- Message status tracking and admin responses
+- Mobile app bridge integration
+
+### 🌐 **Internationalization & Performance**
+- English/Korean language support
+- Optimized images with Next.js Image
+- Performance monitoring and optimization
+- Progressive Web App (PWA) capabilities
+
+### 🧪 **Quality Assurance**
+- Comprehensive E2E testing with Playwright
+- Cross-browser testing (Chrome, Firefox, Safari)
+- Mobile responsiveness testing
+- Performance and accessibility validation
+
+## 🏗️ Modern Tech Stack
+
+- **Framework**: Next.js 15 with App Router, React 19, TypeScript
+- **Styling**: Tailwind CSS v4 with custom design system
+- **Backend**: Firebase (Firestore, Authentication, Cloud Messaging)
+- **Testing**: Playwright for end-to-end testing
+- **Development**: Turbopack for fast development builds
+- **Deployment**: Vercel-optimized with environment configuration
+
+## 📁 Clean Architecture Structure
+
+This project follows **Domain-Driven Design** principles with clean separation of concerns:
 
 ```
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Root layout with theme provider
-│   ├── page.tsx           # Homepage
-│   └── globals.css        # Global styles and theme variables
-├── components/
-│   ├── ui/                # Reusable UI components
-│   ├── sections/          # Page sections
-│   ├── header.tsx         # Navigation header
-│   ├── footer.tsx         # Site footer
-│   └── theme-provider.tsx # Theme management
-├── lib/
-│   ├── data/              # Static content and portfolio data
-│   └── utils.ts           # Utility functions
-└── public/
-    └── images/            # Image assets
+my-next-app/
+├── 📁 app/                     # Next.js App Router
+│   ├── 📁 admin/              # Admin dashboard routes
+│   ├── 📁 api/                # RESTful API endpoints
+│   ├── 📁 blog/               # Blog system
+│   ├── 📁 dev-gate/           # Development access control
+│   ├── 📄 layout.tsx          # Root layout with providers
+│   ├── 📄 page.tsx            # Homepage
+│   └── 📄 globals.css         # Global styles & theme system
+├── 📁 components/             # React Components
+│   ├── 📁 ui/                 # Base UI components (Button, Card, etc.)
+│   ├── 📁 sections/           # Page sections (Hero, Projects, etc.)
+│   ├── 📁 admin/              # Admin-specific components
+│   ├── 📁 auth/               # Authentication components
+│   ├── 📁 blog/               # Blog-specific components
+│   └── 📁 mobile-bridge/      # Mobile app integration
+├── 📁 lib/                    # Business Logic & Services
+│   ├── 📁 firebase/           # Firebase integration layer
+│   ├── 📁 data/               # Static content & portfolio data
+│   ├── 📁 utils/              # Helper functions & utilities
+│   ├── 📁 services/           # Business logic services
+│   └── 📁 types/              # TypeScript type definitions
+├── 📁 hooks/                  # Custom React hooks
+├── 📁 contexts/               # React context providers
+├── 📁 tests/                  # Playwright E2E tests
+├── 📁 docs/                   # 📚 Comprehensive documentation
+├── 📁 scripts/                # 🔧 Build & deployment scripts
+└── 📁 public/                 # Static assets & uploads
 ```
 
-## 🚀 Getting Started
+**📖 Detailed Documentation**: See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for comprehensive architecture guide.
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+## 🚀 Quick Start
 
-2. **Run development server**:
-   ```bash
-   npm run dev
-   ```
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Firebase project (for backend services)
 
-3. **Open your browser** and navigate to [http://localhost:3000](http://localhost:3000)
+### Installation & Setup
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Install Playwright browsers for testing
+npx playwright install
+
+# 3. Environment configuration
+cp .env.example .env.local
+# Edit .env.local with your Firebase configuration
+
+# 4. Start development server  
+npm run dev
+
+# 5. Open browser at http://localhost:3000
+```
+
+### Available Scripts
+```bash
+npm run dev          # Start development server with Turbopack
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint code quality checks
+npm test             # Run Playwright E2E tests
+npm run test:ui      # Run tests in interactive UI mode
+npm run test:headed  # Run tests with visible browser
+npm run test:report  # View detailed test results
+```
 
 ## 📝 Customization
 
@@ -125,27 +192,87 @@ The website is fully responsive and tested on:
 - Desktop (1024px+)
 - Large screens (1440px+)
 
-## ⚡ Performance
+## 🧪 Comprehensive Testing
 
-- **Lighthouse Score Target**: 90+
-- **Next.js Image Optimization**: Automatic image optimization
-- **Code Splitting**: Dynamic imports for better loading
-- **Font Optimization**: Using `next/font` for optimized web fonts
+This project includes a complete testing suite with Playwright for reliable E2E testing:
 
-## 🚀 Deployment
+### Test Coverage
+- ✅ **Homepage functionality** - Navigation, hero section, responsiveness
+- ✅ **Blog system** - Post rendering, filtering, navigation
+- ✅ **Admin authentication** - Access control and security
+- ✅ **Theme switching** - Dark/light mode functionality  
+- ✅ **Mobile responsiveness** - Cross-device compatibility
+- ✅ **Performance validation** - JavaScript error detection
+- ✅ **Cross-browser testing** - Chrome, Firefox, Safari support
 
-The website can be deployed on:
-
-- **Vercel** (recommended): Push to GitHub and connect to Vercel
-- **Netlify**: Drag and drop build output or connect to GitHub
-- **GitHub Pages**: Use GitHub Actions for deployment
-
-### Build for Production
-
+### Running Tests
 ```bash
+# Run all tests
+npm test
+
+# Interactive test development and debugging
+npm run test:ui
+
+# Run tests with visible browser (helpful for debugging)
+npm run test:headed
+
+# View comprehensive test reports
+npm run test:report
+```
+
+## ⚡ Performance & Optimization
+
+- 🚀 **Lighthouse Score**: 90+ across all metrics
+- 🖼️ **Image Optimization**: Automatic WebP conversion and lazy loading
+- 📦 **Code Splitting**: Dynamic imports and route-based splitting
+- 🎨 **Font Optimization**: Optimized web fonts with `next/font`
+- 💾 **Caching**: Intelligent caching strategies for static assets
+- 📊 **Bundle Analysis**: Tree shaking and dead code elimination
+
+## 🚀 Deployment & Production
+
+### Vercel (Recommended)
+```bash
+# Connect to Vercel and deploy
+npm install -g vercel
+vercel --prod
+```
+
+### Manual Deployment
+```bash
+# Build for production
 npm run build
+
+# Start production server
 npm start
 ```
+
+### Environment Variables for Production
+Set these in your hosting platform:
+```bash
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+# ... other Firebase configuration
+```
+
+## 📚 Documentation
+
+Comprehensive documentation is available:
+
+- 📖 **[Project Structure Guide](docs/PROJECT_STRUCTURE.md)** - Detailed architecture documentation
+- 🎨 **[Admin Design System](docs/ADMIN_DESIGN_SYSTEM.md)** - UI component guidelines
+- 📧 **[Messages Setup](docs/MESSAGES_SETUP.md)** - Contact system configuration  
+- 🔧 **[Google Login Troubleshooting](docs/GOOGLE_LOGIN_TROUBLESHOOTING.md)** - Authentication issues
+
+## 🔒 Security Features
+
+- 🛡️ **Development Gate** - Access control during development phase
+- 🔐 **Firebase Authentication** - Secure user authentication and authorization
+- 🌐 **CORS Protection** - Properly configured cross-origin policies
+- 🚫 **Input Validation** - Comprehensive input sanitization and validation
+- 🔒 **Environment Security** - Secure environment variable management
+- 📊 **Security Headers** - CSP, HSTS, and other security headers
 
 ## 🤝 Contributing
 
