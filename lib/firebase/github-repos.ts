@@ -28,11 +28,13 @@ export const saveGitHubRepositories = async (repositories: GitHubRepository[]) =
   try {
     const docRef = doc(db, PORTFOLIO_COLLECTION, GITHUB_REPOS_DOC)
     
-    // Prepare data with metadata
+    // Prepare data with metadata, preserving individual repository updatedAt for admin changes
     const docData: GitHubReposDocument = {
       repositories: repositories.map(repo => ({
         ...repo,
-        updatedAt: new Date().toISOString() // Ensure updatedAt is current
+        // Keep original updatedAt if it exists (for admin settings preservation)
+        // Only update if it's a new repository without updatedAt
+        updatedAt: repo.updatedAt || new Date().toISOString()
       })),
       lastUpdated: serverTimestamp() as Timestamp,
       version: 1

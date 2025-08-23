@@ -108,9 +108,27 @@ export async function GET(request: NextRequest) {
       try {
         const firestoreData = await loadGitHubRepositories()
         if (firestoreData.success && firestoreData.repositories.length > 0) {
-          githubReposDataStore = firestoreData.repositories
+          // Preserve existing non-Firestore data if available
+          let existingRepos: { [key: string]: GitHubRepository } = {}
+          if (githubReposDataStore) {
+            githubReposDataStore.forEach(repo => {
+              existingRepos[repo.name] = repo
+            })
+          }
+          
+          // Merge Firestore data with existing data, preserving Firestore settings
+          const mergedData = firestoreData.repositories.map(firestoreRepo => {
+            const existing = existingRepos[firestoreRepo.name]
+            return existing ? {
+              ...existing, // Keep GitHub API metadata (stars, forks, etc.)
+              ...firestoreRepo, // Override with Firestore settings
+              updatedAt: firestoreRepo.updatedAt // Use Firestore update time for admin settings
+            } : firestoreRepo
+          })
+          
+          githubReposDataStore = mergedData
           lastFirestoreSync = now
-          console.log('🔄 Synced with Firestore:', firestoreData.repositories.length, 'repositories')
+          console.log('🔄 Synced with Firestore:', mergedData.length, 'repositories')
         }
       } catch (error) {
         console.warn('⚠️ Failed to sync with Firestore, continuing with cache:', error)
@@ -132,20 +150,39 @@ export async function GET(request: NextRequest) {
           const realRepos = await fetchGitHubRepositories(GITHUB_USERNAME)
           
           if (realRepos.length > 0) {
-            githubReposDataStore = realRepos
+            // Preserve existing showOnHomepage settings from Firestore/cache
+            let existingSettings: { [key: string]: { showOnHomepage: boolean; order: number } } = {}
+            
+            if (githubReposDataStore) {
+              githubReposDataStore.forEach(repo => {
+                existingSettings[repo.name] = {
+                  showOnHomepage: repo.showOnHomepage,
+                  order: repo.order
+                }
+              })
+            }
+            
+            // Apply preserved settings to new GitHub data
+            const mergedRepos = realRepos.map(repo => ({
+              ...repo,
+              showOnHomepage: existingSettings[repo.name]?.showOnHomepage ?? repo.showOnHomepage,
+              order: existingSettings[repo.name]?.order ?? repo.order
+            }))
+            
+            githubReposDataStore = mergedRepos
             lastFetchTime = now
             
             // Filter for homepage display if requested
-            let responseData = realRepos
+            let responseData = mergedRepos
             if (homepageOnly) {
-              responseData = realRepos.filter(repo => repo.showOnHomepage && repo.isActive)
+              responseData = mergedRepos.filter(repo => repo.showOnHomepage && repo.isActive)
                 .sort((a, b) => a.order - b.order)
             }
             
             return NextResponse.json({
               success: true,
               data: responseData,
-              message: `GitHub repositories retrieved successfully from API (${realRepos.length} repos)${homepageOnly ? ', filtered for homepage' : ''}`,
+              message: `GitHub repositories retrieved successfully from API (${mergedRepos.length} repos)${homepageOnly ? ', filtered for homepage' : ''}`,
               source: 'github-api',
               lastUpdated: new Date().toISOString()
             })
