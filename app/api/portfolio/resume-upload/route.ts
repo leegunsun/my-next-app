@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { storage } from '../../../../lib/firebase/config'
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db } from '../../../../lib/firebase/config'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore'
 
 export const runtime = 'nodejs'
 
@@ -180,10 +180,10 @@ export async function GET() {
       const storageRef = ref(storage, data.storagePath)
       // Test if we can still get the download URL (this will fail if file doesn't exist)
       await getDownloadURL(storageRef)
-    } catch (storageError) {
+    } catch {
       console.warn('⚠️ File exists in Firestore but not in Storage, cleaning up...')
       // Clean up Firestore record if file doesn't exist in storage
-      await currentResumeDocRef.delete()
+      await deleteDoc(currentResumeDocRef)
       return NextResponse.json({
         success: false,
         message: '등록된 이력서가 없습니다.'

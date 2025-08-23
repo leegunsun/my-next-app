@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react'
 import AdminTitle from '../../../../components/admin/AdminTitle'
-import { AboutMeData, ResumeData, WorkExperience, Education, Certification, Language } from '../../../../lib/types/portfolio'
+import { AboutMeData, ResumeData, WorkExperience, Education } from '../../../../lib/types/portfolio'
 import { CustomSelect, SelectOption } from '../../../../components/ui/select'
 import { processHtmlForGradientText } from '../../../../lib/utils'
 
@@ -22,7 +22,17 @@ export default function AboutManagementPage() {
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   
   // Resume PDF State
-  const [resumePdfInfo, setResumePdfInfo] = useState<any>(null)
+  const [resumePdfInfo, setResumePdfInfo] = useState<{
+    id?: string
+    filename?: string
+    originalName?: string
+    uploadDate?: string
+    isActive?: boolean
+    fileSize?: number
+    downloadUrl?: string
+    storagePath?: string
+    contentType?: string
+  } | null>(null)
   const [isLoadingPdf, setIsLoadingPdf] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -32,10 +42,6 @@ export default function AboutManagementPage() {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
   const [isLoadingResume, setIsLoadingResume] = useState(true)
   const [isSavingResume, setIsSavingResume] = useState(false)
-  const [editingExperience, setEditingExperience] = useState<string | null>(null)
-  const [editingEducation, setEditingEducation] = useState<string | null>(null)
-  const [editingCertification, setEditingCertification] = useState<string | null>(null)
-  const [editingLanguage, setEditingLanguage] = useState<string | null>(null)
 
   // Color options formatted for CustomSelect
   const colorOptions: SelectOption[] = [
@@ -392,7 +398,7 @@ export default function AboutManagementPage() {
     })
   }
 
-  const updateWorkExperience = (id: string, field: keyof WorkExperience, value: any) => {
+  const updateWorkExperience = (id: string, field: keyof WorkExperience, value: string | string[] | boolean | number | null) => {
     if (!resumeData) return
     
     setResumeData({
@@ -432,7 +438,7 @@ export default function AboutManagementPage() {
     })
   }
 
-  const updateEducation = (id: string, field: keyof Education, value: any) => {
+  const updateEducation = (id: string, field: keyof Education, value: string | boolean | number | null) => {
     if (!resumeData) return
     
     setResumeData({
@@ -927,10 +933,10 @@ export default function AboutManagementPage() {
                   <div>
                     <h4 className="font-medium text-lg">{resumePdfInfo.originalName}</h4>
                     <p className="text-sm text-foreground-secondary">
-                      업로드 날짜: {new Date(resumePdfInfo.uploadDate).toLocaleDateString('ko-KR')}
+                      업로드 날짜: {resumePdfInfo.uploadDate ? new Date(resumePdfInfo.uploadDate).toLocaleDateString('ko-KR') : '정보 없음'}
                     </p>
                     <p className="text-sm text-foreground-secondary">
-                      파일 크기: {(resumePdfInfo.fileSize / 1024 / 1024).toFixed(2)} MB
+                      파일 크기: {resumePdfInfo.fileSize ? (resumePdfInfo.fileSize / 1024 / 1024).toFixed(2) + ' MB' : '정보 없음'}
                     </p>
                     <p className="text-sm text-accent-success">
                       ☁️ Firebase Storage에 저장됨

@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         const firestoreData = await loadGitHubRepositories()
         if (firestoreData.success && firestoreData.repositories.length > 0) {
           // Preserve existing non-Firestore data if available
-          let existingRepos: { [key: string]: GitHubRepository } = {}
+          const existingRepos: { [key: string]: GitHubRepository } = {}
           if (githubReposDataStore) {
             githubReposDataStore.forEach(repo => {
               existingRepos[repo.name] = repo
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
           
           if (realRepos.length > 0) {
             // Preserve existing showOnHomepage settings from Firestore/cache
-            let existingSettings: { [key: string]: { showOnHomepage: boolean; order: number } } = {}
+            const existingSettings: { [key: string]: { showOnHomepage: boolean; order: number } } = {}
             
             if (githubReposDataStore) {
               githubReposDataStore.forEach(repo => {

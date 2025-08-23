@@ -38,7 +38,7 @@ export default function TestAdminStatsPage() {
                 <strong>게시물 수:</strong> {stats.loading ? '...' : stats.totalPosts}개
               </div>
               <div>
-                <strong>메시지 수:</strong> {stats.loading ? '...' : stats.totalMessages}개
+                <strong>읽지 않은 메시지 수:</strong> {stats.loading ? '...' : stats.unreadMessages}개
               </div>
               {stats.error && (
                 <div className="text-accent-error">
