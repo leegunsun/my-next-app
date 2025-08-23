@@ -12,7 +12,12 @@
     "test:headed": "playwright test --headed",
     "test:report": "playwright show-report",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
-    "fix:indexes": "node scripts/deploy-firestore-indexes.js"
+    "fix:indexes": "node scripts/deploy-firestore-indexes.js",
+    "lhci": "lhci autorun",
+    "lhci:collect": "lhci collect",
+    "lhci:assert": "lhci assert",
+    "lhci:upload": "lhci upload",
+    "perf:audit": "npm run build && lhci autorun"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -27,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@lhci/cli": "^0.15.0",
     "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
